@@ -34,6 +34,7 @@ class Arguments(
         println(elements)
 
         for (i in 0 until amount) {
+            println("Removing index $i/$amount (remaining: ${args.size})")
             args.removeAt(i)
         }
 
