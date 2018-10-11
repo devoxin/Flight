@@ -124,8 +124,13 @@ class Arguments(
         return ctx.guild?.getRoleById(id)
     }
 
-    fun resolveString(consumeRest: Boolean = false, cleanContent: Boolean = false): String {
-        return parseNextArgument(consumeRest)
+    fun resolveString(consumeRest: Boolean = false, cleanContent: Boolean = false): String? {
+        val str = parseNextArgument(consumeRest)
+        return if (str.isEmpty() || str.isBlank()) {
+            null
+        } else {
+            str
+        }
         // TODO cleanContent needs to do something
     }
 
