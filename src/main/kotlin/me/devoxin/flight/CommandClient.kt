@@ -4,6 +4,7 @@ import com.google.common.reflect.ClassPath
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.hooks.ListenerAdapter
 import org.slf4j.LoggerFactory
+import java.lang.IllegalArgumentException
 import java.lang.reflect.Modifier
 
 @Suppress("UnstableApiUsage")
