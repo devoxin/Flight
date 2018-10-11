@@ -22,6 +22,7 @@ class CommandClient(
         val classes = ClassPath.from(this.javaClass.classLoader).getTopLevelClassesRecursive(packageName)
 
         for (clazz in classes) {
+            System.out.println("Loading ${clazz.name}")
             val klass = clazz.load()
 
             if (Modifier.isAbstract(klass.modifiers) || klass.isInterface) {
@@ -47,16 +48,25 @@ class CommandClient(
             return
         }
 
+        println("hi")
+
         val prefixes = prefixProvider.provide(event.message)
+        println(prefixes)
         val trigger = prefixes.firstOrNull { event.message.contentRaw.startsWith(it) }
                 ?: return
+
+        println("triggered lol")
 
         if (trigger.length == event.message.contentRaw.length) {
             return
         }
 
+        println("hoi")
+
         val args = event.message.contentRaw.substring(0, trigger.length).split(" +".toRegex()).toMutableList()
+        println(args)
         val command = args.removeAt(0)
+        println(command)
 
         if (!commands.containsKey(command)) {
             return
