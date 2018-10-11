@@ -25,7 +25,7 @@ class Arguments(
         }
 
         val elements = args.take(amount)
-        args = args.subList(0, amount)
+        args = args.drop(amount - 1)
 
         return elements
     }
