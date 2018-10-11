@@ -8,8 +8,11 @@ public interface Command {
         return this.javaClass.getAnnotation(CommandProperties::class.java)
     }
 
-    fun commandArguments(): List<CommandArgument> {
-        return this.javaClass.getAnnotationsByType(CommandArgument::class.java).toList()
+    fun commandArguments(): List<Argument> {
+        val annotation = this.javaClass.getAnnotation(CommandArguments::class.java)
+                ?: return emptyList()
+
+        return annotation.arguments.toList()
     }
 
     fun name(): String {
