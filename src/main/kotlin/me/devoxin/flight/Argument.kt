@@ -3,7 +3,7 @@ package me.devoxin.flight
 @Repeatable
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS)
-annotation class CommandArgument(
+annotation class Argument(
         val name: String,
         val type: Arguments.ArgType,
         val greedy: Boolean = false,
