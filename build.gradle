@@ -26,6 +26,7 @@ dependencies {
     compile 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
     compile 'com.google.guava:guava:26.0-jre'
     compileOnly 'net.dv8tion:JDA:3.8.0_436'
+    api 'org.slf4j:slf4j-api:1.7.25'
 }
 
 compileKotlin {

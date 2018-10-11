@@ -1,11 +1,15 @@
 package me.devoxin.flight
 
-interface Command {
+public interface Command {
 
-    fun execute(ctx: Context)
+    fun execute(ctx: Context, args: Map<String, Any?>)
 
-    fun name(): String {
-        return this.javaClass.simpleName.toLowerCase()
+    fun commandProperties(): CommandProperties? {
+        return this.javaClass.getAnnotation(CommandProperties::class.java)
+    }
+
+    fun commandArguments(): List<CommandArgument> {
+        return this.javaClass.getAnnotationsByType(CommandArgument::class.java).toList()
     }
 
 }
