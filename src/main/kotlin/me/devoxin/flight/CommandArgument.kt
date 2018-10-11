@@ -1,7 +1,7 @@
 package me.devoxin.flight
 
 @Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.TYPE)
+@Target(AnnotationTarget.CLASS)
 annotation class CommandArgument(
         val name: String,
         val type: Arguments.ArgType,
