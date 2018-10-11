@@ -83,7 +83,7 @@ class CommandClient(
         cmd.execute(ctx, arguments)
     }
 
-    private fun parseArgs(ctx: Context, args: List<String>, cmd: Command): Map<String, Any?> {
+    private fun parseArgs(ctx: Context, args: MutableList<String>, cmd: Command): Map<String, Any?> {
         val arguments = cmd.commandArguments()
 
         if (arguments.isEmpty()) {

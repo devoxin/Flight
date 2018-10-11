@@ -8,7 +8,7 @@ import java.util.regex.Pattern
 
 class Arguments(
         private val ctx: Context,
-        private var args: List<String>
+        private var args: MutableList<String>
 ) {
 
     companion object {
@@ -24,8 +24,12 @@ class Arguments(
             throw IndexOutOfBoundsException("No more args to retrieve!")
         }
 
+        println(amount)
         val elements = args.take(amount)
-        args = args.drop(amount - 1)
+
+        for (i in 0 until amount) {
+            println(args.removeAt(i))
+        }
 
         return elements
     }
