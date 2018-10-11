@@ -24,11 +24,10 @@ class Arguments(
             throw IndexOutOfBoundsException("No more args to retrieve!")
         }
 
-        println(amount)
         val elements = args.take(amount)
 
         for (i in 0 until amount) {
-            println(args.removeAt(i))
+            args.removeAt(i)
         }
 
         return elements
