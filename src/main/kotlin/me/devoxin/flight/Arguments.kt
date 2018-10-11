@@ -7,7 +7,6 @@ import java.lang.IndexOutOfBoundsException
 import java.util.regex.Pattern
 
 class Arguments(
-        private val command: Command,
         private val ctx: Context,
         private var args: List<String>
 ) {
@@ -126,5 +125,16 @@ class Arguments(
         return parseNextArgument(consumeRest)
         // TODO cleanContent needs to do something
     }
+
+    public enum class ArgType {
+        Member,
+        MemberId,
+        Role,
+        RoleId,
+        String,
+        TextChannel,
+        TextChannelId
+    }
+
 
 }
