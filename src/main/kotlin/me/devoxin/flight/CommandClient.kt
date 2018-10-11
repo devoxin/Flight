@@ -63,7 +63,7 @@ class CommandClient(
 
         println("hoi")
 
-        val args = event.message.contentRaw.substring(0, trigger.length).trim().split(" +".toRegex()).toMutableList()
+        val args = event.message.contentRaw.substring(trigger.length).split(" +".toRegex()).toMutableList()
         println(args)
         val command = args.removeAt(0)
         println(command)
