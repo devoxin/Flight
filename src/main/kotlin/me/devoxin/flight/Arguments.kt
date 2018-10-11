@@ -20,26 +20,15 @@ class Arguments(
             return emptyList()
         }
 
-        println("-- Args --")
-        println(args)
-        println("-- Amount --")
-        println(amount)
-
         if (amount > args.size) {
             throw IndexOutOfBoundsException("No more args to retrieve!")
         }
 
         val elements = args.take(amount)
-        println("-- Elements --")
-        println(elements)
 
-        for (i in amount - 1 downTo 0) {
-            println("Removing index $i/$amount (remaining: ${args.size})")
-            args.removeAt(i)
+        for (i in 0 until amount) {
+            args.removeAt(0)
         }
-
-        println("-- Remaining --")
-        println(args)
 
         return elements
     }
