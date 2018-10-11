@@ -12,4 +12,8 @@ public interface Command {
         return this.javaClass.getAnnotationsByType(CommandArgument::class.java).toList()
     }
 
+    fun name(): String {
+        return this.javaClass.simpleName.toLowerCase()
+    }
+
 }

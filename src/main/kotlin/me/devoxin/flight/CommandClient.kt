@@ -71,7 +71,7 @@ class CommandClient(
 
         val cmd = commands[command]!!
         val ctx = Context(event, trigger)
-        var arguments = emptyMap<String, Any?>()
+        var arguments: Map<String, Any?>
 
         try {
             arguments = parseArgs(ctx, args, cmd)
