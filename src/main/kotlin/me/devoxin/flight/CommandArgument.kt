@@ -1,5 +1,6 @@
 package me.devoxin.flight
 
+@Repeatable
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS)
 annotation class CommandArgument(
