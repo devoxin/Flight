@@ -33,7 +33,7 @@ class Arguments(
         println("-- Elements --")
         println(elements)
 
-        for (i in 0 until amount) {
+        for (i in amount downTo 0) {
             println("Removing index $i/$amount (remaining: ${args.size})")
             args.removeAt(i)
         }
