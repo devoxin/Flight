@@ -3,7 +3,6 @@ package me.devoxin.flight
 import net.dv8tion.jda.core.entities.Member
 import net.dv8tion.jda.core.entities.Role
 import net.dv8tion.jda.core.entities.TextChannel
-import java.lang.IndexOutOfBoundsException
 import java.util.regex.Pattern
 
 class Arguments(
@@ -18,10 +17,6 @@ class Arguments(
     private fun getArgs(amount: Int): List<String> {
         if (args.isEmpty()) {
             return emptyList()
-        }
-
-        if (amount > args.size) {
-            throw IndexOutOfBoundsException("No more args to retrieve!")
         }
 
         val elements = args.take(amount)
@@ -88,61 +83,75 @@ class Arguments(
         return if (match.find()) match.group() else null
     }
 
-    fun resolveTextChannelId(consumeRest: Boolean = false): String? {
-        val target = parseNextArgument(consumeRest)
-        return parseSnowflake(target) ?: ctx.guild?.textChannels?.firstOrNull { it.name == target }?.id
+    fun resolveTextChannelId(arg: String): String? {
+        return parseSnowflake(arg) ?: ctx.guild?.textChannels?.firstOrNull { it.name == arg }?.id
     }
 
-    fun resolveTextChannel(consumeRest: Boolean = false): TextChannel? {
-        val id = resolveTextChannelId(consumeRest) ?: return null
+    fun resolveTextChannel(arg: String): TextChannel? {
+        val id = resolveTextChannelId(arg) ?: return null
         return ctx.guild?.getTextChannelById(id)
     }
 
-    fun resolveMemberId(consumeRest: Boolean = false): String? {
-        val target = parseNextArgument(consumeRest)
-
-        return parseSnowflake(target) ?: if (target.length > 5 && target[target.length - 5].toString() == "#") {
-            val tag = target.split("#")
+    fun resolveMemberId(arg: String): String? {
+        return parseSnowflake(arg) ?: if (arg.length > 5 && arg[arg.length - 5].toString() == "#") {
+            val tag = arg.split("#")
             ctx.guild?.members?.find { it.user.name == tag[0] && it.user.discriminator == tag[1] }?.user?.id
         } else {
-            ctx.guild?.members?.find { it.user.name == target }?.user?.id
+            ctx.guild?.members?.find { it.user.name == arg }?.user?.id
         }
     }
 
-    fun resolveMember(consumeRest: Boolean = false): Member? {
-        val id = resolveMemberId(consumeRest) ?: return null
+    fun resolveMember(arg: String): Member? {
+        val id = resolveMemberId(arg) ?: return null
         return ctx.guild?.getMemberById(id)
     }
 
-    fun resolveRoleId(consumeRest: Boolean = false): String? {
-        val target = parseNextArgument(consumeRest)
-        return parseSnowflake(target) ?: ctx.guild?.roles?.firstOrNull { it.name == target }?.id
+    fun resolveRoleId(arg: String): String? {
+        return parseSnowflake(arg) ?: ctx.guild?.roles?.firstOrNull { it.name == arg }?.id
     }
 
-    fun resolveRole(consumeRest: Boolean = false): Role? {
-        val id = resolveRoleId(consumeRest) ?: return null
+    fun resolveRole(arg: String): Role? {
+        val id = resolveRoleId(arg) ?: return null
         return ctx.guild?.getRoleById(id)
     }
 
-    fun resolveString(consumeRest: Boolean = false, cleanContent: Boolean = false): String? {
-        val str = parseNextArgument(consumeRest)
-        return if (str.isEmpty() || str.isBlank()) {
+    fun resolveString(arg: String, cleanContent: Boolean = false): String? {
+        return if (arg.isEmpty() || arg.isBlank()) {
             null
         } else {
-            str
+            arg
         }
         // TODO cleanContent needs to do something
     }
 
-    public enum class ArgType {
-        Member,
-        MemberId,
-        Role,
-        RoleId,
-        String,
-        TextChannel,
-        TextChannelId
+    fun parse(arg: Argument): Any? {
+        val argument = parseNextArgument(arg.greedy)
+
+        val result = when (arg.type) {
+            ArgType.Member -> resolveMember(argument)
+            ArgType.MemberId -> resolveMemberId(argument)
+            ArgType.Role -> resolveRole(argument)
+            ArgType.RoleId -> resolveRoleId(argument)
+            ArgType.String -> resolveString(argument)
+            ArgType.TextChannel -> resolveTextChannel(argument)
+            ArgType.TextChannelId -> resolveTextChannelId(argument)
+        }
+
+        if (result == null && arg.required) {
+            throw BadArgument(arg.name, arg.type, argument)
+        }
+
+        return result
     }
 
+}
 
+public enum class ArgType {
+    Member,
+    MemberId,
+    Role,
+    RoleId,
+    String,
+    TextChannel,
+    TextChannelId
 }

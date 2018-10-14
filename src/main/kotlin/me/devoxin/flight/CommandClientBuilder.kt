@@ -7,6 +7,7 @@ public class CommandClientBuilder {
     private var useDefaultHelpCommand: Boolean = true
     private var ignoreBots: Boolean = true
     private var prefixProvider: PrefixProvider? = null
+    private var eventListeners: MutableList<CommandClientAdapter> = mutableListOf()
 
     public fun setPrefixes(prefixes: List<String>): CommandClientBuilder {
         this.prefixes = prefixes
@@ -33,9 +34,14 @@ public class CommandClientBuilder {
         return this
     }
 
+    public fun addEventListeners(vararg listeners: CommandClientAdapter): CommandClientBuilder {
+        this.eventListeners.addAll(listeners)
+        return this
+    }
+
     public fun build(): CommandClient {
         val prefixProvider = this.prefixProvider ?: DefaultPrefixProvider(prefixes, allowMentionPrefix)
-        return CommandClient(prefixProvider, useDefaultHelpCommand, ignoreBots)
+        return CommandClient(prefixProvider, useDefaultHelpCommand, ignoreBots, eventListeners.toList())
     }
 
 }

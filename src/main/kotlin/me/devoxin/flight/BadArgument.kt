@@ -1,5 +1,7 @@
 package me.devoxin.flight
 
-import java.lang.Exception
-
-class BadArgument(msg: String) : Exception(msg)
+class BadArgument(
+        public val argumentName: String,
+        public val type: ArgType,
+        public val providedArgument: String
+) : Exception("`$argumentName` must be a `$type`")

@@ -10,7 +10,8 @@ import java.lang.reflect.Modifier
 class CommandClient(
         private val prefixProvider: PrefixProvider,
         private val useDefaultHelpCommand: Boolean,
-        private val ignoreBots: Boolean
+        private val ignoreBots: Boolean,
+        private val eventListeners: List<CommandClientAdapter>
 ) : ListenerAdapter() {
 
     private val logger = LoggerFactory.getLogger(this.javaClass)
@@ -76,11 +77,25 @@ class CommandClient(
         try {
             arguments = parseArgs(ctx, args, cmd)
         } catch (e: BadArgument) {
-            ctx.send(e.localizedMessage)
+            return eventListeners.forEach { it.onBadArgument(e) }
+        } catch (e: Throwable) {
+            return eventListeners.forEach { it.onParseError(e) }
+        }
+
+        val shouldExecute = eventListeners.all { it.onCommandPreInvoke(cmd, ctx) }
+
+        if (!shouldExecute) {
             return
         }
 
-        cmd.execute(ctx, arguments)
+        try {
+            cmd.execute(ctx, arguments)
+        } catch (e: Throwable) {
+            val commandError = CommandError(e, cmd, ctx, e.localizedMessage)
+            eventListeners.forEach { it.onCommandError(commandError) }
+        }
+
+        eventListeners.forEach { it.onCommandPostInvoke(cmd, ctx) }
     }
 
     private fun parseArgs(ctx: Context, args: MutableList<String>, cmd: Command): Map<String, Any?> {
@@ -94,23 +109,11 @@ class CommandClient(
         val parsed = mutableMapOf<String, Any?>()
 
         for (arg in arguments) {
-            val result = when (arg.type) {
-                Arguments.ArgType.Member -> parser.resolveMember(arg.greedy)
-                Arguments.ArgType.MemberId -> parser.resolveMemberId(arg.greedy)
-                Arguments.ArgType.Role -> parser.resolveRole(arg.greedy)
-                Arguments.ArgType.RoleId -> parser.resolveRoleId(arg.greedy)
-                Arguments.ArgType.String -> parser.resolveString(arg.greedy)
-                Arguments.ArgType.TextChannel -> parser.resolveTextChannel(arg.greedy)
-                Arguments.ArgType.TextChannelId -> parser.resolveTextChannelId(arg.greedy)
-            }
-
-            if (result == null && arg.required) {
-                throw BadArgument("`${arg.name}` must be of type ${arg.type}")
-            }
-
+            val result = parser.parse(arg)
             parsed[arg.name] = result
         }
 
         return parsed.toMap()
     }
+
 }
