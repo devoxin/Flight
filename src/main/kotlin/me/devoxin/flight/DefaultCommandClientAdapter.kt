@@ -1,6 +1,6 @@
 package me.devoxin.flight
 
-class DefaultCommandClientAdapter : CommandClientAdapter {
+public abstract class DefaultCommandClientAdapter : CommandClientAdapter {
 
     override fun onBadArgument(ctx: Context, error: BadArgument) {
     }
