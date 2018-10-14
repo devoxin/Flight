@@ -77,12 +77,12 @@ class CommandClient(
         try {
             arguments = parseArgs(ctx, args, cmd)
         } catch (e: BadArgument) {
-            return eventListeners.forEach { it.onBadArgument(e) }
+            return eventListeners.forEach { it.onBadArgument(ctx, e) }
         } catch (e: Throwable) {
-            return eventListeners.forEach { it.onParseError(e) }
+            return eventListeners.forEach { it.onParseError(ctx, e) }
         }
 
-        val shouldExecute = eventListeners.all { it.onCommandPreInvoke(cmd, ctx) }
+        val shouldExecute = eventListeners.all { it.onCommandPreInvoke(ctx, cmd) }
 
         if (!shouldExecute) {
             return
@@ -91,11 +91,11 @@ class CommandClient(
         try {
             cmd.execute(ctx, arguments)
         } catch (e: Throwable) {
-            val commandError = CommandError(e, cmd, ctx, e.localizedMessage)
-            eventListeners.forEach { it.onCommandError(commandError) }
+            val commandError = CommandError(e, cmd)
+            eventListeners.forEach { it.onCommandError(ctx, commandError) }
         }
 
-        eventListeners.forEach { it.onCommandPostInvoke(cmd, ctx) }
+        eventListeners.forEach { it.onCommandPostInvoke(ctx, cmd) }
     }
 
     private fun parseArgs(ctx: Context, args: MutableList<String>, cmd: Command): Map<String, Any?> {
