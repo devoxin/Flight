@@ -15,7 +15,13 @@ class CommandClient(
 ) : ListenerAdapter() {
 
     private val logger = LoggerFactory.getLogger(this.javaClass)
-    private val commands = hashMapOf<String, Command>()
+    public val commands = hashMapOf<String, Command>()
+
+    init {
+        if (this.useDefaultHelpCommand) {
+            registerCommands(DefaultHelpCommand())
+        }
+    }
 
     // +------------------+
     // | Custom Functions |
@@ -71,7 +77,14 @@ class CommandClient(
         }
 
         val cmd = commands[command]!!
-        val ctx = Context(event, trigger)
+        val ctx = Context(this, event, trigger)
+
+        val shouldExecute = eventListeners.all { it.onCommandPreInvoke(ctx, cmd) }
+
+        if (!shouldExecute) {
+            return
+        }
+
         val arguments: Map<String, Any?>
 
         try {
@@ -80,12 +93,6 @@ class CommandClient(
             return eventListeners.forEach { it.onBadArgument(ctx, e) }
         } catch (e: Throwable) {
             return eventListeners.forEach { it.onParseError(ctx, e) }
-        }
-
-        val shouldExecute = eventListeners.all { it.onCommandPreInvoke(ctx, cmd) }
-
-        if (!shouldExecute) {
-            return
         }
 
         try {
