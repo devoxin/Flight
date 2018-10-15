@@ -119,8 +119,13 @@ class Arguments(
         return if (arg.isEmpty() || arg.isBlank()) {
             null
         } else {
-            arg
+            if (cleanContent) {
+                arg.replace("@", "@\u200b") // todo: Make this a lot better
+            } else {
+                arg
+            }
         }
+
         // TODO cleanContent needs to do something
     }
 
@@ -132,6 +137,7 @@ class Arguments(
             ArgType.MemberId -> resolveMemberId(argument)
             ArgType.Role -> resolveRole(argument)
             ArgType.RoleId -> resolveRoleId(argument)
+            ArgType.CleanString -> resolveString(argument, true)
             ArgType.String -> resolveString(argument)
             ArgType.TextChannel -> resolveTextChannel(argument)
             ArgType.TextChannelId -> resolveTextChannelId(argument)
@@ -151,6 +157,7 @@ public enum class ArgType {
     MemberId,
     Role,
     RoleId,
+    CleanString,
     String,
     TextChannel,
     TextChannelId

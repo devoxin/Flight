@@ -5,6 +5,7 @@ import net.dv8tion.jda.core.entities.*
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 
 class Context(
+        public val commandClient: CommandClient,
         private val event: MessageReceivedEvent,
         public val trigger: String
 ) {
@@ -24,6 +25,14 @@ class Context(
 
     public fun send(content: String) {
         messageChannel.sendMessage(content).queue()
+    }
+
+    public fun dm(content: String) {
+        author.openPrivateChannel().queue { channel ->
+            channel.sendMessage(content)
+                    .submit()
+                    .handle { _, _ -> channel.close().queue() }
+        }
     }
 
 }
