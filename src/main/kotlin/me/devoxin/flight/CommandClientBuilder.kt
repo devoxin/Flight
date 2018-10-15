@@ -31,6 +31,14 @@ public class CommandClientBuilder {
     }
 
     /**
+     * Sets the provider used for obtaining prefixes
+     */
+    public fun setPrefixProvider(provider: PrefixProvider): CommandClientBuilder {
+        this.prefixProvider = provider
+        return this
+    }
+
+    /**
      * Whether the bot will allow mentions to be used as a prefix.
      *
      * @return The builder instance. Useful for chaining.
