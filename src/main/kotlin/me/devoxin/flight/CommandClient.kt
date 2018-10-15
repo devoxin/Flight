@@ -113,6 +113,14 @@ class CommandClient(
                     return eventListeners.forEach { it.onBotMissingPermissions(ctx, cmd, botCheck) }
                 }
             }
+
+            if (props.nsfw && !event.textChannel.isNSFW) {
+                return
+            }
+        }
+
+        if (!event.channelType.isGuild && props != null && props.guildOnly) {
+            return
         }
 
         val shouldExecute = eventListeners.all { it.onCommandPreInvoke(ctx, cmd) }
