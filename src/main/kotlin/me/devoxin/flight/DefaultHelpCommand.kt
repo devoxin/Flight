@@ -60,7 +60,10 @@ public class DefaultHelpCommand : Command {
                         .append(arg.name)
                         .append("]")
             }
+            builder.append(" ")
         }
+
+        builder.trim()
 
         val description = properties?.description ?: "No description available"
 
@@ -69,6 +72,10 @@ public class DefaultHelpCommand : Command {
                 .append("```")
 
         ctx.send(builder.toString())
+    }
+
+    override fun name(): String {
+        return "help"
     }
 
 }
