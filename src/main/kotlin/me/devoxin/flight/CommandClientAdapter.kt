@@ -1,5 +1,7 @@
 package me.devoxin.flight
 
+import net.dv8tion.jda.core.Permission
+
 public interface CommandClientAdapter {
 
     /**
@@ -28,5 +30,15 @@ public interface CommandClientAdapter {
      * Invoked when a command encounters an error during execution.
      */
     public fun onCommandError(ctx: Context, error: CommandError)
+
+    /**
+     * Invoked when a user lacks permissions to execute a command
+     */
+    public fun onUserMissingPermissions(ctx: Context, command: Command, permissions: Array<Permission>)
+
+    /**
+     * Invoked when the bot lacks permissions to execute a command
+     */
+    public fun onBotMissingPermissions(ctx: Context, command: Command, permissions: Array<Permission>)
 
 }

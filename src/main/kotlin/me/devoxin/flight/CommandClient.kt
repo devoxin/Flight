@@ -1,6 +1,10 @@
 package me.devoxin.flight
 
 import com.google.common.reflect.ClassPath
+import net.dv8tion.jda.core.Permission
+import net.dv8tion.jda.core.entities.Member
+import net.dv8tion.jda.core.entities.TextChannel
+import net.dv8tion.jda.core.events.ReadyEvent
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.hooks.ListenerAdapter
 import org.slf4j.LoggerFactory
@@ -16,6 +20,7 @@ class CommandClient(
 
     private val logger = LoggerFactory.getLogger(this.javaClass)
     public val commands = hashMapOf<String, Command>()
+    public var ownerId: Long = 0L
 
     init {
         if (this.useDefaultHelpCommand) {
@@ -56,6 +61,14 @@ class CommandClient(
     // |  Event Handling  |
     // +------------------+
 
+    override fun onReady(event: ReadyEvent) {
+        if (ownerId == 0L) {
+            event.jda.asBot().applicationInfo.queue {
+                ownerId = it.owner.idLong
+            }
+        }
+    }
+
     override fun onMessageReceived(event: MessageReceivedEvent) {
         if (ignoreBots && (event.author.isBot || event.author.isFake)) {
             return
@@ -77,6 +90,30 @@ class CommandClient(
                 ?: return
 
         val ctx = Context(this, event, trigger)
+
+        val props = cmd.commandProperties()
+
+        if (props != null && props.developerOnly && event.author.idLong != ownerId) {
+            return
+        }
+
+        if (event.channelType.isGuild && props != null) {
+            if (props.userPermissions.isNotEmpty()) {
+                val userCheck = performPermCheck(event.guild.selfMember, event.textChannel, props.userPermissions)
+
+                if (userCheck.isNotEmpty()) {
+                    return eventListeners.forEach { it.onUserMissingPermissions(ctx, cmd, userCheck) }
+                }
+            }
+
+            if (props.botPermissions.isNotEmpty()) {
+                val botCheck = performPermCheck(event.guild.selfMember, event.textChannel, props.botPermissions)
+
+                if (botCheck.isNotEmpty()) {
+                    return eventListeners.forEach { it.onBotMissingPermissions(ctx, cmd, botCheck) }
+                }
+            }
+        }
 
         val shouldExecute = eventListeners.all { it.onCommandPreInvoke(ctx, cmd) }
 
@@ -102,6 +139,15 @@ class CommandClient(
         }
 
         eventListeners.forEach { it.onCommandPostInvoke(ctx, cmd) }
+    }
+
+
+    // +-------------------+
+    // | Execution-Related |
+    // +-------------------+
+
+    private fun performPermCheck(member: Member, channel: TextChannel, permissions: Array<Permission>): Array<Permission> {
+        return permissions.filter { !member.hasPermission(channel, it) }.toTypedArray()
     }
 
     private fun parseArgs(ctx: Context, args: MutableList<String>, cmd: Command): Map<String, Any?> {
