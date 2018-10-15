@@ -72,11 +72,10 @@ class CommandClient(
         val args = event.message.contentRaw.substring(trigger.length).split(" +".toRegex()).toMutableList()
         val command = args.removeAt(0)
 
-        if (!commands.containsKey(command)) {
-            return
-        }
+        val cmd = commands[command]
+                ?: commands.values.firstOrNull { it.commandProperties() != null && it.commandProperties()!!.aliases.contains(command) }
+                ?: return
 
-        val cmd = commands[command]!!
         val ctx = Context(this, event, trigger)
 
         val shouldExecute = eventListeners.all { it.onCommandPreInvoke(ctx, cmd) }
