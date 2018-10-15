@@ -15,7 +15,7 @@ class CommandClient(
         private val prefixProvider: PrefixProvider,
         private val useDefaultHelpCommand: Boolean,
         private val ignoreBots: Boolean,
-        private val eventListeners: List<CommandClientAdapter>
+        val eventListeners: List<CommandClientAdapter>
 ) : ListenerAdapter() {
 
     private val logger = LoggerFactory.getLogger(this.javaClass)

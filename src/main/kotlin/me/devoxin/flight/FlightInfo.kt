@@ -2,6 +2,6 @@ package me.devoxin.flight
 
 object FlightInfo {
 
-    public val VERSION = "1.0.6"
+    public val VERSION = "0.0.2"
 
 }
