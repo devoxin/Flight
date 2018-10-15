@@ -62,7 +62,7 @@ class CommandClient(
         }
 
         val prefixes = prefixProvider.provide(event.message)
-        val trigger = prefixes.firstOrNull { event.message.contentRaw.startsWith(it) }
+        val trigger = prefixes.firstOrNull { event.message.contentRaw.startsWith(it) } // This will break for "?", "??", "???"
                 ?: return
 
         if (trigger.length == event.message.contentRaw.length) {
