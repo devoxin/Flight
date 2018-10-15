@@ -99,7 +99,7 @@ class CommandClient(
 
         if (event.channelType.isGuild && props != null) {
             if (props.userPermissions.isNotEmpty()) {
-                val userCheck = performPermCheck(event.guild.selfMember, event.textChannel, props.userPermissions)
+                val userCheck = performPermCheck(event.member, event.textChannel, props.userPermissions)
 
                 if (userCheck.isNotEmpty()) {
                     return eventListeners.forEach { it.onUserMissingPermissions(ctx, cmd, userCheck) }
