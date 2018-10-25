@@ -2,7 +2,7 @@
 Lightweight Command Handler+Arg Parser for JDA, using Kotlin.
 
 
-# Using Flight
+## Using Flight
 ```gradle
 repositories {
   maven { url 'https://jitpack.io' }
@@ -14,4 +14,4 @@ dependencies {
 ```
 
 
-## TODO: Example usage
+### TODO: Example usage
