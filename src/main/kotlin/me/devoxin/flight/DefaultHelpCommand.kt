@@ -42,7 +42,7 @@ public class DefaultHelpCommand : AsyncCommand() {
                 val description = cmd.commandProperties()?.description ?: "No description available"
 
                 helpMenu.append("  ")
-                        .append(cmd.name().padEnd(20, ' '))
+                        .append(cmd.name().padEnd(15, ' '))
                         .append(" ")
                         .append(truncate(description, 100))
                         .append("\n")
