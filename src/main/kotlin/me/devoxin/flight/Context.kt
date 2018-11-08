@@ -1,5 +1,6 @@
 package me.devoxin.flight
 
+import kotlinx.coroutines.future.await
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.*
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
@@ -25,6 +26,10 @@ class Context(
 
     public fun send(content: String) {
         messageChannel.sendMessage(content).queue()
+    }
+
+    public suspend fun sendAsync(content: String) {
+        messageChannel.sendMessage(content).submit().await()
     }
 
     public fun dm(content: String) {

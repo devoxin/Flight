@@ -1,10 +1,12 @@
 package me.devoxin.flight
 
+import me.devoxin.flight.utils.split
+
 @CommandProperties(aliases = ["commands"], description = "Displays bot help")
 @CommandArguments(Argument("command", ArgType.CleanString, false, false))
-public class DefaultHelpCommand : Command {
+public class DefaultHelpCommand : AsyncCommand() {
 
-    override fun execute(ctx: Context, args: Map<String, Any?>) {
+    override suspend fun executeAsync(ctx: Context, args: Map<String, Any?>) {
         val cmd = args["command"] as String?
 
         if (cmd != null) {
@@ -15,20 +17,43 @@ public class DefaultHelpCommand : Command {
 
             sendCommandHelp(ctx, command)
         } else {
-            buildHelpMenu(ctx)
+            sendHelpMenu(ctx)
         }
     }
 
-    private fun buildHelpMenu(ctx: Context) {
+    private suspend fun sendHelpMenu(ctx: Context) {
+        val categories = hashMapOf<String, HashSet<Command>>()
         val helpMenu = StringBuilder()
 
         for (command in ctx.commandClient.commands.values) {
+            val category = command.commandProperties()?.category?.toLowerCase() ?: "no category"
 
+            val list = categories.computeIfAbsent(category) {
+                hashSetOf()
+            }
+
+            list.add(command)
         }
-    }
 
-    private fun sendChunk(ctx: Context, chunk: String, success: () -> Unit, failure: () -> Unit) {
+        for (entry in categories.entries.sortedByDescending { it.key }) {
+            helpMenu.append(toTitleCase(entry.key)).append("\n")
 
+            for (cmd in entry.value) {
+                val description = cmd.commandProperties()?.description ?: "No description available"
+
+                helpMenu.append("  ")
+                        .append(cmd.name().padEnd(20, ' '))
+                        .append(" ")
+                        .append(truncate(description, 100))
+                        .append("\n")
+            }
+        }
+
+        val pages = split(helpMenu.toString().trim(), 1990)
+
+        for (page in pages) {
+            ctx.sendAsync("```\n$page```")
+        }
     }
 
     private fun sendCommandHelp(ctx: Context, command: Command) {
@@ -72,6 +97,19 @@ public class DefaultHelpCommand : Command {
                 .append("```")
 
         ctx.send(builder.toString())
+    }
+
+    private fun toTitleCase(s: String): String {
+        return s.split(" +".toRegex())
+                .joinToString(" ") { it[0].toUpperCase() + it.substring(1).toLowerCase() }
+    }
+
+    private fun truncate(s: String, maxLength: Int): String {
+        if (s.length > maxLength) {
+            return s.substring(0, maxLength - 3) + "..."
+        }
+
+        return s
     }
 
     override fun name(): String {
