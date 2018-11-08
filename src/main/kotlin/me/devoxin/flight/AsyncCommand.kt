@@ -1,7 +1,7 @@
 package me.devoxin.flight
 
-import kotlinx.coroutines.experimental.GlobalScope
-import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 
 abstract class AsyncCommand : Command {
 

@@ -1,6 +1,7 @@
 package me.devoxin.flight
 
 import kotlinx.coroutines.future.await
+import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.*
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
@@ -28,8 +29,16 @@ class Context(
         messageChannel.sendMessage(content).queue()
     }
 
-    public suspend fun sendAsync(content: String) {
-        messageChannel.sendMessage(content).submit().await()
+    public suspend fun sendAsync(content: String): Message {
+        return messageChannel.sendMessage(content).submit().await()
+    }
+
+    public fun embed(block: EmbedBuilder.() -> Unit) {
+        messageChannel.sendMessage(EmbedBuilder().apply(block).build()).queue()
+    }
+
+    public suspend fun embedAsync(block: EmbedBuilder.() -> Unit): Message {
+        return messageChannel.sendMessage(EmbedBuilder().apply(block).build()).submit().await()
     }
 
     public fun dm(content: String) {
