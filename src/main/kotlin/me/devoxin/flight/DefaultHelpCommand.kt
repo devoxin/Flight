@@ -35,10 +35,10 @@ public class DefaultHelpCommand : AsyncCommand() {
             list.add(command)
         }
 
-        for (entry in categories.entries.sortedByDescending { it.key }) {
+        for (entry in categories.entries.sortedBy { it.key }) {
             helpMenu.append(toTitleCase(entry.key)).append("\n")
 
-            for (cmd in entry.value) {
+            for (cmd in entry.value.sortedBy { it.name() }) {
                 val description = cmd.commandProperties()?.description ?: "No description available"
 
                 helpMenu.append("  ")
