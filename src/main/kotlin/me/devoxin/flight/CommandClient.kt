@@ -143,7 +143,11 @@ class CommandClient(
             cmd.execute(ctx, arguments)
         } catch (e: Throwable) {
             val commandError = CommandError(e, cmd)
-            eventListeners.forEach { it.onCommandError(ctx, commandError) }
+            val handled = cmd.onCommandError(ctx, commandError)
+
+            if (!handled) {
+                eventListeners.forEach { it.onCommandError(ctx, commandError) }
+            }
         }
 
         eventListeners.forEach { it.onCommandPostInvoke(ctx, cmd) }

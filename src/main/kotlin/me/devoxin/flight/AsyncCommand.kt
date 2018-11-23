@@ -5,6 +5,9 @@ import kotlinx.coroutines.async
 
 abstract class AsyncCommand : Command {
 
+    /**
+     * Invoked when a user calls the command.
+     */
     abstract suspend fun executeAsync(ctx: Context, args: Map<String, Any?>)
 
     final override fun execute(ctx: Context, args: Map<String, Any?>) {
