@@ -2,6 +2,7 @@ package me.devoxin.flight
 
 import me.devoxin.flight.arguments.Argument
 import me.devoxin.flight.arguments.Greedy
+import me.devoxin.flight.arguments.Name
 import me.devoxin.flight.arguments.Optional
 import java.lang.reflect.Method
 
@@ -40,7 +41,7 @@ public interface Command {
                 continue
             }
 
-            val name = p.name
+            val name = p.getAnnotation(Name::class.java)?.name ?: p.name
             val type = p.type
             val greedy = p.isAnnotationPresent(Greedy::class.java)
             val required = !p.isAnnotationPresent(Optional::class.java)
@@ -49,8 +50,6 @@ public interface Command {
                     Argument(name, type, greedy, required)
             )
         }
-
-        System.out.println("Command " + this.name() + ": " + arguments.size + " arguments")
 
         return arguments
     }
