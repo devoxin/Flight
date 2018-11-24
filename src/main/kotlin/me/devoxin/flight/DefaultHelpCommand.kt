@@ -1,13 +1,14 @@
 package me.devoxin.flight
 
 import me.devoxin.flight.annotations.Command
+import me.devoxin.flight.arguments.Name
 import me.devoxin.flight.arguments.Optional
 import me.devoxin.flight.utils.split
 
 public class No_Category {
 
     @Command(aliases = ["commands", "cmds"], description = "Displays bot help.")
-    fun help(ctx: Context, @Optional cmd: String?) {
+    fun help(ctx: Context, @Name("command") @Optional cmd: String?) {
         if (cmd != null) {
             val commands = ctx.commandClient.commands
             val command = commands[cmd]
