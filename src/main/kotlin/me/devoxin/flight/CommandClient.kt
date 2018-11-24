@@ -162,29 +162,37 @@ class CommandClient(
         }
 
         if (cmd.async) {
-            val a = GlobalScope.async {
-                cmd.executeAsync(ctx, *arguments) {
-                    handleCommandError(ctx, it)
-                }
-            }
-            a.asCompletableFuture().thenAcceptAsync {
-                System.out.println("finished running")
-            }
+            GlobalScope
+                    .async {
+                        cmd.executeAsync(ctx, *arguments) { success, err ->
+                            if (err != null) {
+                                handleCommandError(ctx, err)
+                            }
+
+                            handleCommandCompletion(ctx, cmd, !success)
+                        }
+                    }
         } else {
-            cmd.execute(ctx, *arguments) {
-                handleCommandError(ctx, it)
+            cmd.execute(ctx, *arguments) { success, err ->
+                if (err != null) {
+                    handleCommandError(ctx, err)
+                }
+
+                handleCommandCompletion(ctx, cmd, !success)
             }
         }
 
         //val handled = cmd.onCommandError(ctx, commandError) // cog.onCommandError
         //if (!handled) {
         //}
-
-        eventListeners.forEach { it.onCommandPostInvoke(ctx, cmd) }
     }
 
     private fun handleCommandError(ctx: Context, error: CommandError) {
         eventListeners.forEach { it.onCommandError(ctx, error) }
+    }
+
+    private fun handleCommandCompletion(ctx: Context, cmd: CommandWrapper, failed: Boolean) {
+        eventListeners.forEach { it.onCommandPostInvoke(ctx, cmd, failed) }
     }
 
 

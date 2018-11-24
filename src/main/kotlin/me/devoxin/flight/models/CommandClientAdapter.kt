@@ -27,8 +27,12 @@ public interface CommandClientAdapter {
 
     /**
      * Invoked after a command has executed, regardless of whether the command execution encountered an error
+     *
+     * @param ctx The command context.
+     * @param command The command that finished processing.
+     * @param failed Whether the command encountered an error or not.
      */
-    public fun onCommandPostInvoke(ctx: Context, command: CommandWrapper)
+    public fun onCommandPostInvoke(ctx: Context, command: CommandWrapper, failed: Boolean)
 
     /**
      * Invoked when a command encounters an error during execution.

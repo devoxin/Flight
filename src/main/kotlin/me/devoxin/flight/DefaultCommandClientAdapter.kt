@@ -9,7 +9,7 @@ public abstract class DefaultCommandClientAdapter : CommandClientAdapter {
 
     override fun onCommandError(ctx: Context, error: CommandError) {}
 
-    override fun onCommandPostInvoke(ctx: Context, command: CommandWrapper) {}
+    override fun onCommandPostInvoke(ctx: Context, command: CommandWrapper, failed: Boolean) {}
 
     override fun onCommandPreInvoke(ctx: Context, command: CommandWrapper) = true
 
