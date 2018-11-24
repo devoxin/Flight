@@ -6,6 +6,7 @@ import me.devoxin.flight.arguments.Greedy
 import me.devoxin.flight.arguments.Name
 import me.devoxin.flight.arguments.Optional
 import java.lang.reflect.Method
+import kotlin.coroutines.Continuation
 
 class CommandWrapper(
         val name: String,
@@ -31,7 +32,7 @@ class CommandWrapper(
         val arguments = mutableListOf<Argument>()
 
         for (p in method.parameters) {
-            if (p.type == Context::class.java) {
+            if (p.type == Context::class.java || p.type == Continuation::class.java) {
                 continue
             }
 
