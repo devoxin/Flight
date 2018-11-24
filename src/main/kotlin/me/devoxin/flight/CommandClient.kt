@@ -151,7 +151,7 @@ class CommandClient(
         System.out.println("Args: " + arguments.size)
 
         try {
-            cmd.getExecutionMethod()!!.invoke(cmd, ctx, arguments)
+            cmd.getExecutionMethod()!!.invoke(cmd, ctx, *arguments)
         } catch (e: Throwable) {
             val commandError = CommandError(e, cmd)
             val handled = cmd.onCommandError(ctx, commandError)
