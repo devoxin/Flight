@@ -22,20 +22,22 @@ class CommandWrapper(
     /**
      * Calls the related method with the given args.
      */
-    fun execute(ctx: Context, vararg additionalArgs: Any?, error: (CommandError) -> Unit) {
+    fun execute(ctx: Context, vararg additionalArgs: Any?, complete: (Boolean, CommandError?) -> Unit) {
         try {
             method.invoke(cog, ctx, *additionalArgs)
+            complete(true, null)
         } catch (e: Throwable) {
-            error(CommandError(e, this))
+            complete(false, CommandError(e, this))
         }
     }
 
-    suspend fun executeAsync(ctx: Context, vararg additionalArgs: Any?, error: (CommandError) -> Unit) {
+    suspend fun executeAsync(ctx: Context, vararg additionalArgs: Any?, complete: (Boolean, CommandError?) -> Unit) {
         suspendCoroutine<Unit> {
             try {
                 method.invoke(cog, ctx, *additionalArgs, it)
+                complete(true, null)
             } catch (e: Throwable) {
-                error(CommandError(e, this))
+                complete(false, CommandError(e, this))
             }
         }
     }
