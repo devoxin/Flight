@@ -1,7 +1,7 @@
 package me.devoxin.flight
 
 import com.google.common.reflect.ClassPath
-import me.devoxin.flight.arguments.Arguments
+import me.devoxin.flight.arguments.ArgParser
 import me.devoxin.flight.parsers.Parser
 import net.dv8tion.jda.core.Permission
 import net.dv8tion.jda.core.entities.Member
@@ -148,8 +148,6 @@ class CommandClient(
             return eventListeners.forEach { it.onParseError(ctx, e) }
         }
 
-        System.out.println("Args: " + arguments.size)
-
         try {
             cmd.getExecutionMethod()!!.invoke(cmd, ctx, *arguments)
         } catch (e: Throwable) {
@@ -180,7 +178,7 @@ class CommandClient(
             return emptyArray()
         }
 
-        val parser = Arguments(parsers, ctx, args)
+        val parser = ArgParser(parsers, ctx, args)
         val parsed = mutableListOf<Any?>()
 
         for (arg in arguments) {

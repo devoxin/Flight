@@ -9,7 +9,7 @@ import net.dv8tion.jda.core.entities.TextChannel
 import org.slf4j.LoggerFactory
 import java.util.regex.Pattern
 
-class Arguments(
+class ArgParser(
         private val parsers: HashMap<Class<*>, Parser<*>>,
         private val ctx: Context,
         private var args: MutableList<String>) {
