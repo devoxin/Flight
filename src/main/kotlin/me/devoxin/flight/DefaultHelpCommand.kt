@@ -1,5 +1,6 @@
 package me.devoxin.flight
 
+import me.devoxin.flight.annotations.Command
 import me.devoxin.flight.arguments.Optional
 import me.devoxin.flight.utils.split
 

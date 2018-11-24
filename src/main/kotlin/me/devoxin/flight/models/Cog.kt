@@ -1,4 +1,7 @@
-package me.devoxin.flight
+package me.devoxin.flight.models
+
+import me.devoxin.flight.CommandError
+import me.devoxin.flight.Context
 
 public interface Cog {
 
