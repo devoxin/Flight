@@ -27,8 +27,7 @@ class CommandClient(
 
     init {
         if (this.useDefaultHelpCommand) {
-            //registerCommands(DefaultHelpCommand())
-            registerCommands("me.devoxin.flight")
+            registerCommands(No_Category::class.java)
         }
     }
 
@@ -49,24 +48,28 @@ class CommandClient(
                 continue
             }
 
-            val instance = klass.getDeclaredConstructor().newInstance()
-            val category = klass.simpleName.replace("_", " ")
-
-            for (meth in klass.methods) {
-                if (!meth.isAnnotationPresent(Command::class.java)) {
-                    continue
-                }
-
-                val name = meth.name.toLowerCase()
-                val properties = meth.getAnnotation(Command::class.java)
-                val async = false // Later
-
-                val wrapper = CommandWrapper(name, category, properties, async, meth, instance)
-                this.commands[name] = wrapper
-            }
+            registerCommands(klass)
         }
 
         logger.info("Successfully loaded ${commands.size} commands")
+    }
+
+    public fun registerCommands(klass: Class<*>) {
+        val instance = klass.getDeclaredConstructor().newInstance()
+        val category = klass.simpleName.replace("_", " ")
+
+        for (meth in klass.methods) {
+            if (!meth.isAnnotationPresent(Command::class.java)) {
+                continue
+            }
+
+            val name = meth.name.toLowerCase()
+            val properties = meth.getAnnotation(Command::class.java)
+            val async = false // Later
+
+            val wrapper = CommandWrapper(name, category, properties, async, meth, instance)
+            this.commands[name] = wrapper
+        }
     }
 
     /*
