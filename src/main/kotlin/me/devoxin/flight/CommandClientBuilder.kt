@@ -1,8 +1,9 @@
 package me.devoxin.flight
 
-import me.devoxin.flight.parsers.IntParser
-import me.devoxin.flight.parsers.Parser
-import me.devoxin.flight.parsers.StringParser
+import me.devoxin.flight.parsers.*
+import net.dv8tion.jda.core.entities.Member
+import net.dv8tion.jda.core.entities.Role
+import net.dv8tion.jda.core.entities.TextChannel
 
 public class CommandClientBuilder {
 
@@ -100,7 +101,12 @@ public class CommandClientBuilder {
      */
     public fun registerDefaultParsers(): CommandClientBuilder {
         parsers[Int::class.java] = IntParser()
+        parsers[Member::class.java] = MemberParser()
+        parsers[Role::class.java] = RoleParser()
+        parsers[Snowflake::class.java] = SnowflakeParser()
         parsers[String::class.java] = StringParser()
+        parsers[TextChannel::class.java] = TextChannelParser()
+
         return this
     }
 

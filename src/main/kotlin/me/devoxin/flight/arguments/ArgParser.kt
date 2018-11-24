@@ -80,43 +80,6 @@ class Arguments(
         return argument.toString()
     }
 
-    private fun parseSnowflake(arg: String): String? {
-        val match = snowflakeMatch.matcher(arg)
-        return if (match.find()) match.group() else null
-    }
-
-    fun resolveTextChannelId(arg: String): String? {
-        return parseSnowflake(arg) ?: ctx.guild?.textChannels?.firstOrNull { it.name == arg }?.id
-    }
-
-    fun resolveTextChannel(arg: String): TextChannel? {
-        val id = resolveTextChannelId(arg) ?: return null
-        return ctx.guild?.getTextChannelById(id)
-    }
-
-    fun resolveMemberId(arg: String): String? {
-        return parseSnowflake(arg) ?: if (arg.length > 5 && arg[arg.length - 5].toString() == "#") {
-            val tag = arg.split("#")
-            ctx.guild?.members?.find { it.user.name == tag[0] && it.user.discriminator == tag[1] }?.user?.id
-        } else {
-            ctx.guild?.members?.find { it.user.name == arg }?.user?.id
-        }
-    }
-
-    fun resolveMember(arg: String): Member? {
-        val id = resolveMemberId(arg) ?: return null
-        return ctx.guild?.getMemberById(id)
-    }
-
-    fun resolveRoleId(arg: String): String? {
-        return parseSnowflake(arg) ?: ctx.guild?.roles?.firstOrNull { it.name == arg }?.id
-    }
-
-    fun resolveRole(arg: String): Role? {
-        val id = resolveRoleId(arg) ?: return null
-        return ctx.guild?.getRoleById(id)
-    }
-
     fun parse(arg: Argument): Any? {
         val argument = parseNextArgument(arg.greedy)
 
@@ -134,8 +97,6 @@ class Arguments(
         return result.get()
     }
 
-    companion object {
-        private val snowflakeMatch: Pattern = Pattern.compile("[0-9]{17,20}")
-    }
+
 
 }
