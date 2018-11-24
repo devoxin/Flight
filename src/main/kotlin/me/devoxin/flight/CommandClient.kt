@@ -149,7 +149,7 @@ class CommandClient(
         }
 
         try {
-            cmd.getExecutionMethod()!!.invoke(cmd::class, arguments)
+            cmd.getExecutionMethod()!!.invoke(cmd::class.java, arguments)
         } catch (e: Throwable) {
             val commandError = CommandError(e, cmd)
             val handled = cmd.onCommandError(ctx, commandError)
