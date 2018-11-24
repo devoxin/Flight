@@ -1,7 +1,12 @@
 package me.devoxin.flight
 
+import me.devoxin.flight.parsers.IntParser
+import me.devoxin.flight.parsers.Parser
+import me.devoxin.flight.parsers.StringParser
+
 public class CommandClientBuilder {
 
+    private var parsers = hashMapOf<Class<*>, Parser<*>>()
     private var prefixes: List<String> = emptyList()
     private var allowMentionPrefix: Boolean = true
     private var useDefaultHelpCommand: Boolean = true
@@ -78,6 +83,26 @@ public class CommandClientBuilder {
         return this
     }
 
+    /**
+     * Registers an argument parser to the given class.
+     *
+     * @return The builder instance. Useful for chaining.
+     */
+    public fun addCustomParser(klass: Class<*>, parser: Parser<*>): CommandClientBuilder {
+        this.parsers[klass] = parser
+        return this
+    }
+
+    /**
+     * Registers all default argument parsers.
+     *
+     * @return The builder instance. Useful for chaining.
+     */
+    public fun registerDefaultParsers(): CommandClientBuilder {
+        parsers[Int::class.java] = IntParser()
+        parsers[String::class.java] = StringParser()
+        return this
+    }
 
     /**
      * Builds a new CommandClient instance
@@ -86,7 +111,7 @@ public class CommandClientBuilder {
      */
     public fun build(): CommandClient {
         val prefixProvider = this.prefixProvider ?: DefaultPrefixProvider(prefixes, allowMentionPrefix)
-        return CommandClient(prefixProvider, useDefaultHelpCommand, ignoreBots, eventListeners.toList())
+        return CommandClient(parsers, prefixProvider, useDefaultHelpCommand, ignoreBots, eventListeners.toList())
     }
 
 }

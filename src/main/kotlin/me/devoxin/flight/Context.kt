@@ -49,4 +49,6 @@ class Context(
         }
     }
 
+    // TODO: Method to clean a string.
+
 }

@@ -1,11 +1,11 @@
 package me.devoxin.flight
 
-public interface Command {
+import me.devoxin.flight.arguments.Argument
+import me.devoxin.flight.arguments.Greedy
+import me.devoxin.flight.arguments.Optional
+import java.lang.reflect.Method
 
-    /**
-     * Invoked when a user calls the command.
-     */
-    fun execute(ctx: Context, args: Map<String, Any?>)
+public interface Command {
 
     /**
      * Invoked when an error occurs during command execution.
@@ -32,10 +32,25 @@ public interface Command {
      * @return A list of command arguments.
      */
     fun commandArguments(): List<Argument> {
-        val annotation = this.javaClass.getAnnotation(CommandArguments::class.java)
-                ?: return emptyList()
+        val method = this.getExecutionMethod() ?: return emptyList()
+        val arguments = mutableListOf<Argument>()
 
-        return annotation.arguments.toList()
+        for (p in method.parameters) {
+            if (p.type == Context::class.java) {
+                continue
+            }
+
+            val name = p.name
+            val type = p.type
+            val greedy = p.isAnnotationPresent(Greedy::class.java)
+            val required = !p.isAnnotationPresent(Optional::class.java)
+
+            arguments.add(
+                    Argument(name, type, greedy, required)
+            )
+        }
+
+        return arguments
     }
 
     /**
@@ -45,6 +60,10 @@ public interface Command {
      */
     fun name(): String {
         return this.javaClass.simpleName.toLowerCase()
+    }
+
+    fun getExecutionMethod(): Method? { // Reflection, sue me
+        return this.javaClass.methods.firstOrNull { it.name == "execute" }
     }
 
 }

@@ -1,5 +1,7 @@
 package me.devoxin.flight
 
+import me.devoxin.flight.arguments.ArgType
+import me.devoxin.flight.arguments.Argument
 import me.devoxin.flight.utils.split
 
 @CommandProperties(aliases = ["commands"], description = "Displays bot help")
