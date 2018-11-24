@@ -94,7 +94,7 @@ class Arguments(
             throw BadArgument(arg, argument)
         }
 
-        return result.get()
+        return result.orElse(null)
     }
 
 
