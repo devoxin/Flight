@@ -18,16 +18,17 @@ class CommandClient(
         private val prefixProvider: PrefixProvider,
         private val useDefaultHelpCommand: Boolean,
         private val ignoreBots: Boolean,
-        val eventListeners: List<CommandClientAdapter>
+        private val eventListeners: List<CommandClientAdapter>
 ) : ListenerAdapter() {
 
     private val logger = LoggerFactory.getLogger(this.javaClass)
-    public val commands = hashMapOf<String, Command>()
+    public val commands = hashMapOf<String, CommandWrapper>()
     public var ownerId: Long = 0L
 
     init {
         if (this.useDefaultHelpCommand) {
-            registerCommands(DefaultHelpCommand())
+            //registerCommands(DefaultHelpCommand())
+            registerCommands("me.devoxin.flight")
         }
     }
 
@@ -48,22 +49,31 @@ class CommandClient(
                 continue
             }
 
-            val command = klass.getDeclaredConstructor().newInstance() as Command
+            val instance = klass.getDeclaredConstructor().newInstance()
+            val category = klass.simpleName.replace("_", " ")
 
-            if (command.getExecutionMethod() == null) {
-                logger.warn("Command `${command.name()}` has no execution method. You may need to override `getExecutionMethod`")
-                continue
+            for (meth in klass.methods) {
+                if (!meth.isAnnotationPresent(Command::class.java)) {
+                    continue
+                }
+
+                val name = meth.name.toLowerCase()
+                val properties = meth.getAnnotation(Command::class.java)
+                val async = false // Later
+
+                val wrapper = CommandWrapper(name, category, properties, async, meth, instance)
+                this.commands[name] = wrapper
             }
-
-            this.commands[command.name()] = command
         }
 
         logger.info("Successfully loaded ${commands.size} commands")
     }
 
+    /*
     public fun registerCommands(vararg commands: Command) {
         commands.forEach { this.commands[it.name()] = it }
     }
+    */
 
 
     // +------------------+
@@ -95,18 +105,18 @@ class CommandClient(
         val command = args.removeAt(0)
 
         val cmd = commands[command]
-                ?: commands.values.firstOrNull { it.commandProperties() != null && it.commandProperties()!!.aliases.contains(command) }
+                ?: commands.values.firstOrNull { it.properties.aliases.contains(command) }
                 ?: return
 
         val ctx = Context(this, event, trigger)
 
-        val props = cmd.commandProperties()
+        val props = cmd.properties
 
-        if (props != null && props.developerOnly && event.author.idLong != ownerId) {
+        if (props.developerOnly && event.author.idLong != ownerId) {
             return
         }
 
-        if (event.channelType.isGuild && props != null) {
+        if (event.channelType.isGuild) {
             if (props.userPermissions.isNotEmpty()) {
                 val userCheck = performPermCheck(event.member, event.textChannel, props.userPermissions)
 
@@ -128,7 +138,7 @@ class CommandClient(
             }
         }
 
-        if (!event.channelType.isGuild && props != null && props.guildOnly) {
+        if (!event.channelType.isGuild && props.guildOnly) {
             return
         }
 
@@ -149,14 +159,14 @@ class CommandClient(
         }
 
         try {
-            cmd.getExecutionMethod()!!.invoke(cmd, ctx, *arguments)
+            cmd.execute(ctx, *arguments)
         } catch (e: Throwable) {
             val commandError = CommandError(e, cmd)
-            val handled = cmd.onCommandError(ctx, commandError)
+            //val handled = cmd.onCommandError(ctx, commandError) // cog.onCommandError
 
-            if (!handled) {
-                eventListeners.forEach { it.onCommandError(ctx, commandError) }
-            }
+            //if (!handled) {
+            eventListeners.forEach { it.onCommandError(ctx, commandError) }
+            //}
         }
 
         eventListeners.forEach { it.onCommandPostInvoke(ctx, cmd) }
@@ -171,7 +181,7 @@ class CommandClient(
         return permissions.filter { !member.hasPermission(channel, it) }.toTypedArray()
     }
 
-    private fun parseArgs(ctx: Context, args: MutableList<String>, cmd: Command): Array<Any?> {
+    private fun parseArgs(ctx: Context, args: MutableList<String>, cmd: CommandWrapper): Array<Any?> {
         val arguments = cmd.commandArguments()
 
         if (arguments.isEmpty()) {
