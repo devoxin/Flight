@@ -17,7 +17,7 @@ class SnowflakeParser : Parser<Long> {
     }
 
     companion object {
-        private val snowflakeMatch: Pattern = Pattern.compile("[0-9]{17,20}")
+        private val snowflakeMatch: Pattern = Pattern.compile("[0-9]{17,21}")
     }
 
 }
