@@ -7,6 +7,9 @@ import me.devoxin.flight.arguments.Name
 import me.devoxin.flight.arguments.Optional
 import java.lang.reflect.Method
 import kotlin.coroutines.Continuation
+import kotlin.coroutines.suspendCoroutine
+import kotlin.reflect.KCallable
+import kotlin.reflect.KFunction
 
 class CommandWrapper(
         val name: String,
@@ -19,8 +22,22 @@ class CommandWrapper(
     /**
      * Calls the related method with the given args.
      */
-    fun execute(ctx: Context, vararg additionalArgs: Any?) {
-        method.invoke(cog, ctx, *additionalArgs)
+    fun execute(ctx: Context, vararg additionalArgs: Any?, error: (CommandError) -> Unit) {
+        try {
+            method.invoke(cog, ctx, *additionalArgs)
+        } catch (e: Throwable) {
+            error(CommandError(e, this))
+        }
+    }
+
+    suspend fun executeAsync(ctx: Context, vararg additionalArgs: Any?, error: (CommandError) -> Unit) {
+        suspendCoroutine<Unit> {
+            try {
+                method.invoke(cog, ctx, *additionalArgs, it)
+            } catch (e: Throwable) {
+                error(CommandError(e, this))
+            }
+        }
     }
 
     /**

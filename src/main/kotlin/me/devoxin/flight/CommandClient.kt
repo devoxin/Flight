@@ -163,20 +163,16 @@ class CommandClient(
 
         if (cmd.async) {
             val a = GlobalScope.async {
-                try {
-                    cmd.execute(ctx, *arguments)
-                } catch (e: Throwable) {
-                    handleCommandError(ctx, CommandError(e, cmd))
+                cmd.executeAsync(ctx, *arguments) {
+                    handleCommandError(ctx, it)
                 }
             }
             a.asCompletableFuture().thenAcceptAsync {
                 System.out.println("finished running")
             }
         } else {
-            try {
-                cmd.execute(ctx, *arguments)
-            } catch (e: Throwable) {
-                handleCommandError(ctx, CommandError(e, cmd))
+            cmd.execute(ctx, *arguments) {
+                handleCommandError(ctx, it)
             }
         }
 
