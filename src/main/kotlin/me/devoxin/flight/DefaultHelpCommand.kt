@@ -1,16 +1,12 @@
 package me.devoxin.flight
 
-import me.devoxin.flight.arguments.ArgType
-import me.devoxin.flight.arguments.Argument
+import me.devoxin.flight.arguments.Optional
 import me.devoxin.flight.utils.split
 
 @CommandProperties(aliases = ["commands"], description = "Displays bot help")
-@CommandArguments(Argument("command", ArgType.CleanString, false, false))
-public class DefaultHelpCommand : AsyncCommand() {
+public class DefaultHelpCommand : Command {
 
-    override suspend fun executeAsync(ctx: Context, args: Map<String, Any?>) {
-        val cmd = args["command"] as String?
-
+    fun execute(ctx: Context, @Optional cmd: String?) {
         if (cmd != null) {
             val commands = ctx.commandClient.commands
             val command = commands[cmd]
@@ -23,7 +19,7 @@ public class DefaultHelpCommand : AsyncCommand() {
         }
     }
 
-    private suspend fun sendHelpMenu(ctx: Context) {
+    private fun sendHelpMenu(ctx: Context) {
         val categories = hashMapOf<String, HashSet<Command>>()
         val helpMenu = StringBuilder()
 
@@ -54,7 +50,8 @@ public class DefaultHelpCommand : AsyncCommand() {
         val pages = split(helpMenu.toString().trim(), 1990)
 
         for (page in pages) {
-            ctx.sendAsync("```\n$page```")
+            ctx.send("```\n$page```")
+            // TODO: MAKE ASYNC
         }
     }
 
