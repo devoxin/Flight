@@ -1,7 +1,14 @@
 package me.devoxin.flight
 
 import com.google.common.reflect.ClassPath
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.future.asCompletableFuture
+import me.devoxin.flight.annotations.Async
+import me.devoxin.flight.annotations.Command
 import me.devoxin.flight.arguments.ArgParser
+import me.devoxin.flight.models.CommandClientAdapter
+import me.devoxin.flight.models.PrefixProvider
 import me.devoxin.flight.parsers.Parser
 import net.dv8tion.jda.core.Permission
 import net.dv8tion.jda.core.entities.Member
@@ -65,19 +72,12 @@ class CommandClient(
 
             val name = meth.name.toLowerCase()
             val properties = meth.getAnnotation(Command::class.java)
-            val async = false // Later
+            val async = meth.isAnnotationPresent(Async::class.java)
 
             val wrapper = CommandWrapper(name, category, properties, async, meth, instance)
             this.commands[name] = wrapper
         }
     }
-
-    /*
-    public fun registerCommands(vararg commands: Command) {
-        commands.forEach { this.commands[it.name()] = it }
-    }
-    */
-
 
     // +------------------+
     // |  Event Handling  |
@@ -161,18 +161,34 @@ class CommandClient(
             return eventListeners.forEach { it.onParseError(ctx, e) }
         }
 
-        try {
-            cmd.execute(ctx, *arguments)
-        } catch (e: Throwable) {
-            val commandError = CommandError(e, cmd)
-            //val handled = cmd.onCommandError(ctx, commandError) // cog.onCommandError
-
-            //if (!handled) {
-            eventListeners.forEach { it.onCommandError(ctx, commandError) }
-            //}
+        if (cmd.async) {
+            val a = GlobalScope.async {
+                try {
+                    cmd.execute(ctx, *arguments)
+                } catch (e: Throwable) {
+                    handleCommandError(ctx, CommandError(e, cmd))
+                }
+            }
+            a.asCompletableFuture().thenAcceptAsync {
+                System.out.println("finished running")
+            }
+        } else {
+            try {
+                cmd.execute(ctx, *arguments)
+            } catch (e: Throwable) {
+                handleCommandError(ctx, CommandError(e, cmd))
+            }
         }
 
+        //val handled = cmd.onCommandError(ctx, commandError) // cog.onCommandError
+        //if (!handled) {
+        //}
+
         eventListeners.forEach { it.onCommandPostInvoke(ctx, cmd) }
+    }
+
+    private fun handleCommandError(ctx: Context, error: CommandError) {
+        eventListeners.forEach { it.onCommandError(ctx, error) }
     }
 
 

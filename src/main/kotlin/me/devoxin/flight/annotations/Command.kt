@@ -1,4 +1,4 @@
-package me.devoxin.flight
+package me.devoxin.flight.annotations
 
 import net.dv8tion.jda.core.Permission
 
