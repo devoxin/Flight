@@ -3,14 +3,14 @@ package me.devoxin.flight
 import me.devoxin.flight.arguments.Optional
 import me.devoxin.flight.utils.split
 
-@CommandProperties(aliases = ["commands"], description = "Displays bot help")
-public class DefaultHelpCommand : Command {
+public class No_Category {
 
-    fun execute(ctx: Context, @Optional cmd: String?) {
+    @Command(aliases = ["commands", "cmds"], description = "Displays bot help.")
+    fun help(ctx: Context, @Optional cmd: String?) {
         if (cmd != null) {
             val commands = ctx.commandClient.commands
             val command = commands[cmd]
-                    ?: commands.values.firstOrNull { it.commandProperties() != null && it.commandProperties()!!.aliases.contains(cmd) }
+                    ?: commands.values.firstOrNull { it.properties.aliases.contains(cmd) }
                     ?: return ctx.send("No commands matching `$cmd` found.")
 
             sendCommandHelp(ctx, command)
@@ -20,11 +20,11 @@ public class DefaultHelpCommand : Command {
     }
 
     private fun sendHelpMenu(ctx: Context) {
-        val categories = hashMapOf<String, HashSet<Command>>()
+        val categories = hashMapOf<String, HashSet<CommandWrapper>>()
         val helpMenu = StringBuilder()
 
         for (command in ctx.commandClient.commands.values) {
-            val category = command.commandProperties()?.category?.toLowerCase() ?: "no category"
+            val category = command.category.toLowerCase()
 
             val list = categories.computeIfAbsent(category) {
                 hashSetOf()
@@ -36,11 +36,11 @@ public class DefaultHelpCommand : Command {
         for (entry in categories.entries.sortedBy { it.key }) {
             helpMenu.append(toTitleCase(entry.key)).append("\n")
 
-            for (cmd in entry.value.sortedBy { it.name() }) {
-                val description = cmd.commandProperties()?.description ?: "No description available"
+            for (cmd in entry.value.sortedBy { it.name }) {
+                val description = cmd.properties.description
 
                 helpMenu.append("  ")
-                        .append(cmd.name().padEnd(15, ' '))
+                        .append(cmd.name.padEnd(15, ' '))
                         .append(" ")
                         .append(truncate(description, 100))
                         .append("\n")
@@ -55,20 +55,20 @@ public class DefaultHelpCommand : Command {
         }
     }
 
-    private fun sendCommandHelp(ctx: Context, command: Command) {
+    private fun sendCommandHelp(ctx: Context, command: CommandWrapper) {
         val builder = StringBuilder("```\n")
 
         builder.append(ctx.trigger) // todo: resolve mention prefixes as @Username
 
-        val properties = command.commandProperties()
+        val properties = command.properties
 
-        if (properties != null && properties.aliases.isNotEmpty()) {
+        if (properties.aliases.isNotEmpty()) {
             builder.append("[")
-                    .append(command.name())
+                    .append(command.name)
                     .append(properties.aliases.joinToString("|", prefix = "|"))
                     .append("] ")
         } else {
-            builder.append(command.name())
+            builder.append(command.name)
                     .append(" ")
         }
 
@@ -89,7 +89,7 @@ public class DefaultHelpCommand : Command {
 
         builder.trim()
 
-        val description = properties?.description ?: "No description available"
+        val description = properties.description
 
         builder.append("\n\n")
                 .append(description)
@@ -109,10 +109,6 @@ public class DefaultHelpCommand : Command {
         }
 
         return s
-    }
-
-    override fun name(): String {
-        return "help"
     }
 
 }

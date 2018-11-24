@@ -25,8 +25,8 @@ class Context(
     public val messageChannel: MessageChannel = event.channel
 
 
-    public fun send(content: String) {
-        messageChannel.sendMessage(content).queue()
+    public fun send(content: String, callback: ((Message) -> Unit)? = null) {
+        messageChannel.sendMessage(content).queue(callback)
     }
 
     public suspend fun sendAsync(content: String): Message {

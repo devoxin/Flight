@@ -2,4 +2,4 @@ package me.devoxin.flight.arguments
 
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.VALUE_PARAMETER)
-public annotation class Optional {}
+public annotation class Optional

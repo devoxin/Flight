@@ -19,12 +19,12 @@ public interface CommandClientAdapter {
      *
      * @return True, if the command should still be executed
      */
-    public fun onCommandPreInvoke(ctx: Context, command: Command): Boolean
+    public fun onCommandPreInvoke(ctx: Context, command: CommandWrapper): Boolean
 
     /**
      * Invoked after a command has executed, regardless of whether the command execution encountered an error
      */
-    public fun onCommandPostInvoke(ctx: Context, command: Command)
+    public fun onCommandPostInvoke(ctx: Context, command: CommandWrapper)
 
     /**
      * Invoked when a command encounters an error during execution.
@@ -34,11 +34,11 @@ public interface CommandClientAdapter {
     /**
      * Invoked when a user lacks permissions to execute a command
      */
-    public fun onUserMissingPermissions(ctx: Context, command: Command, permissions: Array<Permission>)
+    public fun onUserMissingPermissions(ctx: Context, command: CommandWrapper, permissions: Array<Permission>)
 
     /**
      * Invoked when the bot lacks permissions to execute a command
      */
-    public fun onBotMissingPermissions(ctx: Context, command: Command, permissions: Array<Permission>)
+    public fun onBotMissingPermissions(ctx: Context, command: CommandWrapper, permissions: Array<Permission>)
 
 }
