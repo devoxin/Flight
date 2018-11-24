@@ -91,7 +91,7 @@ class Arguments(
         val result = parsers[arg.type]!!.parse(ctx, argument)
 
         if (!result.isPresent && arg.required) {
-            throw BadArgument(arg.name, arg.type, argument)
+            throw BadArgument(arg, argument)
         }
 
         return result.get()
