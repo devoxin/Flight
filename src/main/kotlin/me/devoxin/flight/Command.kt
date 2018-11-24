@@ -65,7 +65,7 @@ public interface Command {
     }
 
     fun getExecutionMethod(): Method? { // Reflection, sue me
-        return this.javaClass.methods.firstOrNull { it.name == "execute" }
+        return this::class.java.methods.firstOrNull { it.name == "execute" }
     }
 
 }

@@ -151,7 +151,7 @@ class CommandClient(
         System.out.println("Args: " + arguments.size)
 
         try {
-            cmd.getExecutionMethod()!!.invoke(cmd, arguments)
+            cmd.getExecutionMethod()!!.invoke(cmd, ctx, arguments)
         } catch (e: Throwable) {
             val commandError = CommandError(e, cmd)
             val handled = cmd.onCommandError(ctx, commandError)
@@ -182,8 +182,6 @@ class CommandClient(
 
         val parser = Arguments(parsers, ctx, args)
         val parsed = mutableListOf<Any?>()
-
-        parsed.add(ctx) // Context will always be the first argument
 
         for (arg in arguments) {
             parsed.add(parser.parse(arg))
