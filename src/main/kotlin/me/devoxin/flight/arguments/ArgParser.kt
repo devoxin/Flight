@@ -1,18 +1,20 @@
-package me.devoxin.flight
+package me.devoxin.flight.arguments
 
+import me.devoxin.flight.BadArgument
+import me.devoxin.flight.Context
+import me.devoxin.flight.parsers.Parser
 import net.dv8tion.jda.core.entities.Member
 import net.dv8tion.jda.core.entities.Role
 import net.dv8tion.jda.core.entities.TextChannel
+import org.slf4j.LoggerFactory
 import java.util.regex.Pattern
 
 class Arguments(
+        private val parsers: HashMap<Class<*>, Parser<*>>,
         private val ctx: Context,
-        private var args: MutableList<String>
-) {
+        private var args: MutableList<String>) {
 
-    companion object {
-        private val snowflakeMatch: Pattern = Pattern.compile("[0-9]{17,20}")
-    }
+    private val logger = LoggerFactory.getLogger(this.javaClass)
 
     private fun getArgs(amount: Int): List<String> {
         if (args.isEmpty()) {
@@ -115,50 +117,25 @@ class Arguments(
         return ctx.guild?.getRoleById(id)
     }
 
-    fun resolveString(arg: String, cleanContent: Boolean = false): String? {
-        return if (arg.isEmpty() || arg.isBlank()) {
-            null
-        } else {
-            if (cleanContent) {
-                arg.replace("@", "@\u200b") // todo: Make this a lot better
-            } else {
-                arg
-            }
-        }
-
-        // TODO cleanContent needs to do something
-    }
-
     fun parse(arg: Argument): Any? {
         val argument = parseNextArgument(arg.greedy)
 
-        val result = when (arg.type) {
-            ArgType.Member -> resolveMember(argument)
-            ArgType.MemberId -> resolveMemberId(argument)
-            ArgType.Role -> resolveRole(argument)
-            ArgType.RoleId -> resolveRoleId(argument)
-            ArgType.CleanString -> resolveString(argument, true)
-            ArgType.String -> resolveString(argument)
-            ArgType.TextChannel -> resolveTextChannel(argument)
-            ArgType.TextChannelId -> resolveTextChannelId(argument)
+        if (!parsers.containsKey(arg.type)) {
+            logger.error("No parsers registered for `${arg.type}`")
+            return null
         }
 
-        if (result == null && arg.required) {
+        val result = parsers[arg.type]!!.parse(ctx, argument)
+
+        if (!result.isPresent && arg.required) {
             throw BadArgument(arg.name, arg.type, argument)
         }
 
-        return result
+        return result.get()
     }
 
-}
+    companion object {
+        private val snowflakeMatch: Pattern = Pattern.compile("[0-9]{17,20}")
+    }
 
-public enum class ArgType {
-    Member,
-    MemberId,
-    Role,
-    RoleId,
-    CleanString,
-    String,
-    TextChannel,
-    TextChannelId
 }

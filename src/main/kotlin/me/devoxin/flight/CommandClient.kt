@@ -1,6 +1,8 @@
 package me.devoxin.flight
 
 import com.google.common.reflect.ClassPath
+import me.devoxin.flight.arguments.Arguments
+import me.devoxin.flight.parsers.Parser
 import net.dv8tion.jda.core.Permission
 import net.dv8tion.jda.core.entities.Member
 import net.dv8tion.jda.core.entities.TextChannel
@@ -12,6 +14,7 @@ import java.lang.reflect.Modifier
 
 @Suppress("UnstableApiUsage")
 class CommandClient(
+        private val parsers: HashMap<Class<*>, Parser<*>>,
         private val prefixProvider: PrefixProvider,
         private val useDefaultHelpCommand: Boolean,
         private val ignoreBots: Boolean,
@@ -46,6 +49,12 @@ class CommandClient(
             }
 
             val command = klass.getDeclaredConstructor().newInstance() as Command
+
+            if (command.getExecutionMethod() == null) {
+                logger.warn("Command `${command.name()}` has no execution method. You may need to override `getExecutionMethod`")
+                continue
+            }
+
             this.commands[command.name()] = command
         }
 
@@ -129,7 +138,7 @@ class CommandClient(
             return
         }
 
-        val arguments: Map<String, Any?>
+        val arguments: Array<Any?>
 
         try {
             arguments = parseArgs(ctx, args, cmd)
@@ -140,7 +149,7 @@ class CommandClient(
         }
 
         try {
-            cmd.execute(ctx, arguments)
+            cmd.getExecutionMethod()!!.invoke(cmd.javaClass, ctx, arguments)
         } catch (e: Throwable) {
             val commandError = CommandError(e, cmd)
             val handled = cmd.onCommandError(ctx, commandError)
@@ -162,22 +171,21 @@ class CommandClient(
         return permissions.filter { !member.hasPermission(channel, it) }.toTypedArray()
     }
 
-    private fun parseArgs(ctx: Context, args: MutableList<String>, cmd: Command): Map<String, Any?> {
+    private fun parseArgs(ctx: Context, args: MutableList<String>, cmd: Command): Array<Any?> {
         val arguments = cmd.commandArguments()
 
         if (arguments.isEmpty()) {
-            return emptyMap()
+            return emptyArray()
         }
 
-        val parser = Arguments(ctx, args)
-        val parsed = mutableMapOf<String, Any?>()
+        val parser = Arguments(parsers, ctx, args)
+        val parsed = mutableListOf<Any?>()
 
         for (arg in arguments) {
-            val result = parser.parse(arg)
-            parsed[arg.name] = result
+            parsed.add(parser.parse(arg))
         }
 
-        return parsed.toMap()
+        return parsed.toTypedArray()
     }
 
 }
