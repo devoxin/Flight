@@ -1,7 +1,8 @@
 package me.devoxin.flight
 
+import me.devoxin.flight.arguments.Argument
+
 class BadArgument(
-        public val argumentName: String,
-        public val type: ArgType,
+        public val argument: Argument,
         public val providedArgument: String
-) : Exception("`$argumentName` must be a `$type`")
+) : Exception("`${argument.name}` must be a `${argument.type.simpleName}`")

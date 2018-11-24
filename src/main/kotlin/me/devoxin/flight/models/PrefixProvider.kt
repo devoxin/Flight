@@ -1,4 +1,4 @@
-package me.devoxin.flight
+package me.devoxin.flight.models
 
 import net.dv8tion.jda.core.entities.Message
 

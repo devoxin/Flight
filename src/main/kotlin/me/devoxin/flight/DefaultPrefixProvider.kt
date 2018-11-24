@@ -1,5 +1,6 @@
 package me.devoxin.flight
 
+import me.devoxin.flight.models.PrefixProvider
 import net.dv8tion.jda.core.entities.Message
 
 class DefaultPrefixProvider(

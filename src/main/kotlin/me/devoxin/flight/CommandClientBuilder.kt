@@ -1,7 +1,16 @@
 package me.devoxin.flight
 
+import me.devoxin.flight.arguments.Snowflake
+import me.devoxin.flight.models.CommandClientAdapter
+import me.devoxin.flight.models.PrefixProvider
+import me.devoxin.flight.parsers.*
+import net.dv8tion.jda.core.entities.Member
+import net.dv8tion.jda.core.entities.Role
+import net.dv8tion.jda.core.entities.TextChannel
+
 public class CommandClientBuilder {
 
+    private var parsers = hashMapOf<Class<*>, Parser<*>>()
     private var prefixes: List<String> = emptyList()
     private var allowMentionPrefix: Boolean = true
     private var useDefaultHelpCommand: Boolean = true
@@ -78,6 +87,31 @@ public class CommandClientBuilder {
         return this
     }
 
+    /**
+     * Registers an argument parser to the given class.
+     *
+     * @return The builder instance. Useful for chaining.
+     */
+    public fun addCustomParser(klass: Class<*>, parser: Parser<*>): CommandClientBuilder {
+        this.parsers[klass] = parser
+        return this
+    }
+
+    /**
+     * Registers all default argument parsers.
+     *
+     * @return The builder instance. Useful for chaining.
+     */
+    public fun registerDefaultParsers(): CommandClientBuilder {
+        parsers[Int::class.java] = IntParser()
+        parsers[Member::class.java] = MemberParser()
+        parsers[Role::class.java] = RoleParser()
+        parsers[Snowflake::class.java] = SnowflakeParser()
+        parsers[String::class.java] = StringParser()
+        parsers[TextChannel::class.java] = TextChannelParser()
+
+        return this
+    }
 
     /**
      * Builds a new CommandClient instance
@@ -86,7 +120,7 @@ public class CommandClientBuilder {
      */
     public fun build(): CommandClient {
         val prefixProvider = this.prefixProvider ?: DefaultPrefixProvider(prefixes, allowMentionPrefix)
-        return CommandClient(prefixProvider, useDefaultHelpCommand, ignoreBots, eventListeners.toList())
+        return CommandClient(parsers, prefixProvider, useDefaultHelpCommand, ignoreBots, eventListeners.toList())
     }
 
 }
