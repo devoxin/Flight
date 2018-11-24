@@ -50,6 +50,8 @@ public interface Command {
             )
         }
 
+        System.out.println("Command " + this.name() + ": " + arguments.size + " arguments")
+
         return arguments
     }
 

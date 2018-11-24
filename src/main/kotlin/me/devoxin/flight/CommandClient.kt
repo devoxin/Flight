@@ -148,6 +148,8 @@ class CommandClient(
             return eventListeners.forEach { it.onParseError(ctx, e) }
         }
 
+        System.out.println("Args: " + arguments.size)
+
         try {
             cmd.getExecutionMethod()!!.invoke(cmd, arguments)
         } catch (e: Throwable) {
