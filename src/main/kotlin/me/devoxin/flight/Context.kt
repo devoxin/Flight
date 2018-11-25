@@ -1,6 +1,7 @@
 package me.devoxin.flight
 
 import kotlinx.coroutines.future.await
+import me.devoxin.flight.models.Attachment
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.entities.*
@@ -9,8 +10,7 @@ import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 class Context(
         public val commandClient: CommandClient,
         private val event: MessageReceivedEvent,
-        public val trigger: String
-) {
+        public val trigger: String) {
 
     public val jda: JDA = event.jda
     public val message: Message = event.message
@@ -29,16 +29,12 @@ class Context(
         messageChannel.sendMessage(content).queue(callback)
     }
 
-    public suspend fun sendAsync(content: String): Message {
-        return messageChannel.sendMessage(content).submit().await()
+    public fun upload(attachment: Attachment) {
+        messageChannel.sendFile(attachment.stream, attachment.filename).queue()
     }
 
     public fun embed(block: EmbedBuilder.() -> Unit) {
         messageChannel.sendMessage(EmbedBuilder().apply(block).build()).queue()
-    }
-
-    public suspend fun embedAsync(block: EmbedBuilder.() -> Unit): Message {
-        return messageChannel.sendMessage(EmbedBuilder().apply(block).build()).submit().await()
     }
 
     public fun dm(content: String) {
@@ -47,6 +43,14 @@ class Context(
                     .submit()
                     .handle { _, _ -> channel.close().queue() }
         }
+    }
+
+    public suspend fun sendAsync(content: String): Message {
+        return messageChannel.sendMessage(content).submit().await()
+    }
+
+    public suspend fun embedAsync(block: EmbedBuilder.() -> Unit): Message {
+        return messageChannel.sendMessage(EmbedBuilder().apply(block).build()).submit().await()
     }
 
     // TODO: Method to clean a string.

@@ -151,6 +151,7 @@ class CommandClient(
         }
 
         val shouldExecute = eventListeners.all { it.onCommandPreInvoke(ctx, cmd) }
+                && cmd.cog.localCheck(ctx, cmd)
 
         if (!shouldExecute) {
             return
