@@ -27,21 +27,19 @@ class CommandClient(
         private val useDefaultHelpCommand: Boolean,
         private val ignoreBots: Boolean,
         private val eventListeners: List<CommandClientAdapter>,
-        private val customOwnerIds: Set<Long>
+        private val customOwnerIds: MutableSet<Long>?
 ) : ListenerAdapter() {
 
     private val logger = LoggerFactory.getLogger(this.javaClass)
     public val commands = hashMapOf<String, CommandWrapper>()
-    public var ownerIds = setOf<Long>()
+    public var ownerIds: MutableSet<Long>
 
     init {
         if (this.useDefaultHelpCommand) {
             registerCommands(NoCategory::class.java)
         }
 
-        if (ownerIds.isNotEmpty()) {
-            ownerIds = customOwnerIds
-        }
+        ownerIds = customOwnerIds ?: mutableSetOf()
     }
 
     // +------------------+
@@ -95,8 +93,9 @@ class CommandClient(
 
     override fun onReady(event: ReadyEvent) {
         if (ownerIds.isEmpty()) {
+            System.out.println("Owner IDs is empty, adding application owner!")
             event.jda.asBot().applicationInfo.queue {
-                ownerIds = setOf(it.owner.idLong)
+                ownerIds.add(it.owner.idLong)
             }
         }
     }

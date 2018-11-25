@@ -18,7 +18,7 @@ public class CommandClientBuilder {
     private var ignoreBots: Boolean = true
     private var prefixProvider: PrefixProvider? = null
     private var eventListeners: MutableList<CommandClientAdapter> = mutableListOf()
-    private var ownerIds = setOf<Long>()
+    private var ownerIds: MutableSet<Long>? = null
 
 
     /**
@@ -87,6 +87,7 @@ public class CommandClientBuilder {
      */
     public fun setOwnerIds(vararg ids: Long): CommandClientBuilder {
         this.ownerIds = setOf(*ids.toTypedArray())
+        println(ownerIds)
         return this
     }
 
