@@ -52,7 +52,7 @@ class CommandClient(
         for (clazz in classes) {
             val klass = clazz.load()
 
-            if (Modifier.isAbstract(klass.modifiers) || klass.isInterface || !klass.isAssignableFrom(Cog::class.java)) {
+            if (Modifier.isAbstract(klass.modifiers) || klass.isInterface || !Cog::class.java.isAssignableFrom(klass)) {
                 continue
             }
 
@@ -63,7 +63,7 @@ class CommandClient(
     }
 
     public fun registerCommands(klass: Class<*>) {
-        if (!klass.isAssignableFrom(Cog::class.java)) {
+        if (!Cog::class.java.isAssignableFrom(klass)) {
             throw IllegalArgumentException("${klass.simpleName} must implement `Cog`!")
         }
 
