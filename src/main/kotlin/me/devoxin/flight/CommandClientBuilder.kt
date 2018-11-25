@@ -18,6 +18,7 @@ public class CommandClientBuilder {
     private var ignoreBots: Boolean = true
     private var prefixProvider: PrefixProvider? = null
     private var eventListeners: MutableList<CommandClientAdapter> = mutableListOf()
+    private var ownerIds = setOf<Long>()
 
 
     /**
@@ -79,6 +80,28 @@ public class CommandClientBuilder {
     }
 
     /**
+     * Uses the given list of IDs as the owners. Any users with the given IDs
+     * are then able to use commands marked with `developerOnly`.
+     *
+     * @return The builder instance. Useful for chaining.
+     */
+    public fun setOwnerIds(vararg ids: Long): CommandClientBuilder {
+        this.ownerIds = setOf(*ids.toTypedArray())
+        return this
+    }
+
+    /**
+     * Uses the given list of IDs as the owners. Any users with the given IDs
+     * are then able to use commands marked with `developerOnly`.
+     *
+     * @return The builder instance. Useful for chaining.
+     */
+    public fun setOwnerIds(vararg ids: String): CommandClientBuilder {
+        this.ownerIds = setOf(*ids.map { it.toLong() }.toTypedArray())
+        return this
+    }
+
+    /**
      * Registers the provided listeners to make use of hooks
      *
      * @return The builder instance. Useful for chaining.
@@ -129,7 +152,7 @@ public class CommandClientBuilder {
      */
     public fun build(): CommandClient {
         val prefixProvider = this.prefixProvider ?: DefaultPrefixProvider(prefixes, allowMentionPrefix)
-        return CommandClient(parsers, prefixProvider, useDefaultHelpCommand, ignoreBots, eventListeners.toList())
+        return CommandClient(parsers, prefixProvider, useDefaultHelpCommand, ignoreBots, eventListeners.toList(), ownerIds)
     }
 
 }

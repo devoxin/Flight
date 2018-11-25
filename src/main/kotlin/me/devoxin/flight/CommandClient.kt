@@ -26,16 +26,21 @@ class CommandClient(
         private val prefixProvider: PrefixProvider,
         private val useDefaultHelpCommand: Boolean,
         private val ignoreBots: Boolean,
-        private val eventListeners: List<CommandClientAdapter>
+        private val eventListeners: List<CommandClientAdapter>,
+        private val customOwnerIds: Set<Long>
 ) : ListenerAdapter() {
 
     private val logger = LoggerFactory.getLogger(this.javaClass)
     public val commands = hashMapOf<String, CommandWrapper>()
-    public var ownerId: Long = 0L
+    public var ownerIds = setOf<Long>()
 
     init {
         if (this.useDefaultHelpCommand) {
             registerCommands(NoCategory::class.java)
+        }
+
+        if (ownerIds.isNotEmpty()) {
+            ownerIds = customOwnerIds
         }
     }
 
@@ -89,9 +94,9 @@ class CommandClient(
     // +------------------+
 
     override fun onReady(event: ReadyEvent) {
-        if (ownerId == 0L) {
+        if (ownerIds.isEmpty()) {
             event.jda.asBot().applicationInfo.queue {
-                ownerId = it.owner.idLong
+                ownerIds = setOf(it.owner.idLong)
             }
         }
     }
@@ -120,7 +125,7 @@ class CommandClient(
 
         val props = cmd.properties
 
-        if (props.developerOnly && event.author.idLong != ownerId) {
+        if (props.developerOnly && ownerIds.contains(event.author.idLong)) {
             return
         }
 
