@@ -87,7 +87,6 @@ public class CommandClientBuilder {
      */
     public fun setOwnerIds(vararg ids: Long): CommandClientBuilder {
         this.ownerIds = mutableSetOf(*ids.toTypedArray())
-        println(ownerIds)
         return this
     }
 
