@@ -93,7 +93,6 @@ class CommandClient(
 
     override fun onReady(event: ReadyEvent) {
         if (ownerIds.isEmpty()) {
-            System.out.println("Owner IDs is empty, adding application owner!")
             event.jda.asBot().applicationInfo.queue {
                 ownerIds.add(it.owner.idLong)
             }
@@ -124,7 +123,7 @@ class CommandClient(
 
         val props = cmd.properties
 
-        if (props.developerOnly && ownerIds.contains(event.author.idLong)) {
+        if (props.developerOnly && !ownerIds.contains(event.author.idLong)) {
             return
         }
 
