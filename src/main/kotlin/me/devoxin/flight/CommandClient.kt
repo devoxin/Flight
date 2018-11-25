@@ -7,6 +7,7 @@ import kotlinx.coroutines.future.asCompletableFuture
 import me.devoxin.flight.annotations.Async
 import me.devoxin.flight.annotations.Command
 import me.devoxin.flight.arguments.ArgParser
+import me.devoxin.flight.models.Cog
 import me.devoxin.flight.models.CommandClientAdapter
 import me.devoxin.flight.models.PrefixProvider
 import me.devoxin.flight.parsers.Parser
@@ -34,7 +35,7 @@ class CommandClient(
 
     init {
         if (this.useDefaultHelpCommand) {
-            registerCommands(No_Category::class.java)
+            registerCommands(NoCategory::class.java)
         }
     }
 
@@ -51,7 +52,7 @@ class CommandClient(
         for (clazz in classes) {
             val klass = clazz.load()
 
-            if (Modifier.isAbstract(klass.modifiers) || klass.isInterface) {
+            if (Modifier.isAbstract(klass.modifiers) || klass.isInterface || !klass.isAssignableFrom(Cog::class.java)) {
                 continue
             }
 
@@ -62,8 +63,12 @@ class CommandClient(
     }
 
     public fun registerCommands(klass: Class<*>) {
-        val instance = klass.getDeclaredConstructor().newInstance()
-        val category = klass.simpleName.replace("_", " ")
+        if (!klass.isAssignableFrom(Cog::class.java)) {
+            throw IllegalArgumentException("${klass.simpleName} must implement `Cog`!")
+        }
+
+        val cog = klass.getDeclaredConstructor().newInstance() as Cog
+        val category = cog.name().replace("_", " ")
 
         for (meth in klass.methods) {
             if (!meth.isAnnotationPresent(Command::class.java)) {
@@ -74,7 +79,7 @@ class CommandClient(
             val properties = meth.getAnnotation(Command::class.java)
             val async = meth.isAnnotationPresent(Async::class.java)
 
-            val wrapper = CommandWrapper(name, category, properties, async, meth, instance)
+            val wrapper = CommandWrapper(name, category, properties, async, meth, cog)
             this.commands[name] = wrapper
         }
     }
@@ -181,14 +186,13 @@ class CommandClient(
                 handleCommandCompletion(ctx, cmd, !success)
             }
         }
-
-        //val handled = cmd.onCommandError(ctx, commandError) // cog.onCommandError
-        //if (!handled) {
-        //}
     }
 
     private fun handleCommandError(ctx: Context, error: CommandError) {
-        eventListeners.forEach { it.onCommandError(ctx, error) }
+        val handled = error.command.cog.onCommandError(ctx, error)
+        if (!handled) {
+            eventListeners.forEach { it.onCommandError(ctx, error) }
+        }
     }
 
     private fun handleCommandCompletion(ctx: Context, cmd: CommandWrapper, failed: Boolean) {

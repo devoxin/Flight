@@ -1,14 +1,19 @@
 package me.devoxin.flight
 
+import me.devoxin.flight.annotations.Async
 import me.devoxin.flight.annotations.Command
 import me.devoxin.flight.arguments.Name
 import me.devoxin.flight.arguments.Optional
+import me.devoxin.flight.models.Cog
 import me.devoxin.flight.utils.split
 
-public class No_Category {
+public class NoCategory : Cog {
 
+    override fun name(): String = "No Category"
+
+    @Async
     @Command(aliases = ["commands", "cmds"], description = "Displays bot help.")
-    fun help(ctx: Context, @Name("command") @Optional cmd: String?) {
+    suspend fun help(ctx: Context, @Name("command") @Optional cmd: String?) {
         if (cmd != null) {
             val commands = ctx.commandClient.commands
             val command = commands[cmd]
@@ -21,7 +26,7 @@ public class No_Category {
         }
     }
 
-    private fun sendHelpMenu(ctx: Context) {
+    private suspend fun sendHelpMenu(ctx: Context) {
         val categories = hashMapOf<String, HashSet<CommandWrapper>>()
         val helpMenu = StringBuilder()
 
@@ -52,8 +57,7 @@ public class No_Category {
         val pages = split(helpMenu.toString().trim(), 1990)
 
         for (page in pages) {
-            ctx.send("```\n$page```")
-            // TODO: MAKE ASYNC
+            ctx.sendAsync("```\n$page```")
         }
     }
 
