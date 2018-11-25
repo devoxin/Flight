@@ -17,7 +17,8 @@ public interface Cog {
     fun onCommandError(ctx: Context, error: CommandError): Boolean = false
 
     /**
-     * Invoked before a command is executed.
+     * Invoked before a command is executed. This check is local to
+     * all commands inside the cog.
      *
      * @return Whether the command execution should continue or not.
      */
