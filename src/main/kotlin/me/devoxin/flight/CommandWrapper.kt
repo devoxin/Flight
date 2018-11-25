@@ -5,6 +5,7 @@ import me.devoxin.flight.arguments.Argument
 import me.devoxin.flight.arguments.Greedy
 import me.devoxin.flight.arguments.Name
 import me.devoxin.flight.arguments.Optional
+import me.devoxin.flight.models.Cog
 import java.lang.reflect.Method
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.suspendCoroutine
@@ -17,7 +18,7 @@ class CommandWrapper(
         val properties: Command,
         val async: Boolean,
         val method: Method,
-        val cog: Any) { // Cog?
+        val cog: Cog) {
 
     /**
      * Calls the related method with the given args.
