@@ -86,7 +86,7 @@ public class CommandClientBuilder {
      * @return The builder instance. Useful for chaining.
      */
     public fun setOwnerIds(vararg ids: Long): CommandClientBuilder {
-        this.ownerIds = setOf(*ids.toTypedArray())
+        this.ownerIds = mutableSetOf(*ids.toTypedArray())
         println(ownerIds)
         return this
     }
@@ -98,7 +98,7 @@ public class CommandClientBuilder {
      * @return The builder instance. Useful for chaining.
      */
     public fun setOwnerIds(vararg ids: String): CommandClientBuilder {
-        this.ownerIds = setOf(*ids.map { it.toLong() }.toTypedArray())
+        this.ownerIds = mutableSetOf(*ids.map { it.toLong() }.toTypedArray())
         return this
     }
 
