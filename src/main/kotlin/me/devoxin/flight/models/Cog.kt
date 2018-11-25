@@ -1,6 +1,7 @@
 package me.devoxin.flight.models
 
 import me.devoxin.flight.CommandError
+import me.devoxin.flight.CommandWrapper
 import me.devoxin.flight.Context
 
 public interface Cog {
@@ -15,6 +16,18 @@ public interface Cog {
      */
     fun onCommandError(ctx: Context, error: CommandError): Boolean = false
 
+    /**
+     * Invoked before a command is executed.
+     *
+     * @return Whether the command execution should continue or not.
+     */
+    fun localCheck(ctx: Context, command: CommandWrapper): Boolean = true
+
+    /**
+     * Used to determine the cog's name.
+     *
+     * @return The cog's name
+     */
     fun name(): String = this::class.java.simpleName
 
 }

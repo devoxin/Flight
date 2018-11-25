@@ -32,6 +32,9 @@ class CommandWrapper(
         }
     }
 
+    /**
+     * Calls the related method with the given args, except in an async manner.
+     */
     suspend fun executeAsync(ctx: Context, vararg additionalArgs: Any?, complete: (Boolean, CommandError?) -> Unit) {
         suspendCoroutine<Unit> {
             try {
