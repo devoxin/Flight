@@ -14,11 +14,13 @@ import me.devoxin.flight.parsers.Parser
 import net.dv8tion.jda.core.Permission
 import net.dv8tion.jda.core.entities.Member
 import net.dv8tion.jda.core.entities.TextChannel
+import net.dv8tion.jda.core.events.Event
 import net.dv8tion.jda.core.events.ReadyEvent
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.hooks.ListenerAdapter
 import org.slf4j.LoggerFactory
 import java.lang.reflect.Modifier
+import java.util.concurrent.CompletableFuture
 
 @Suppress("UnstableApiUsage")
 class CommandClient(
@@ -31,6 +33,7 @@ class CommandClient(
 ) : ListenerAdapter() {
 
     private val logger = LoggerFactory.getLogger(this.javaClass)
+    private val pendingEvents = hashMapOf<Class<*>, HashSet<WaitingEvent<*>>>()
     public val commands = hashMapOf<String, CommandWrapper>()
     public var ownerIds: MutableSet<Long>
 
@@ -227,6 +230,33 @@ class CommandClient(
         }
 
         return parsed.toTypedArray()
+    }
+
+    override fun onGenericEvent(event: Event) {
+        val cls = event::class.java
+
+        if (pendingEvents.containsKey(cls)) {
+            val events = pendingEvents[cls]!!
+            val passed = events.filter { it.check(event) }
+
+            events.removeAll(passed)
+            events.forEach { it.accept(event) }
+        }
+    }
+
+    fun <T: Event> waitFor(event: T, predicate: (T) -> Boolean, timeout: Long): CompletableFuture<T?> {
+        val cls = event::class.java
+        logger.debug("Setting up waiter for class of type ${cls.name}")
+
+        val future = CompletableFuture<T?>()
+        val we = WaitingEvent(cls, predicate, future)
+
+        val set = pendingEvents.computeIfAbsent(cls) { hashSetOf() }
+        set.add(we)
+
+        // TODO: Stuff with the timeout
+
+        return future
     }
 
 }
