@@ -10,14 +10,14 @@ class MemberParser : Parser<Member> {
         val snowflake = snowflakeParser.parse(ctx, param)
         val member: Member?
 
-        if (snowflake.isPresent) {
-            member = ctx.guild?.getMemberById(snowflake.get())
+        member = if (snowflake.isPresent) {
+            ctx.guild?.getMemberById(snowflake.get())
         } else {
             if (param.length > 5 && param[param.length - 5].toString() == "#") {
                 val tag = param.split("#")
-                member = ctx.guild?.memberCache?.find { it.user.name == tag[0] && it.user.discriminator == tag[1] }
+                ctx.guild?.memberCache?.find { it.user.name == tag[0] && it.user.discriminator == tag[1] }
             } else {
-                member = ctx.guild?.memberCache?.find { it.user.name == param }
+                ctx.guild?.getMembersByEffectiveName(param, false)?.firstOrNull()
             }
         }
 
