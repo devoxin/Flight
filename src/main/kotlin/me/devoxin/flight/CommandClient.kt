@@ -241,7 +241,7 @@ class CommandClient(
             val passed = events.filter { it.check(event) }
 
             events.removeAll(passed)
-            events.forEach { it.accept(event) }
+            passed.forEach { it.accept(event) }
         }
     }
 
