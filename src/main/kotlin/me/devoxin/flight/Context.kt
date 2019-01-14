@@ -65,7 +65,7 @@ class Context(
      * @param timeout
      *        How long to wait, in milliseconds, for the given event type before expiring.
      */
-    public suspend fun <T: Event> waitFor(event: T, predicate: (T) -> Boolean, timeout: Long): T? {
+    public suspend fun <T: Event> waitFor(event: Class<T>, predicate: (T) -> Boolean, timeout: Long): T? {
         val r = commandClient.waitFor(event, predicate, timeout)
         return r.await()
     }
