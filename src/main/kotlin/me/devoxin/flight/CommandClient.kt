@@ -236,6 +236,7 @@ class CommandClient(
         val cls = event::class.java
 
         if (pendingEvents.containsKey(cls)) {
+            println("contains ${cls.name}")
             val events = pendingEvents[cls]!!
             val passed = events.filter { it.check(event) }
 
@@ -245,7 +246,7 @@ class CommandClient(
     }
 
     fun <T : Event> waitFor(event: Class<T>, predicate: (T) -> Boolean, timeout: Long): CompletableFuture<T?> {
-        logger.debug("Setting up waiter for class of type ${event.name}")
+        println("Setting up waiter for class of type ${event.name}")
 
         val future = CompletableFuture<T?>()
         val we = WaitingEvent(event, predicate, future)
