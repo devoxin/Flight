@@ -244,14 +244,13 @@ class CommandClient(
         }
     }
 
-    fun <T: Event> waitFor(event: T, predicate: (T) -> Boolean, timeout: Long): CompletableFuture<T?> {
-        val cls = event::class.java
-        logger.debug("Setting up waiter for class of type ${cls.name}")
+    fun <T : Event> waitFor(event: Class<T>, predicate: (T) -> Boolean, timeout: Long): CompletableFuture<T?> {
+        logger.debug("Setting up waiter for class of type ${event.name}")
 
         val future = CompletableFuture<T?>()
-        val we = WaitingEvent(cls, predicate, future)
+        val we = WaitingEvent(event, predicate, future)
 
-        val set = pendingEvents.computeIfAbsent(cls) { hashSetOf() }
+        val set = pendingEvents.computeIfAbsent(event) { hashSetOf() }
         set.add(we)
 
         // TODO: Stuff with the timeout
