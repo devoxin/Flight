@@ -11,7 +11,10 @@ class WaitingEvent<T: Event>(
 ) {
 
     fun check(event: Event): Boolean {
-        return eventClass.isAssignableFrom(event::class.java) && predicate(event as T)
+        println("checking")
+        val r = eventClass.isAssignableFrom(event::class.java) && predicate(event as T)
+        println(r)
+        return r
     }
 
     fun accept(event: Event?) = future.complete(event as T)
