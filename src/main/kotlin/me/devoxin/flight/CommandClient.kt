@@ -234,9 +234,8 @@ class CommandClient(
 
     override fun onGenericEvent(event: Event) {
         val cls = event::class.java
-
+p
         if (pendingEvents.containsKey(cls)) {
-            println("contains ${cls.name}")
             val events = pendingEvents[cls]!!
             val passed = events.filter { it.check(event) }
 
@@ -246,8 +245,6 @@ class CommandClient(
     }
 
     fun <T : Event> waitFor(event: Class<T>, predicate: (T) -> Boolean, timeout: Long): CompletableFuture<T?> {
-        println("Setting up waiter for class of type ${event.name}")
-
         val future = CompletableFuture<T?>()
         val we = WaitingEvent(event, predicate, future)
 
