@@ -6,7 +6,7 @@ import me.devoxin.flight.models.Emoji
 import me.devoxin.flight.models.Invite
 import me.devoxin.flight.models.PrefixProvider
 import me.devoxin.flight.parsers.*
-import net.dv8tion.jda.core.entities.*
+import net.dv8tion.jda.api.entities.*
 import java.net.URL
 
 public class CommandClientBuilder {
@@ -132,7 +132,7 @@ public class CommandClientBuilder {
         parsers[Emoji::class.java] = EmojiParser()
         parsers[Int::class.java] = IntParser()
         parsers[Invite::class.java] = inviteParser
-        parsers[net.dv8tion.jda.core.entities.Invite::class.java] = inviteParser
+        parsers[net.dv8tion.jda.api.entities.Invite::class.java] = inviteParser
         parsers[Member::class.java] = MemberParser()
         parsers[Role::class.java] = RoleParser()
         parsers[Snowflake::class.java] = SnowflakeParser()

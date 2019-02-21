@@ -1,7 +1,7 @@
 package me.devoxin.flight.parsers
 
 import me.devoxin.flight.Context
-import net.dv8tion.jda.core.entities.TextChannel
+import net.dv8tion.jda.api.entities.TextChannel
 import java.util.*
 
 class TextChannelParser : Parser<TextChannel> {

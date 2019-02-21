@@ -3,11 +3,7 @@ package me.devoxin.flight.arguments
 import me.devoxin.flight.BadArgument
 import me.devoxin.flight.Context
 import me.devoxin.flight.parsers.Parser
-import net.dv8tion.jda.core.entities.Member
-import net.dv8tion.jda.core.entities.Role
-import net.dv8tion.jda.core.entities.TextChannel
 import org.slf4j.LoggerFactory
-import java.util.regex.Pattern
 
 class ArgParser(
         private val parsers: HashMap<Class<*>, Parser<*>>,
