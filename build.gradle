@@ -30,7 +30,7 @@ dependencies {
     compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutines"
     compile "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$kotlin_coroutines"
     compile 'com.google.guava:guava:26.0-jre'
-    compileOnly 'net.dv8tion:JDA:3.8.1_438'
+    compileOnly 'net.dv8tion:JDA:4.ALPHA.0_48'
     api 'org.slf4j:slf4j-api:1.7.25'
 }
 

@@ -11,13 +11,14 @@ import me.devoxin.flight.models.Cog
 import me.devoxin.flight.models.CommandClientAdapter
 import me.devoxin.flight.models.PrefixProvider
 import me.devoxin.flight.parsers.Parser
-import net.dv8tion.jda.core.Permission
-import net.dv8tion.jda.core.entities.Member
-import net.dv8tion.jda.core.entities.TextChannel
-import net.dv8tion.jda.core.events.Event
-import net.dv8tion.jda.core.events.ReadyEvent
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent
-import net.dv8tion.jda.core.hooks.ListenerAdapter
+import net.dv8tion.jda.api.Permission
+import net.dv8tion.jda.api.entities.Member
+import net.dv8tion.jda.api.entities.TextChannel
+import net.dv8tion.jda.api.events.Event
+import net.dv8tion.jda.api.events.GenericEvent
+import net.dv8tion.jda.api.events.ReadyEvent
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import net.dv8tion.jda.api.hooks.ListenerAdapter
 import org.slf4j.LoggerFactory
 import java.lang.reflect.Modifier
 import java.util.concurrent.CompletableFuture
@@ -29,7 +30,7 @@ class CommandClient(
         private val useDefaultHelpCommand: Boolean,
         private val ignoreBots: Boolean,
         private val eventListeners: List<CommandClientAdapter>,
-        private val customOwnerIds: MutableSet<Long>?
+        customOwnerIds: MutableSet<Long>?
 ) : ListenerAdapter() {
 
     private val logger = LoggerFactory.getLogger(this.javaClass)
@@ -96,7 +97,7 @@ class CommandClient(
 
     override fun onReady(event: ReadyEvent) {
         if (ownerIds.isEmpty()) {
-            event.jda.asBot().applicationInfo.queue {
+            event.jda.retrieveApplicationInfo().queue {
                 ownerIds.add(it.owner.idLong)
             }
         }
@@ -232,9 +233,10 @@ class CommandClient(
         return parsed.toTypedArray()
     }
 
-    override fun onGenericEvent(event: Event) {
+
+    override fun onGenericEvent(event: GenericEvent) {
         val cls = event::class.java
-p
+
         if (pendingEvents.containsKey(cls)) {
             val events = pendingEvents[cls]!!
             val passed = events.filter { it.check(event) }

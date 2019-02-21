@@ -1,7 +1,7 @@
 package me.devoxin.flight.parsers
 
 import me.devoxin.flight.Context
-import net.dv8tion.jda.core.entities.User
+import net.dv8tion.jda.api.entities.User
 import java.util.*
 
 class UserParser : Parser<User> {

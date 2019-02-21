@@ -1,7 +1,7 @@
 package me.devoxin.flight.parsers
 
 import me.devoxin.flight.Context
-import net.dv8tion.jda.core.entities.Role
+import net.dv8tion.jda.api.entities.Role
 import java.util.*
 
 class RoleParser : Parser<Role> {

@@ -2,11 +2,11 @@ package me.devoxin.flight
 
 import kotlinx.coroutines.future.await
 import me.devoxin.flight.models.Attachment
-import net.dv8tion.jda.core.EmbedBuilder
-import net.dv8tion.jda.core.JDA
-import net.dv8tion.jda.core.entities.*
-import net.dv8tion.jda.core.events.Event
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent
+import net.dv8tion.jda.api.EmbedBuilder
+import net.dv8tion.jda.api.JDA
+import net.dv8tion.jda.api.entities.*
+import net.dv8tion.jda.api.events.Event
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import java.util.concurrent.TimeUnit
 
 class Context(
