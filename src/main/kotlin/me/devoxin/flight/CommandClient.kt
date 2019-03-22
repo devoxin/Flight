@@ -234,7 +234,7 @@ class CommandClient(
 
     override fun onGenericEvent(event: Event) {
         val cls = event::class.java
-p
+
         if (pendingEvents.containsKey(cls)) {
             val events = pendingEvents[cls]!!
             val passed = events.filter { it.check(event) }
