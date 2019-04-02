@@ -1,6 +1,6 @@
 package me.devoxin.flight.models
 
-import net.dv8tion.jda.api.entities.Message
+import com.mewna.catnip.entity.message.Message
 
 interface PrefixProvider {
 
