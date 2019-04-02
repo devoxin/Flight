@@ -1,7 +1,7 @@
 package me.devoxin.flight.parsers
 
+import com.mewna.catnip.entity.guild.Role
 import me.devoxin.flight.Context
-import net.dv8tion.jda.api.entities.Role
 import java.util.*
 
 class RoleParser : Parser<Role> {
@@ -9,9 +9,9 @@ class RoleParser : Parser<Role> {
     override fun parse(ctx: Context, param: String): Optional<Role> {
         val snowflake = snowflakeParser.parse(ctx, param)
         val role: Role? = if (snowflake.isPresent) {
-            ctx.guild?.getRoleById(snowflake.get())
+            ctx.guild?.role(snowflake.get())
         } else {
-            ctx.guild?.roleCache?.firstOrNull { it.name == param }
+            ctx.guild?.roles()?.firstOrNull { it.name() == param }
         }
 
         if (role != null) {

@@ -1,17 +1,17 @@
 package me.devoxin.flight
 
-import net.dv8tion.jda.api.events.GenericEvent
+import com.mewna.catnip.shard.event.EventType
 import java.util.concurrent.CompletableFuture
 
 @Suppress("UNCHECKED_CAST")
-class WaitingEvent<T : GenericEvent>(
+class WaitingEvent<T: EventType<T>>(
         private val eventClass: Class<*>,
         private val predicate: (T) -> Boolean,
         private val future: CompletableFuture<T?>
 ) {
 
-    fun check(event: GenericEvent) = eventClass.isAssignableFrom(event::class.java) && predicate(event as T)
+    fun check(event: EventType<T>) = eventClass.isAssignableFrom(event::class.java) && predicate(event as T)
 
-    fun accept(event: GenericEvent?) = future.complete(event as T)
+    fun accept(event: EventType<T>?) = future.complete(event as T)
 
 }

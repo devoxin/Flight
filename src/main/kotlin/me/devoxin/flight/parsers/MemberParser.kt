@@ -1,7 +1,7 @@
 package me.devoxin.flight.parsers
 
+import com.mewna.catnip.entity.guild.Member
 import me.devoxin.flight.Context
-import net.dv8tion.jda.api.entities.Member
 import java.util.*
 
 class MemberParser : Parser<Member> {
@@ -11,13 +11,13 @@ class MemberParser : Parser<Member> {
         val member: Member?
 
         member = if (snowflake.isPresent) {
-            ctx.guild?.getMemberById(snowflake.get())
+            ctx.guild?.member(snowflake.get())
         } else {
             if (param.length > 5 && param[param.length - 5].toString() == "#") {
                 val tag = param.split("#")
-                ctx.guild?.memberCache?.find { it.user.name == tag[0] && it.user.discriminator == tag[1] }
+                ctx.guild?.members()?.firstOrNull { it.user().username() == tag[0] && it.user().discriminator() == tag[1] }
             } else {
-                ctx.guild?.getMembersByEffectiveName(param, false)?.firstOrNull()
+                ctx.guild?.members()?.firstOrNull { it.effectiveName().contains(param, true) }
             }
         }
 

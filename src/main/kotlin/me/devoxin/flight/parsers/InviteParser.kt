@@ -12,7 +12,7 @@ class InviteParser : Parser<Invite> {
 
         if (match.find()) {
             val code = match.group(1)
-            return Optional.of(Invite(ctx.jda, match.group(), code))
+            return Optional.of(Invite(ctx.catnip, match.group(), code))
         }
 
         return Optional.empty()

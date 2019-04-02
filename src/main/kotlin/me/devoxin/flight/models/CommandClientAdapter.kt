@@ -1,10 +1,10 @@
 package me.devoxin.flight.models
 
+import com.mewna.catnip.entity.util.Permission
 import me.devoxin.flight.BadArgument
 import me.devoxin.flight.CommandError
 import me.devoxin.flight.CommandWrapper
 import me.devoxin.flight.Context
-import net.dv8tion.jda.api.Permission
 
 public interface CommandClientAdapter {
 

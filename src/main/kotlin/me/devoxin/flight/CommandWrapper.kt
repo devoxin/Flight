@@ -9,8 +9,6 @@ import me.devoxin.flight.models.Cog
 import java.lang.reflect.Method
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.suspendCoroutine
-import kotlin.reflect.KCallable
-import kotlin.reflect.KFunction
 
 class CommandWrapper(
         val name: String,

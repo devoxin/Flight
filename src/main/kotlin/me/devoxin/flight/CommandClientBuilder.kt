@@ -1,12 +1,16 @@
 package me.devoxin.flight
 
+import com.mewna.catnip.entity.channel.TextChannel
+import com.mewna.catnip.entity.channel.VoiceChannel
+import com.mewna.catnip.entity.guild.Member
+import com.mewna.catnip.entity.guild.Role
+import com.mewna.catnip.entity.user.User
 import me.devoxin.flight.arguments.Snowflake
 import me.devoxin.flight.models.CommandClientAdapter
 import me.devoxin.flight.models.Emoji
 import me.devoxin.flight.models.Invite
 import me.devoxin.flight.models.PrefixProvider
 import me.devoxin.flight.parsers.*
-import net.dv8tion.jda.api.entities.*
 import java.net.URL
 
 public class CommandClientBuilder {
@@ -132,7 +136,7 @@ public class CommandClientBuilder {
         parsers[Emoji::class.java] = EmojiParser()
         parsers[Int::class.java] = IntParser()
         parsers[Invite::class.java] = inviteParser
-        parsers[net.dv8tion.jda.api.entities.Invite::class.java] = inviteParser
+        parsers[com.mewna.catnip.entity.guild.Invite::class.java] = inviteParser
         parsers[Member::class.java] = MemberParser()
         parsers[Role::class.java] = RoleParser()
         parsers[Snowflake::class.java] = SnowflakeParser()

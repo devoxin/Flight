@@ -1,58 +1,58 @@
 package me.devoxin.flight
 
+import com.mewna.catnip.Catnip
+import com.mewna.catnip.entity.builder.EmbedBuilder
+import com.mewna.catnip.entity.channel.MessageChannel
+import com.mewna.catnip.entity.channel.TextChannel
+import com.mewna.catnip.entity.guild.Guild
+import com.mewna.catnip.entity.guild.Member
+import com.mewna.catnip.entity.message.Message
+import com.mewna.catnip.entity.message.MessageOptions
+import com.mewna.catnip.entity.user.User
+import com.mewna.catnip.shard.DiscordEvent
 import kotlinx.coroutines.future.await
 import me.devoxin.flight.models.Attachment
-import net.dv8tion.jda.api.EmbedBuilder
-import net.dv8tion.jda.api.JDA
-import net.dv8tion.jda.api.entities.*
-import net.dv8tion.jda.api.events.Event
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import java.util.concurrent.TimeUnit
 
 class Context(
         public val commandClient: CommandClient,
-        private val event: MessageReceivedEvent,
+        public val message: Message,
         public val trigger: String) {
 
-    public val jda: JDA = event.jda
-    public val message: Message = event.message
+    public val catnip: Catnip = message.catnip()
 
-    public val author: User = event.author
-    public val privateChannel: PrivateChannel? = event.privateChannel
+    public val guild: Guild? = message.guild()
 
-    public val guild: Guild? = event.guild
-    public val member: Member? = event.member
-    public val textChannel: TextChannel? = event.textChannel
+    public val author: User = message.author()
+    public val member: Member? = message.member()
 
-    public val messageChannel: MessageChannel = event.channel
-
+    public val messageChannel: MessageChannel = message.channel()
+    public val textChannel: TextChannel? = messageChannel as? TextChannel
 
     public fun send(content: String, callback: ((Message) -> Unit)? = null) {
-        messageChannel.sendMessage(content).queue(callback)
+        messageChannel.sendMessage(content).thenAccept(callback)
     }
 
     public fun upload(attachment: Attachment) {
-        messageChannel.sendFile(attachment.stream, attachment.filename).queue()
+        messageChannel.sendMessage(MessageOptions().addFile(attachment.filename, attachment.stream))
     }
 
     public fun embed(block: EmbedBuilder.() -> Unit) {
-        messageChannel.sendMessage(EmbedBuilder().apply(block).build()).queue()
+        messageChannel.sendMessage(EmbedBuilder().apply(block).build())
     }
 
     public fun dm(content: String) {
-        author.openPrivateChannel().queue { channel ->
-            channel.sendMessage(content)
-                    .submit()
-                    .handle { _, _ -> channel.close().queue() }
+        author.createDM().thenAccept {
+            it.sendMessage(content).thenRun { it.delete() }
         }
     }
 
     public suspend fun sendAsync(content: String): Message {
-        return messageChannel.sendMessage(content).submit().await()
+        return messageChannel.sendMessage(content).await()
     }
 
     public suspend fun embedAsync(block: EmbedBuilder.() -> Unit): Message {
-        return messageChannel.sendMessage(EmbedBuilder().apply(block).build()).submit().await()
+        return messageChannel.sendMessage(EmbedBuilder().apply(block).build()).await()
     }
 
     /**
@@ -65,11 +65,12 @@ class Context(
      * @param timeout
      *        How long to wait, in milliseconds, for the given event type before expiring.
      */
+    /* @todo
     public suspend fun <T: Event> waitFor(event: Class<T>, predicate: (T) -> Boolean, timeout: Long): T? {
         val r = commandClient.waitFor(event, predicate, timeout)
         return r.await()
     }
-
+    */
     // TODO: Method to clean a string.
 
 }
