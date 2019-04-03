@@ -3,7 +3,6 @@ package me.devoxin.flight
 import com.google.common.reflect.ClassPath
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
-import kotlinx.coroutines.future.asCompletableFuture
 import me.devoxin.flight.annotations.Async
 import me.devoxin.flight.annotations.Command
 import me.devoxin.flight.arguments.ArgParser
@@ -22,6 +21,8 @@ import net.dv8tion.jda.core.hooks.ListenerAdapter
 import org.slf4j.LoggerFactory
 import java.lang.reflect.Modifier
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 @Suppress("UnstableApiUsage")
 class CommandClient(
@@ -33,6 +34,7 @@ class CommandClient(
         private val customOwnerIds: MutableSet<Long>?
 ) : ListenerAdapter() {
 
+    private val scheduler = Executors.newSingleThreadScheduledExecutor()
     private val logger = LoggerFactory.getLogger(this.javaClass)
     private val pendingEvents = hashMapOf<Class<*>, HashSet<WaitingEvent<*>>>()
     public val commands = hashMapOf<String, CommandWrapper>()
@@ -253,13 +255,12 @@ class CommandClient(
         set.add(we)
 
         if (timeout > 0) {
-            Thread {
-                Thread.sleep(timeout)
-                if (!future.isCancelled) {
+            scheduler.schedule({
+                if (!future.isDone) {
                     future.completeExceptionally(AwaitTimeoutException())
                     set.remove(we)
                 }
-            }.start()
+            }, timeout, TimeUnit.MILLISECONDS)
         }
 
         return future
