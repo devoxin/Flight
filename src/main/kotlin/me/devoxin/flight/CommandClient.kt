@@ -1,6 +1,7 @@
 package me.devoxin.flight
 
 import com.google.common.reflect.ClassPath
+import com.mewna.catnip.Catnip
 import com.mewna.catnip.entity.channel.TextChannel
 import com.mewna.catnip.entity.guild.Member
 import com.mewna.catnip.entity.message.Message
@@ -12,6 +13,7 @@ import kotlinx.coroutines.async
 import me.devoxin.flight.annotations.Async
 import me.devoxin.flight.annotations.Command
 import me.devoxin.flight.arguments.ArgParser
+import me.devoxin.flight.exceptions.AwaitTimeoutException
 import me.devoxin.flight.models.Cog
 import me.devoxin.flight.models.CommandClientAdapter
 import me.devoxin.flight.models.PrefixProvider
@@ -23,6 +25,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 class CommandClient(
+        private val catnip: Catnip,
         private val parsers: HashMap<Class<*>, Parser<*>>,
         private val prefixProvider: PrefixProvider,
         private val useDefaultHelpCommand: Boolean,
@@ -34,7 +37,6 @@ class CommandClient(
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
     private val waiterScheduler = Executors.newSingleThreadScheduledExecutor()!!
-    private val pendingEvents = hashMapOf<Class<*>, HashSet<WaitingEvent<*>>>()
     public val commands = hashMapOf<String, CommandWrapper>()
     public var ownerIds: MutableSet<Long>
 
@@ -96,7 +98,7 @@ class CommandClient(
     fun onReady(event: Ready) {
         if (ownerIds.isEmpty()) {
             event.catnip().rest().user().currentApplicationInformation.thenAccept {
-                if(it.owner().isTeam) {
+                if (it.owner().isTeam) {
                     // @todo: hey discord add members fetching when
                 } else {
                     ownerIds.add(it.owner().idAsLong())
@@ -234,28 +236,26 @@ class CommandClient(
         return parsed.toTypedArray()
     }
 
-    /* @todo: something
-    override fun onGenericEvent(event: EventType<T>) {
-        val cls = event::class.java
-
-        if (pendingEvents.containsKey(cls)) {
-            val events = pendingEvents[cls]!!
-            val passed = events.filter { it.check(event) }
-
-            events.removeAll(passed)
-            passed.forEach { it.accept(event) }
-        }
-    }
-    */
-
-    fun <T : EventType<T>> waitFor(event: Class<T>, predicate: (T) -> Boolean, timeout: Long): CompletableFuture<T?> {
+    fun <T : EventType<T>> waitFor(event: EventType<T>, predicate: (T) -> Boolean, timeout: Long): CompletableFuture<T?> {
         val future = CompletableFuture<T?>()
-        val we = WaitingEvent(event, predicate, future)
+        val handler = catnip.on(event)
+        handler.handler {
+            val data = it.body()
+            if (predicate(data)) {
+                handler.unregister()
+                future.complete(it.body())
+            }
+        }
 
-        val set = pendingEvents.computeIfAbsent(event) { hashSetOf() }
-        set.add(we)
-
-        // TODO: Stuff with the timeout
+        if (timeout > 0) {
+            Thread {
+                Thread.sleep(timeout)
+                if (!future.isCancelled) {
+                    future.completeExceptionally(AwaitTimeoutException())
+                    handler.unregister()
+                }
+            }.start()
+        }
 
         return future
     }

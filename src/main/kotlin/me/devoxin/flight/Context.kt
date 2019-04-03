@@ -10,6 +10,7 @@ import com.mewna.catnip.entity.message.Message
 import com.mewna.catnip.entity.message.MessageOptions
 import com.mewna.catnip.entity.user.User
 import com.mewna.catnip.shard.DiscordEvent
+import com.mewna.catnip.shard.event.EventType
 import kotlinx.coroutines.future.await
 import me.devoxin.flight.models.Attachment
 import java.util.concurrent.TimeUnit
@@ -65,12 +66,10 @@ class Context(
      * @param timeout
      *        How long to wait, in milliseconds, for the given event type before expiring.
      */
-    /* @todo
-    public suspend fun <T: Event> waitFor(event: Class<T>, predicate: (T) -> Boolean, timeout: Long): T? {
+    public suspend fun <T: EventType<T>> waitFor(event: EventType<T>, predicate: (T) -> Boolean, timeout: Long): T? {
         val r = commandClient.waitFor(event, predicate, timeout)
         return r.await()
     }
-    */
     // TODO: Method to clean a string.
 
 }
