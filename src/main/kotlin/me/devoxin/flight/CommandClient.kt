@@ -34,6 +34,8 @@ class CommandClient(
         customOwnerIds: MutableSet<Long>?
 ) {
 
+
+    private val scheduler = Executors.newSingleThreadScheduledExecutor()
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
     private val waiterScheduler = Executors.newSingleThreadScheduledExecutor()!!
@@ -248,13 +250,12 @@ class CommandClient(
         }
 
         if (timeout > 0) {
-            Thread {
-                Thread.sleep(timeout)
-                if (!future.isCancelled) {
+            scheduler.schedule({
+                if (!future.isDone) {
                     future.completeExceptionally(AwaitTimeoutException())
                     handler.unregister()
                 }
-            }.start()
+            }, timeout, TimeUnit.MILLISECONDS)
         }
 
         return future
