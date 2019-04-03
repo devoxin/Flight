@@ -7,6 +7,7 @@ import kotlinx.coroutines.future.asCompletableFuture
 import me.devoxin.flight.annotations.Async
 import me.devoxin.flight.annotations.Command
 import me.devoxin.flight.arguments.ArgParser
+import me.devoxin.flight.exceptions.AwaitTimeoutException
 import me.devoxin.flight.models.Cog
 import me.devoxin.flight.models.CommandClientAdapter
 import me.devoxin.flight.models.PrefixProvider
@@ -251,7 +252,15 @@ class CommandClient(
         val set = pendingEvents.computeIfAbsent(event) { hashSetOf() }
         set.add(we)
 
-        // TODO: Stuff with the timeout
+        if (timeout > 0) {
+            Thread {
+                Thread.sleep(timeout)
+                if (!future.isCancelled) {
+                    future.completeExceptionally(AwaitTimeoutException())
+                    set.remove(we)
+                }
+            }.start()
+        }
 
         return future
     }
