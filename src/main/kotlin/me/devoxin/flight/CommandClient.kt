@@ -18,6 +18,8 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import org.slf4j.LoggerFactory
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class CommandClient(
         private val parsers: HashMap<Class<*>, Parser<*>>,
@@ -29,6 +31,8 @@ class CommandClient(
 ) : ListenerAdapter() {
 
     private val logger = LoggerFactory.getLogger(this.javaClass)
+
+    private val waiterScheduler = Executors.newSingleThreadScheduledExecutor()!!
     private val pendingEvents = hashMapOf<Class<*>, HashSet<WaitingEvent<*>>>()
     public val commands = hashMapOf<String, CommandWrapper>()
     public var ownerIds: MutableSet<Long>
@@ -41,10 +45,17 @@ class CommandClient(
         ownerIds = customOwnerIds ?: mutableSetOf()
     }
 
+
     // +------------------+
     // | Custom Functions |
     // +------------------+
 
+    /**
+     * Registers all commands that are discovered within the given package name.
+     *
+     * @param packageName
+     *        The package name to look for commands in.
+     */
     public fun registerCommands(packageName: String) {
         val indexer = Indexer(packageName)
         val cogs = indexer.getCogs()
@@ -75,6 +86,7 @@ class CommandClient(
             this.commands[cmd.name] = cmd
         }
     }
+
 
     // +------------------+
     // |  Event Handling  |
@@ -237,7 +249,11 @@ class CommandClient(
         val set = pendingEvents.computeIfAbsent(event) { hashSetOf() }
         set.add(we)
 
-        // TODO: Stuff with the timeout
+        waiterScheduler.schedule({
+            if (pendingEvents[event]!!.remove(we)) {
+                we.accept(null)
+            }
+        }, timeout, TimeUnit.MILLISECONDS)
 
         return future
     }
