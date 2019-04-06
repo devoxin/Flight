@@ -9,15 +9,16 @@ class SnowflakeParser : Parser<Long> {
     override fun parse(ctx: Context, param: String): Optional<Long> {
         val match = snowflakeMatch.matcher(param)
 
-        if (match.matches()) { // TODO: Monitor this, revert to .find() if issues.
-            return Optional.of(match.group().toLong())
+        if (match.matches()) {
+            val id = match.group("sid") ?: match.group("id")
+            return Optional.of(id.toLong())
         }
 
         return Optional.empty()
     }
 
     companion object {
-        private val snowflakeMatch = Pattern.compile("[0-9]{17,21}")
+        private val snowflakeMatch = Pattern.compile("^(?:<(?:@!?|@&|#)(?<sid>[0-9]{17,21})>|(?<id>[0-9]{17,21}))$")
     }
 
 }
