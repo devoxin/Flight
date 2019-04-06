@@ -7,7 +7,7 @@ import me.devoxin.flight.arguments.Optional
 import me.devoxin.flight.models.Cog
 import me.devoxin.flight.utils.split
 
-public class NoCategory : Cog {
+public class DefaultHelpCommand : Cog {
 
     override fun name(): String = "No Category"
 
@@ -64,7 +64,11 @@ public class NoCategory : Cog {
     private fun sendCommandHelp(ctx: Context, command: CommandWrapper) {
         val builder = StringBuilder("```\n")
 
-        builder.append(ctx.trigger) // todo: resolve mention prefixes as @Username
+        if (ctx.trigger.matches(Regex.fromLiteral("<@!?${ctx.jda.selfUser.id}>"))) {
+            builder.append("@${ctx.jda.selfUser.name}")
+        } else {
+            builder.append(ctx.trigger)
+        }
 
         val properties = command.properties
 

@@ -60,8 +60,8 @@ class Indexer(private val pkg: String) {
         if (paramNames.size != parameters.size) {
             throw IllegalArgumentException(
                     "Parameter count mismatch in command ${meth.name}, expected: ${meth.parameters.size}, got: ${paramNames.size}\n" +
-                            "${paramNames.joinToString(", ")}\n" +
-                            "${meth.parameters.map { it.type.simpleName }}"
+                            "Expected: ${meth.parameters.map { it.type.simpleName }}\n" +
+                            "Got: ${paramNames.joinToString(", ")}\n"
             )
         }
 
