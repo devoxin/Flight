@@ -71,11 +71,11 @@ class Indexer(private val pkg: String) {
             val i = a.index
             val p = a.value
 
-//            if (p.type == Context::class.java || p.type == Continuation::class.java) {
-//                continue
-//            }
-
-            val pName = paramNames[i] // p.getAnnotation(Name::class.java)?.name
+            val pName = if (p.isAnnotationPresent(Name::class.java)) {
+                p.getAnnotation(Name::class.java).name
+            } else {
+                paramNames[i]
+            }
             val type = p.type
             val greedy = p.isAnnotationPresent(Greedy::class.java)
             val required = !p.isAnnotationPresent(Optional::class.java)
