@@ -36,7 +36,7 @@ class CommandClient(
 
     init {
         if (this.useDefaultHelpCommand) {
-            registerCommands(NoCategory())
+            registerCommands(NoCategory::class.java)
         }
 
         ownerIds = customOwnerIds ?: mutableSetOf()
@@ -51,8 +51,8 @@ class CommandClient(
         val cogs = indexer.getCogs()
 
         for (cogClass in cogs) {
-            val cog = cogClass.getDeclaredConstructor().newInstance()
-            registerCommands(cog, indexer)
+            //val cog = cogClass.getDeclaredConstructor().newInstance()
+            registerCommands(cogClass, indexer)
         }
 
         logger.info("Successfully loaded ${commands.size} commands")
@@ -66,11 +66,10 @@ class CommandClient(
      * @param indexer
      *        The indexer to use. This can be omitted, but it's better to reuse an indexer if possible.
      */
-    public fun registerCommands(cog: Cog, indexer: Indexer? = null) {
-        val c = cog.javaClass
-        val pkgName = c.packageName
-        val i = indexer ?: Indexer(pkgName)
+    public fun registerCommands(kls: Class<*>, indexer: Indexer? = null) {
+        val i = indexer ?: Indexer(kls.`package`.name)
 
+        val cog = kls.getDeclaredConstructor().newInstance() as Cog
         val commands = i.getCommands(cog)
 
         for (command in commands) {
