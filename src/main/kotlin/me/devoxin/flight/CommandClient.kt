@@ -1,16 +1,13 @@
 package me.devoxin.flight
 
-import com.google.common.reflect.ClassPath
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
-import kotlinx.coroutines.future.asCompletableFuture
-import me.devoxin.flight.annotations.Async
-import me.devoxin.flight.annotations.Command
 import me.devoxin.flight.arguments.ArgParser
 import me.devoxin.flight.models.Cog
 import me.devoxin.flight.models.CommandClientAdapter
 import me.devoxin.flight.models.PrefixProvider
 import me.devoxin.flight.parsers.Parser
+import me.devoxin.flight.utils.Indexer
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.TextChannel
@@ -20,7 +17,6 @@ import net.dv8tion.jda.api.events.ReadyEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import org.slf4j.LoggerFactory
-import java.lang.reflect.Modifier
 import java.util.concurrent.CompletableFuture
 
 @Suppress("UnstableApiUsage")
@@ -40,7 +36,7 @@ class CommandClient(
 
     init {
         if (this.useDefaultHelpCommand) {
-            registerCommands(NoCategory::class.java)
+            registerCommands(NoCategory())
         }
 
         ownerIds = customOwnerIds ?: mutableSetOf()
@@ -51,43 +47,33 @@ class CommandClient(
     // +------------------+
 
     public fun registerCommands(packageName: String) {
-        logger.debug("Scanning $packageName for commands...")
-        val classes = ClassPath.from(this.javaClass.classLoader).getTopLevelClassesRecursive(packageName)
-        logger.debug("Found ${classes.size} commands")
+        val indexer = Indexer(packageName)
+        val cogs = indexer.getCogs()
 
-
-        for (clazz in classes) {
-            val klass = clazz.load()
-
-            if (Modifier.isAbstract(klass.modifiers) || klass.isInterface || !Cog::class.java.isAssignableFrom(klass)) {
-                continue
-            }
-
-            registerCommands(klass)
+        for (cogClass in cogs) {
+            val cog = cogClass.getDeclaredConstructor().newInstance()
+            registerCommands(cog, indexer)
         }
 
         logger.info("Successfully loaded ${commands.size} commands")
     }
 
-    public fun registerCommands(klass: Class<*>) {
-        if (!Cog::class.java.isAssignableFrom(klass)) {
-            throw IllegalArgumentException("${klass.simpleName} must implement `Cog`!")
-        }
+    /**
+     * Registers all commands in the given class
+     *
+     * @param cog
+     *        The cog to load commands from.
+     * @param indexer
+     *        The indexer to use. This can be omitted, but it's better to reuse an indexer if possible.
+     */
+    public fun registerCommands(cog: Cog, indexer: Indexer? = null) {
+        val i = indexer ?: Indexer(cog::class.java.packageName)
 
-        val cog = klass.getDeclaredConstructor().newInstance() as Cog
-        val category = cog.name().replace("_", " ")
+        val commands = i.getCommands(cog)
 
-        for (meth in klass.methods) {
-            if (!meth.isAnnotationPresent(Command::class.java)) {
-                continue
-            }
-
-            val name = meth.name.toLowerCase()
-            val properties = meth.getAnnotation(Command::class.java)
-            val async = meth.isAnnotationPresent(Async::class.java)
-
-            val wrapper = CommandWrapper(name, category, properties, async, meth, cog)
-            this.commands[name] = wrapper
+        for (command in commands) {
+            val cmd = i.loadCommand(command, cog)
+            this.commands[cmd.name] = cmd
         }
     }
 
@@ -175,16 +161,15 @@ class CommandClient(
         }
 
         if (cmd.async) {
-            GlobalScope
-                    .async {
-                        cmd.executeAsync(ctx, *arguments) { success, err ->
-                            if (err != null) {
-                                handleCommandError(ctx, err)
-                            }
-
-                            handleCommandCompletion(ctx, cmd, !success)
-                        }
+            GlobalScope.async {
+                cmd.executeAsync(ctx, *arguments) { success, err ->
+                    if (err != null) {
+                        handleCommandError(ctx, err)
                     }
+
+                    handleCommandCompletion(ctx, cmd, !success)
+                }
+            }
         } else {
             cmd.execute(ctx, *arguments) { success, err ->
                 if (err != null) {
