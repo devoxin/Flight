@@ -14,11 +14,13 @@ import kotlin.reflect.KFunction
 
 class CommandWrapper(
         val name: String,
+        val arguments: List<Argument>,
         val category: String,
         val properties: Command,
         val async: Boolean,
         val method: Method,
-        val cog: Cog) {
+        val cog: Cog
+) {
 
     /**
      * Calls the related method with the given args.
