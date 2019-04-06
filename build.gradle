@@ -37,3 +37,8 @@ dependencies {
 compileKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '5.1.1'
+    distributionType = Wrapper.DistributionType.ALL
+}
