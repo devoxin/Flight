@@ -249,11 +249,13 @@ class CommandClient(
         val set = pendingEvents.computeIfAbsent(event) { hashSetOf() }
         set.add(we)
 
-        waiterScheduler.schedule({
-            if (pendingEvents[event]!!.remove(we)) {
-                we.accept(null)
-            }
-        }, timeout, TimeUnit.MILLISECONDS)
+        if (timeout > 0) {
+            waiterScheduler.schedule({
+                if (pendingEvents[event]!!.remove(we)) {
+                    we.accept(null)
+                }
+            }, timeout, TimeUnit.MILLISECONDS)
+        }
 
         return future
     }
