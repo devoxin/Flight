@@ -54,9 +54,10 @@ class Indexer(private val pkg: String) {
         val async = meth.isAnnotationPresent(Async::class.java)
 
         val allParamNames = getParamNames(meth)
-        val paramNames = allParamNames.drop(allParamNames.indexOf("this") + 1)
+        val paramNames = allParamNames.drop(allParamNames.indexOf("this") + 2) // We don't need `context`
+        val parameters = meth.parameters.filter { it.type !== Context::class.java && it.type != Continuation::class.java }
 
-        if (paramNames.size != meth.parameters.size) {
+        if (paramNames.size != parameters.size) {
             throw IllegalArgumentException(
                     "Parameter count mismatch in command ${meth.name}, expected: ${meth.parameters.size}, got: ${paramNames.size}\n" +
                             "${paramNames.joinToString(", ")}\n" +
@@ -66,7 +67,7 @@ class Indexer(private val pkg: String) {
 
         val arguments = mutableListOf<Argument>()
 
-        for (a in meth.parameters.withIndex()) {
+        for (a in parameters.withIndex()) {
             val i = a.index
             val p = a.value
 
