@@ -3,10 +3,10 @@ package me.devoxin.flight
 import com.google.common.reflect.ClassPath
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
-import kotlinx.coroutines.future.asCompletableFuture
 import me.devoxin.flight.annotations.Async
 import me.devoxin.flight.annotations.Command
 import me.devoxin.flight.arguments.ArgParser
+import me.devoxin.flight.exceptions.AwaitTimeoutException
 import me.devoxin.flight.models.Cog
 import me.devoxin.flight.models.CommandClientAdapter
 import me.devoxin.flight.models.PrefixProvider
@@ -21,6 +21,8 @@ import net.dv8tion.jda.core.hooks.ListenerAdapter
 import org.slf4j.LoggerFactory
 import java.lang.reflect.Modifier
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 @Suppress("UnstableApiUsage")
 class CommandClient(
@@ -32,6 +34,7 @@ class CommandClient(
         private val customOwnerIds: MutableSet<Long>?
 ) : ListenerAdapter() {
 
+    private val scheduler = Executors.newSingleThreadScheduledExecutor()
     private val logger = LoggerFactory.getLogger(this.javaClass)
     private val pendingEvents = hashMapOf<Class<*>, HashSet<WaitingEvent<*>>>()
     public val commands = hashMapOf<String, CommandWrapper>()
@@ -251,7 +254,14 @@ class CommandClient(
         val set = pendingEvents.computeIfAbsent(event) { hashSetOf() }
         set.add(we)
 
-        // TODO: Stuff with the timeout
+        if (timeout > 0) {
+            scheduler.schedule({
+                if (!future.isDone) {
+                    future.completeExceptionally(AwaitTimeoutException())
+                    set.remove(we)
+                }
+            }, timeout, TimeUnit.MILLISECONDS)
+        }
 
         return future
     }
