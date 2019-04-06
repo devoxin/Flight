@@ -54,8 +54,8 @@ class Indexer(private val pkg: String) {
         val async = meth.isAnnotationPresent(Async::class.java)
 
         val allParamNames = getParamNames(meth)
-        val paramNames = allParamNames.drop(allParamNames.indexOf("this") + 2) // We don't need `context`
-        val parameters = meth.parameters.filter { it.type !== Context::class.java && it.type != Continuation::class.java }
+        val paramNames = allParamNames.drop(allParamNames.indexOf("this") + 2).filter { !it.contains("Contiunuation") }
+        val parameters = meth.parameters.filter { it.type != Context::class.java && it.type != Continuation::class.java }
 
         if (paramNames.size != parameters.size) {
             throw IllegalArgumentException(
@@ -71,9 +71,9 @@ class Indexer(private val pkg: String) {
             val i = a.index
             val p = a.value
 
-            if (p.type == Context::class.java || p.type == Continuation::class.java) {
-                continue
-            }
+//            if (p.type == Context::class.java || p.type == Continuation::class.java) {
+//                continue
+//            }
 
             val pName = paramNames[i] // p.getAnnotation(Name::class.java)?.name
             val type = p.type
