@@ -19,7 +19,6 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter
 import org.slf4j.LoggerFactory
 import java.util.concurrent.CompletableFuture
 
-@Suppress("UnstableApiUsage")
 class CommandClient(
         private val parsers: HashMap<Class<*>, Parser<*>>,
         private val prefixProvider: PrefixProvider,
@@ -36,7 +35,7 @@ class CommandClient(
 
     init {
         if (this.useDefaultHelpCommand) {
-            registerCommands(NoCategory::class.java)
+            registerCommands(NoCategory())
         }
 
         ownerIds = customOwnerIds ?: mutableSetOf()
@@ -51,8 +50,8 @@ class CommandClient(
         val cogs = indexer.getCogs()
 
         for (cogClass in cogs) {
-            //val cog = cogClass.getDeclaredConstructor().newInstance()
-            registerCommands(cogClass, indexer)
+            val cog = cogClass.getDeclaredConstructor().newInstance()
+            registerCommands(cog, indexer)
         }
 
         logger.info("Successfully loaded ${commands.size} commands")
@@ -66,10 +65,9 @@ class CommandClient(
      * @param indexer
      *        The indexer to use. This can be omitted, but it's better to reuse an indexer if possible.
      */
-    public fun registerCommands(kls: Class<*>, indexer: Indexer? = null) {
-        val i = indexer ?: Indexer(kls.`package`.name)
+    public fun registerCommands(cog: Cog, indexer: Indexer? = null) {
+        val i = indexer ?: Indexer(cog::class.java.`package`.name)
 
-        val cog = kls.getDeclaredConstructor().newInstance() as Cog
         val commands = i.getCommands(cog)
 
         for (command in commands) {
