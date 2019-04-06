@@ -4,7 +4,7 @@ import net.dv8tion.jda.api.events.GenericEvent
 import java.util.concurrent.CompletableFuture
 
 @Suppress("UNCHECKED_CAST")
-class WaitingEvent<T: GenericEvent>(
+class WaitingEvent<T : GenericEvent>(
         private val eventClass: Class<*>,
         private val predicate: (T) -> Boolean,
         private val future: CompletableFuture<T?>
