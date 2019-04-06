@@ -56,7 +56,9 @@ class Indexer(private val pkg: String) {
         val paramNames = getParamNames(meth)
 
         if (paramNames.size != meth.parameters.size) {
-            throw IllegalArgumentException("Parameter count mismatch in command ${meth.name}!")
+            throw IllegalArgumentException(
+                    "Parameter count mismatch in command ${meth.name}, expected: ${meth.parameters.size}, got: ${paramNames.size}\n${paramNames.joinToString(", ")}"
+            )
         }
 
         val arguments = mutableListOf<Argument>()
