@@ -53,7 +53,8 @@ class Indexer(private val pkg: String) {
         val properties = meth.getAnnotation(Command::class.java)
         val async = meth.isAnnotationPresent(Async::class.java)
 
-        val paramNames = getParamNames(meth)
+        val allParamNames = getParamNames(meth)
+        val paramNames = allParamNames.drop(allParamNames.indexOf("this") + 1)
 
         if (paramNames.size != meth.parameters.size) {
             throw IllegalArgumentException(
