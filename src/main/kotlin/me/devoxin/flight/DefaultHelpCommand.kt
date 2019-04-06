@@ -78,7 +78,7 @@ public class NoCategory : Cog {
                     .append(" ")
         }
 
-        val args = command.commandArguments()
+        val args = command.arguments
 
         for (arg in args) {
             if (arg.required) {

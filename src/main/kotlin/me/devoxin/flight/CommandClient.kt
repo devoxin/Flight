@@ -201,7 +201,7 @@ class CommandClient(
     }
 
     private fun parseArgs(ctx: Context, args: MutableList<String>, cmd: CommandWrapper): Array<Any?> {
-        val arguments = cmd.commandArguments()
+        val arguments = cmd.arguments
 
         if (arguments.isEmpty()) {
             return emptyArray()
