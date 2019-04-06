@@ -9,7 +9,7 @@ class SnowflakeParser : Parser<Long> {
     override fun parse(ctx: Context, param: String): Optional<Long> {
         val match = snowflakeMatch.matcher(param)
 
-        if (match.find()) { // todo use .matches() for single args
+        if (match.matches()) { // TODO: Monitor this, revert to .find() if issues.
             return Optional.of(match.group().toLong())
         }
 
@@ -17,7 +17,7 @@ class SnowflakeParser : Parser<Long> {
     }
 
     companion object {
-        private val snowflakeMatch: Pattern = Pattern.compile("[0-9]{17,21}")
+        private val snowflakeMatch = Pattern.compile("[0-9]{17,21}")
     }
 
 }
