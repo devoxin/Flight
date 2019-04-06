@@ -35,7 +35,7 @@ class CommandClient(
 
     init {
         if (this.useDefaultHelpCommand) {
-            registerCommands(NoCategory())
+            registerCommands(DefaultHelpCommand())
         }
 
         ownerIds = customOwnerIds ?: mutableSetOf()
