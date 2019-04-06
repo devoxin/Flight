@@ -67,7 +67,9 @@ class CommandClient(
      *        The indexer to use. This can be omitted, but it's better to reuse an indexer if possible.
      */
     public fun registerCommands(cog: Cog, indexer: Indexer? = null) {
-        val i = indexer ?: Indexer(cog::class.java.packageName)
+        val c = cog.javaClass
+        val pkgName = c.packageName
+        val i = indexer ?: Indexer(pkgName)
 
         val commands = i.getCommands(cog)
 
