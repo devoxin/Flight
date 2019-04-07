@@ -10,14 +10,14 @@ class UserParser : Parser<User> {
         val snowflake = snowflakeParser.parse(ctx, param)
         val user: User?
 
-        if (snowflake.isPresent) {
-            user = ctx.catnip.cache().user(snowflake.get())
+        user = if (snowflake.isPresent) {
+            ctx.catnip.cache().user(snowflake.get())
         } else {
             if (param.length > 5 && param[param.length - 5].toString() == "#") {
                 val tag = param.split("#")
-                user = ctx.catnip.cache().users().firstOrNull { it.username() == tag[0] && it.discriminator() == tag[1] }
+                ctx.catnip.cache().users().firstOrNull { it.username() == tag[0] && it.discriminator() == tag[1] }
             } else {
-                user = ctx.catnip.cache().users().firstOrNull { it.username() == param }
+                ctx.catnip.cache().users().firstOrNull { it.username() == param }
             }
         }
 

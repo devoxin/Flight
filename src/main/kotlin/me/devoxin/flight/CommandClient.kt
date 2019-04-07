@@ -1,6 +1,5 @@
 package me.devoxin.flight
 
-import com.google.common.reflect.ClassPath
 import com.mewna.catnip.Catnip
 import com.mewna.catnip.entity.channel.TextChannel
 import com.mewna.catnip.entity.guild.Member
@@ -10,8 +9,6 @@ import com.mewna.catnip.entity.util.Permission
 import com.mewna.catnip.shard.event.EventType
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
-import me.devoxin.flight.annotations.Async
-import me.devoxin.flight.annotations.Command
 import me.devoxin.flight.arguments.ArgParser
 import me.devoxin.flight.exceptions.AwaitTimeoutException
 import me.devoxin.flight.models.Cog

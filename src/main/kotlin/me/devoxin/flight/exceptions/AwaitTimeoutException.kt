@@ -1,3 +1,3 @@
 package me.devoxin.flight.exceptions
 
-class AwaitTimeoutException: Exception()
+class AwaitTimeoutException : Exception()
