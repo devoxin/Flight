@@ -12,7 +12,6 @@ import com.mewna.catnip.entity.user.User
 import com.mewna.catnip.shard.event.EventType
 import kotlinx.coroutines.future.await
 import me.devoxin.flight.models.Attachment
-import java.util.concurrent.TimeUnit
 
 class Context(
         public val commandClient: CommandClient,

@@ -64,8 +64,8 @@ public class DefaultHelpCommand : Cog {
     private fun sendCommandHelp(ctx: Context, command: CommandWrapper) {
         val builder = StringBuilder("```\n")
 
-        if (ctx.trigger.matches(Regex.fromLiteral("<@!?${ctx.jda.selfUser.id}>"))) {
-            builder.append("@${ctx.jda.selfUser.name}")
+        if (ctx.trigger.matches(Regex.fromLiteral("<@!?${ctx.catnip.selfUser()!!.id()}>"))) {
+            builder.append("@${ctx.catnip.selfUser()!!.username()}")
         } else {
             builder.append(ctx.trigger)
         }

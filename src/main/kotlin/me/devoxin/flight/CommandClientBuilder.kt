@@ -1,5 +1,6 @@
 package me.devoxin.flight
 
+import com.mewna.catnip.Catnip
 import com.mewna.catnip.entity.channel.TextChannel
 import com.mewna.catnip.entity.channel.VoiceChannel
 import com.mewna.catnip.entity.guild.Member
@@ -13,7 +14,7 @@ import me.devoxin.flight.models.PrefixProvider
 import me.devoxin.flight.parsers.*
 import java.net.URL
 
-public class CommandClientBuilder {
+public class CommandClientBuilder(val catnip: Catnip) {
 
     private var parsers = hashMapOf<Class<*>, Parser<*>>()
     private var prefixes: List<String> = emptyList()
@@ -156,7 +157,7 @@ public class CommandClientBuilder {
      */
     public fun build(): CommandClient {
         val prefixProvider = this.prefixProvider ?: DefaultPrefixProvider(prefixes, allowMentionPrefix)
-        return CommandClient(parsers, prefixProvider, useDefaultHelpCommand, ignoreBots, eventListeners.toList(), ownerIds)
+        return CommandClient(catnip, parsers, prefixProvider, useDefaultHelpCommand, ignoreBots, eventListeners.toList(), ownerIds)
     }
 
 }
