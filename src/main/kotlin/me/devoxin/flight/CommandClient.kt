@@ -1,39 +1,41 @@
 package me.devoxin.flight
 
+import com.mewna.catnip.Catnip
+import com.mewna.catnip.entity.channel.TextChannel
+import com.mewna.catnip.entity.guild.Member
+import com.mewna.catnip.entity.message.Message
+import com.mewna.catnip.entity.misc.Ready
+import com.mewna.catnip.entity.util.Permission
+import com.mewna.catnip.shard.event.EventType
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import me.devoxin.flight.arguments.ArgParser
+import me.devoxin.flight.exceptions.AwaitTimeoutException
 import me.devoxin.flight.models.Cog
 import me.devoxin.flight.models.CommandClientAdapter
 import me.devoxin.flight.models.PrefixProvider
 import me.devoxin.flight.parsers.Parser
 import me.devoxin.flight.utils.Indexer
-import net.dv8tion.jda.api.Permission
-import net.dv8tion.jda.api.entities.Member
-import net.dv8tion.jda.api.entities.TextChannel
-import net.dv8tion.jda.api.events.Event
-import net.dv8tion.jda.api.events.GenericEvent
-import net.dv8tion.jda.api.events.ReadyEvent
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent
-import net.dv8tion.jda.api.hooks.ListenerAdapter
 import org.slf4j.LoggerFactory
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 class CommandClient(
+        private val catnip: Catnip,
         private val parsers: HashMap<Class<*>, Parser<*>>,
         private val prefixProvider: PrefixProvider,
         private val useDefaultHelpCommand: Boolean,
         private val ignoreBots: Boolean,
         private val eventListeners: List<CommandClientAdapter>,
         customOwnerIds: MutableSet<Long>?
-) : ListenerAdapter() {
+) {
 
+
+    private val scheduler = Executors.newSingleThreadScheduledExecutor()
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
     private val waiterScheduler = Executors.newSingleThreadScheduledExecutor()!!
-    private val pendingEvents = hashMapOf<Class<*>, HashSet<WaitingEvent<*>>>()
     public val commands = hashMapOf<String, CommandWrapper>()
     public var ownerIds: MutableSet<Long>
 
@@ -92,45 +94,49 @@ class CommandClient(
     // |  Event Handling  |
     // +------------------+
 
-    override fun onReady(event: ReadyEvent) {
+    fun onReady(event: Ready) {
         if (ownerIds.isEmpty()) {
-            event.jda.retrieveApplicationInfo().queue {
-                ownerIds.add(it.owner.idLong)
+            event.catnip().rest().user().currentApplicationInformation.thenAccept {
+                if (it.owner().isTeam) {
+                    // @todo: hey discord add members fetching when
+                } else {
+                    ownerIds.add(it.owner().idAsLong())
+                }
             }
         }
     }
 
-    override fun onMessageReceived(event: MessageReceivedEvent) {
-        if (ignoreBots && (event.author.isBot || event.author.isFake)) {
+    fun onMessageReceived(message: Message) {
+        if (ignoreBots && message.author().bot()) {
             return
         }
 
-        val prefixes = prefixProvider.provide(event.message)
-        val trigger = prefixes.firstOrNull { event.message.contentRaw.startsWith(it) } // This will break for "?", "??", "???"
+        val prefixes = prefixProvider.provide(message)
+        val trigger = prefixes.firstOrNull { message.content().startsWith(it) } // This will break for "?", "??", "???"
                 ?: return
 
-        if (trigger.length == event.message.contentRaw.length) {
+        if (trigger.length == message.content().length) {
             return
         }
 
-        val args = event.message.contentRaw.substring(trigger.length).split(" +".toRegex()).toMutableList()
+        val args = message.content().substring(trigger.length).split(" +".toRegex()).toMutableList()
         val command = args.removeAt(0)
 
         val cmd = commands[command]
                 ?: commands.values.firstOrNull { it.properties.aliases.contains(command) }
                 ?: return
 
-        val ctx = Context(this, event, trigger)
+        val ctx = Context(this, message, trigger)
 
         val props = cmd.properties
 
-        if (props.developerOnly && !ownerIds.contains(event.author.idLong)) {
+        if (props.developerOnly && !ownerIds.contains(message.author().idAsLong())) {
             return
         }
 
-        if (event.channelType.isGuild) {
+        if (message.channel().isGuild) {
             if (props.userPermissions.isNotEmpty()) {
-                val userCheck = performPermCheck(event.member, event.textChannel, props.userPermissions)
+                val userCheck = performPermCheck(message.member()!!, message.channel().asTextChannel(), props.userPermissions)
 
                 if (userCheck.isNotEmpty()) {
                     return eventListeners.forEach { it.onUserMissingPermissions(ctx, cmd, userCheck) }
@@ -138,19 +144,19 @@ class CommandClient(
             }
 
             if (props.botPermissions.isNotEmpty()) {
-                val botCheck = performPermCheck(event.guild.selfMember, event.textChannel, props.botPermissions)
+                val botCheck = performPermCheck(message.guild()!!.selfMember(), message.channel().asTextChannel(), props.botPermissions)
 
                 if (botCheck.isNotEmpty()) {
                     return eventListeners.forEach { it.onBotMissingPermissions(ctx, cmd, botCheck) }
                 }
             }
 
-            if (props.nsfw && !event.textChannel.isNSFW) {
+            if (props.nsfw && !message.channel().asTextChannel().nsfw()) {
                 return
             }
         }
 
-        if (!event.channelType.isGuild && props.guildOnly) {
+        if (!message.channel().isGuild && props.guildOnly) {
             return
         }
 
@@ -209,7 +215,7 @@ class CommandClient(
     // +-------------------+
 
     private fun performPermCheck(member: Member, channel: TextChannel, permissions: Array<Permission>): Array<Permission> {
-        return permissions.filter { !member.hasPermission(channel, it) }.toTypedArray()
+        return permissions.filter { !member.permissions(channel).containsAll(permissions.toCollection(mutableListOf())) }.toTypedArray()
     }
 
     private fun parseArgs(ctx: Context, args: MutableList<String>, cmd: CommandWrapper): Array<Any?> {
@@ -229,30 +235,22 @@ class CommandClient(
         return parsed.toTypedArray()
     }
 
-
-    override fun onGenericEvent(event: GenericEvent) {
-        val cls = event::class.java
-
-        if (pendingEvents.containsKey(cls)) {
-            val events = pendingEvents[cls]!!
-            val passed = events.filter { it.check(event) }
-
-            events.removeAll(passed)
-            passed.forEach { it.accept(event) }
-        }
-    }
-
-    fun <T : Event> waitFor(event: Class<T>, predicate: (T) -> Boolean, timeout: Long): CompletableFuture<T?> {
+    fun <T : EventType<T>> waitFor(event: EventType<T>, predicate: (T) -> Boolean, timeout: Long): CompletableFuture<T?> {
         val future = CompletableFuture<T?>()
-        val we = WaitingEvent(event, predicate, future)
-
-        val set = pendingEvents.computeIfAbsent(event) { hashSetOf() }
-        set.add(we)
+        val handler = catnip.on(event)
+        handler.handler {
+            val data = it.body()
+            if (predicate(data)) {
+                handler.unregister()
+                future.complete(it.body())
+            }
+        }
 
         if (timeout > 0) {
-            waiterScheduler.schedule({
-                if (pendingEvents[event]!!.remove(we)) {
-                    we.accept(null)
+            scheduler.schedule({
+                if (!future.isDone) {
+                    future.completeExceptionally(AwaitTimeoutException())
+                    handler.unregister()
                 }
             }, timeout, TimeUnit.MILLISECONDS)
         }

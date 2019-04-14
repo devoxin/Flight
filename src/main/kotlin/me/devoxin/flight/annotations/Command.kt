@@ -1,6 +1,6 @@
 package me.devoxin.flight.annotations
 
-import net.dv8tion.jda.api.Permission
+import com.mewna.catnip.entity.util.Permission
 
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FUNCTION)

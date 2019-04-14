@@ -2,15 +2,9 @@ package me.devoxin.flight
 
 import me.devoxin.flight.annotations.Command
 import me.devoxin.flight.arguments.Argument
-import me.devoxin.flight.arguments.Greedy
-import me.devoxin.flight.arguments.Name
-import me.devoxin.flight.arguments.Optional
 import me.devoxin.flight.models.Cog
 import java.lang.reflect.Method
-import kotlin.coroutines.Continuation
 import kotlin.coroutines.suspendCoroutine
-import kotlin.reflect.KCallable
-import kotlin.reflect.KFunction
 
 class CommandWrapper(
         val name: String,

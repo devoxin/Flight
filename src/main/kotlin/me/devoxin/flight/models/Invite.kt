@@ -1,14 +1,15 @@
 package me.devoxin.flight.models
 
-import net.dv8tion.jda.api.JDA
-import net.dv8tion.jda.api.entities.Invite
+import com.mewna.catnip.Catnip
+import com.mewna.catnip.entity.guild.Invite
 
-class Invite(private val jda: JDA,
-             public val url: String,
-             public val code: String) {
+class Invite(private val catnip: Catnip, val url: String, val code: String) {
 
-    public fun resolve(success: (Invite) -> Unit, failure: (Throwable) -> Unit) {
-        Invite.resolve(jda, code).queue(success, failure)
+    fun resolve(success: (Invite) -> Unit, failure: (Throwable) -> Unit) {
+        catnip.rest().invite().getInvite(code).handle { invite, throwable ->
+            if (throwable == null) success(invite)
+            else failure(throwable)
+        }
     }
 
 }

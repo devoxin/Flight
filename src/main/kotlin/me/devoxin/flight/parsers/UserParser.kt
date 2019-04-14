@@ -1,7 +1,7 @@
 package me.devoxin.flight.parsers
 
+import com.mewna.catnip.entity.user.User
 import me.devoxin.flight.Context
-import net.dv8tion.jda.api.entities.User
 import java.util.*
 
 class UserParser : Parser<User> {
@@ -10,14 +10,14 @@ class UserParser : Parser<User> {
         val snowflake = snowflakeParser.parse(ctx, param)
         val user: User?
 
-        if (snowflake.isPresent) {
-            user = ctx.jda.getUserById(snowflake.get())
+        user = if (snowflake.isPresent) {
+            ctx.catnip.cache().user(snowflake.get())
         } else {
             if (param.length > 5 && param[param.length - 5].toString() == "#") {
                 val tag = param.split("#")
-                user = ctx.jda.userCache.find { it.name == tag[0] && it.discriminator == tag[1] }
+                ctx.catnip.cache().users().firstOrNull { it.username() == tag[0] && it.discriminator() == tag[1] }
             } else {
-                user = ctx.jda.userCache.find { it.name == param }
+                ctx.catnip.cache().users().firstOrNull { it.username() == param }
             }
         }
 
