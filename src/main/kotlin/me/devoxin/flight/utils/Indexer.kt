@@ -54,13 +54,14 @@ class Indexer(private val pkg: String) {
         val async = meth.isAnnotationPresent(Async::class.java)
 
         val allParamNames = getParamNames(meth)
-        val paramNames = allParamNames.drop(allParamNames.indexOf("this") + 2).filter { !it.contains("continuation") }
+        val paramNames = allParamNames.drop(allParamNames.indexOf("this") + 2)
+                .filter { !it.contains("continuation") && !it.contains("completion") }
         val parameters = meth.parameters.filter { it.type != Context::class.java && it.type != Continuation::class.java }
 
         if (paramNames.size != parameters.size) {
             throw IllegalArgumentException(
-                    "Parameter count mismatch in command ${meth.name}, expected: ${meth.parameters.size}, got: ${paramNames.size}\n" +
-                            "Expected: ${meth.parameters.map { it.type.simpleName }}\n" +
+                    "Parameter count mismatch in command ${meth.name}, expected: ${parameters.size}, got: ${paramNames.size}\n" +
+                            "Expected: ${parameters.map { it.type.simpleName }}\n" +
                             "Got: ${paramNames.joinToString(", ")}\n"
             )
         }
