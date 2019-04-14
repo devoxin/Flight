@@ -17,7 +17,7 @@ apply plugin: 'kotlin'
 apply plugin: 'com.github.johnrengelman.shadow'
 
 group 'me.devoxin'
-version '1.0.0'
+version '1.0.1'
 sourceCompatibility = 1.8
 
 repositories {
@@ -31,7 +31,7 @@ dependencies {
     compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutines"
     compile "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$kotlin_coroutines"
     compile 'org.reflections:reflections:0.9.11'
-    compileOnly 'com.github.mewna:catnip:1.2.0'
+    compileOnly 'com.github.mewna:catnip:1.2.1'
     api 'org.slf4j:slf4j-api:1.7.25'
 }
 
