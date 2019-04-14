@@ -1,7 +1,7 @@
 package me.devoxin.flight
 
+import com.mewna.catnip.entity.util.Permission
 import me.devoxin.flight.models.CommandClientAdapter
-import net.dv8tion.jda.api.Permission
 
 public abstract class DefaultCommandClientAdapter : CommandClientAdapter {
 
