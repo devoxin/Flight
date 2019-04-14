@@ -55,7 +55,7 @@ class Indexer(private val pkg: String) {
 
         val allParamNames = getParamNames(meth)
         val paramNames = allParamNames.drop(allParamNames.indexOf("this") + 2)
-                .filter { !it.contains("continuation") && !it.contains("completion") }
+                .filter { !it.startsWith("$") } // Continuation, Completion
         val parameters = meth.parameters.filter { it.type != Context::class.java && it.type != Continuation::class.java }
 
         if (paramNames.size != parameters.size) {
