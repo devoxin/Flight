@@ -6,6 +6,8 @@ import com.mewna.catnip.entity.guild.Member
 import com.mewna.catnip.entity.message.Message
 import com.mewna.catnip.entity.misc.Ready
 import com.mewna.catnip.entity.util.Permission
+import com.mewna.catnip.extension.AbstractExtension
+import com.mewna.catnip.shard.DiscordEvent
 import com.mewna.catnip.shard.event.EventType
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -22,20 +24,18 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 class CommandClient(
-        private val catnip: Catnip,
         private val parsers: HashMap<Class<*>, Parser<*>>,
         private val prefixProvider: PrefixProvider,
         private val useDefaultHelpCommand: Boolean,
         private val ignoreBots: Boolean,
         private val eventListeners: List<CommandClientAdapter>,
         customOwnerIds: MutableSet<Long>?
-) {
+): AbstractExtension("Flight command client") {
 
 
     private val scheduler = Executors.newSingleThreadScheduledExecutor()
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
-    private val waiterScheduler = Executors.newSingleThreadScheduledExecutor()!!
     public val commands = hashMapOf<String, CommandWrapper>()
     public var ownerIds: MutableSet<Long>
 
@@ -47,6 +47,10 @@ class CommandClient(
         ownerIds = customOwnerIds ?: mutableSetOf()
     }
 
+    override fun start() {
+        on(DiscordEvent.READY, this::onReady)
+        on(DiscordEvent.MESSAGE_CREATE, this::onMessageReceived)
+    }
 
     // +------------------+
     // | Custom Functions |
@@ -237,7 +241,7 @@ class CommandClient(
 
     fun <T : EventType<T>> waitFor(event: EventType<T>, predicate: (T) -> Boolean, timeout: Long): CompletableFuture<T?> {
         val future = CompletableFuture<T?>()
-        val handler = catnip.on(event)
+        val handler = on(event)
         handler.handler {
             val data = it.body()
             if (predicate(data)) {

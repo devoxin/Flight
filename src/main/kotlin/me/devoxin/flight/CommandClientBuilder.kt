@@ -14,7 +14,7 @@ import me.devoxin.flight.models.PrefixProvider
 import me.devoxin.flight.parsers.*
 import java.net.URL
 
-public class CommandClientBuilder(val catnip: Catnip) {
+public class CommandClientBuilder {
 
     private var parsers = hashMapOf<Class<*>, Parser<*>>()
     private var prefixes: List<String> = emptyList()
@@ -157,7 +157,7 @@ public class CommandClientBuilder(val catnip: Catnip) {
      */
     public fun build(): CommandClient {
         val prefixProvider = this.prefixProvider ?: DefaultPrefixProvider(prefixes, allowMentionPrefix)
-        return CommandClient(catnip, parsers, prefixProvider, useDefaultHelpCommand, ignoreBots, eventListeners.toList(), ownerIds)
+        return CommandClient(parsers, prefixProvider, useDefaultHelpCommand, ignoreBots, eventListeners.toList(), ownerIds)
     }
 
 }
