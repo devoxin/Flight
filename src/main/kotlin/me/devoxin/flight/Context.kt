@@ -29,7 +29,11 @@ class Context(
     public val textChannel: TextChannel? = messageChannel as? TextChannel
 
     public fun send(content: String, callback: ((Message) -> Unit)? = null) {
-        messageChannel.sendMessage(content).thenAccept(callback)
+        if (callback != null) {
+            messageChannel.sendMessage(content).thenAccept(callback)
+        } else {
+            messageChannel.sendMessage(content)
+        }
     }
 
     public fun upload(attachment: Attachment) {
