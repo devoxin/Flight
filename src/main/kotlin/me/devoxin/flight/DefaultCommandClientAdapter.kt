@@ -3,7 +3,7 @@ package me.devoxin.flight
 import me.devoxin.flight.models.CommandClientAdapter
 import net.dv8tion.jda.api.Permission
 
-public abstract class DefaultCommandClientAdapter : CommandClientAdapter {
+abstract class DefaultCommandClientAdapter : CommandClientAdapter {
 
     override fun onBadArgument(ctx: Context, error: BadArgument) {}
 
