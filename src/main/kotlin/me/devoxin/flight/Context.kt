@@ -1,5 +1,6 @@
 package me.devoxin.flight
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.future.await
@@ -81,7 +82,7 @@ class Context(
      * @param block
      *        The code that should be executed while the typing status is active.
      */
-    fun typing(block: suspend () -> Unit) {
+    fun typing(block: suspend CoroutineScope.() -> Unit) {
         messageChannel.sendTyping().queue {
             val task = Scheduler.every(5000) {
                 messageChannel.sendTyping()
