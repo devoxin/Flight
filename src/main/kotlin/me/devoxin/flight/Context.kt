@@ -1,5 +1,7 @@
 package me.devoxin.flight
 
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.future.await
 import me.devoxin.flight.models.Attachment
 import me.devoxin.flight.utils.Scheduler
@@ -70,6 +72,27 @@ class Context(
             }
             block()
             task.cancel(true)
+        }
+    }
+
+    /**
+     * Sends a typing status within the channel until the provided function is exited.
+     *
+     * @param block
+     *        The code that should be executed while the typing status is active.
+     */
+    fun typing(block: suspend () -> Unit) {
+        messageChannel.sendTyping().queue {
+            val task = Scheduler.every(5000) {
+                messageChannel.sendTyping()
+            }
+
+            GlobalScope.async {
+                block()
+            }.invokeOnCompletion {
+                task.cancel(true)
+            }
+
         }
     }
 
