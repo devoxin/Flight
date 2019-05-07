@@ -7,7 +7,7 @@ import me.devoxin.flight.arguments.Optional
 import me.devoxin.flight.models.Cog
 import me.devoxin.flight.utils.split
 
-public class DefaultHelpCommand : Cog {
+class DefaultHelpCommand : Cog {
 
     override fun name(): String = "No Category"
 

@@ -34,8 +34,8 @@ class CommandClient(
 
     private val waiterScheduler = Executors.newSingleThreadScheduledExecutor()!!
     private val pendingEvents = hashMapOf<Class<*>, HashSet<WaitingEvent<*>>>()
-    public val commands = hashMapOf<String, CommandWrapper>()
-    public var ownerIds: MutableSet<Long>
+    val commands = hashMapOf<String, CommandWrapper>()
+    var ownerIds: MutableSet<Long>
 
     init {
         if (this.useDefaultHelpCommand) {
@@ -56,7 +56,7 @@ class CommandClient(
      * @param packageName
      *        The package name to look for commands in.
      */
-    public fun registerCommands(packageName: String) {
+    fun registerCommands(packageName: String) {
         val indexer = Indexer(packageName)
         val cogs = indexer.getCogs()
 
@@ -76,7 +76,7 @@ class CommandClient(
      * @param indexer
      *        The indexer to use. This can be omitted, but it's better to reuse an indexer if possible.
      */
-    public fun registerCommands(cog: Cog, indexer: Indexer? = null) {
+    fun registerCommands(cog: Cog, indexer: Indexer? = null) {
         val i = indexer ?: Indexer(cog::class.java.`package`.name)
 
         val commands = i.getCommands(cog)

@@ -21,7 +21,7 @@ class Indexer(private val pkg: String) {
 
     private val reflections = Reflections(pkg, MethodParameterNamesScanner(), SubTypesScanner())
 
-    public fun getCogs(): List<Class<out Cog>> {
+    fun getCogs(): List<Class<out Cog>> {
         logger.debug("Scanning $pkg for cogs...")
         val cogs = reflections.getSubTypesOf(Cog::class.java)
         logger.debug("Found ${cogs.size} cogs")
@@ -31,7 +31,7 @@ class Indexer(private val pkg: String) {
                 .toList()
     }
 
-    public fun getCommands(cog: Cog): List<Method> {
+    fun getCommands(cog: Cog): List<Method> {
         logger.debug("Scanning ${cog.name()} for commands...")
         val commands = cog::class.java.methods.filter { it.isAnnotationPresent(Command::class.java) }
         logger.debug("Found ${commands.size} commands in cog ${cog.name()}")
@@ -39,7 +39,7 @@ class Indexer(private val pkg: String) {
         return commands.toList()
     }
 
-    public fun loadCommand(meth: Method, cog: Cog): CommandWrapper {
+    fun loadCommand(meth: Method, cog: Cog): CommandWrapper {
         if (meth.declaringClass != cog::class.java) {
             throw IllegalArgumentException("${meth.name} is not from ${cog.name()}")
         }
@@ -87,7 +87,7 @@ class Indexer(private val pkg: String) {
         return CommandWrapper(name, arguments.toList(), category, properties, async, meth, cog)
     }
 
-    public fun getParamNames(meth: Method): List<String> {
+    fun getParamNames(meth: Method): List<String> {
         return reflections.getMethodParamNames(meth)
     }
 

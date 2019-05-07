@@ -9,7 +9,7 @@ import me.devoxin.flight.parsers.*
 import net.dv8tion.jda.api.entities.*
 import java.net.URL
 
-public class CommandClientBuilder {
+class CommandClientBuilder {
 
     private var parsers = hashMapOf<Class<*>, Parser<*>>()
     private var prefixes: List<String> = emptyList()
@@ -26,7 +26,7 @@ public class CommandClientBuilder {
      *
      * @return The builder instance. Useful for chaining.
      */
-    public fun setPrefixes(prefixes: List<String>): CommandClientBuilder {
+    fun setPrefixes(prefixes: List<String>): CommandClientBuilder {
         this.prefixes = prefixes
         return this
     }
@@ -36,7 +36,7 @@ public class CommandClientBuilder {
      *
      * @return The builder instance. Useful for chaining.
      */
-    public fun setPrefixes(vararg prefixes: String): CommandClientBuilder {
+    fun setPrefixes(vararg prefixes: String): CommandClientBuilder {
         this.prefixes = prefixes.toList()
         return this
     }
@@ -44,7 +44,7 @@ public class CommandClientBuilder {
     /**
      * Sets the provider used for obtaining prefixes
      */
-    public fun setPrefixProvider(provider: PrefixProvider): CommandClientBuilder {
+    fun setPrefixProvider(provider: PrefixProvider): CommandClientBuilder {
         this.prefixProvider = provider
         return this
     }
@@ -54,7 +54,7 @@ public class CommandClientBuilder {
      *
      * @return The builder instance. Useful for chaining.
      */
-    public fun setAllowMentionPrefix(allowMentionPrefix: Boolean): CommandClientBuilder {
+    fun setAllowMentionPrefix(allowMentionPrefix: Boolean): CommandClientBuilder {
         this.allowMentionPrefix = allowMentionPrefix
         return this
     }
@@ -64,7 +64,7 @@ public class CommandClientBuilder {
      *
      * @return The builder instance. Useful for chaining.
      */
-    public fun useDefaultHelpCommand(useDefaultHelpCommand: Boolean): CommandClientBuilder {
+    fun useDefaultHelpCommand(useDefaultHelpCommand: Boolean): CommandClientBuilder {
         this.useDefaultHelpCommand = useDefaultHelpCommand
         return this
     }
@@ -74,7 +74,7 @@ public class CommandClientBuilder {
      *
      * @return The builder instance. Useful for chaining.
      */
-    public fun setIgnoreBots(ignoreBots: Boolean): CommandClientBuilder {
+    fun setIgnoreBots(ignoreBots: Boolean): CommandClientBuilder {
         this.ignoreBots = ignoreBots
         return this
     }
@@ -85,7 +85,7 @@ public class CommandClientBuilder {
      *
      * @return The builder instance. Useful for chaining.
      */
-    public fun setOwnerIds(vararg ids: Long): CommandClientBuilder {
+    fun setOwnerIds(vararg ids: Long): CommandClientBuilder {
         this.ownerIds = mutableSetOf(*ids.toTypedArray())
         return this
     }
@@ -96,7 +96,7 @@ public class CommandClientBuilder {
      *
      * @return The builder instance. Useful for chaining.
      */
-    public fun setOwnerIds(vararg ids: String): CommandClientBuilder {
+    fun setOwnerIds(vararg ids: String): CommandClientBuilder {
         this.ownerIds = mutableSetOf(*ids.map { it.toLong() }.toTypedArray())
         return this
     }
@@ -106,7 +106,7 @@ public class CommandClientBuilder {
      *
      * @return The builder instance. Useful for chaining.
      */
-    public fun addEventListeners(vararg listeners: CommandClientAdapter): CommandClientBuilder {
+    fun addEventListeners(vararg listeners: CommandClientAdapter): CommandClientBuilder {
         this.eventListeners.addAll(listeners)
         return this
     }
@@ -116,7 +116,7 @@ public class CommandClientBuilder {
      *
      * @return The builder instance. Useful for chaining.
      */
-    public fun addCustomParser(klass: Class<*>, parser: Parser<*>): CommandClientBuilder {
+    fun addCustomParser(klass: Class<*>, parser: Parser<*>): CommandClientBuilder {
         this.parsers[klass] = parser
         return this
     }
@@ -126,7 +126,7 @@ public class CommandClientBuilder {
      *
      * @return The builder instance. Useful for chaining.
      */
-    public fun registerDefaultParsers(): CommandClientBuilder {
+    fun registerDefaultParsers(): CommandClientBuilder {
         val inviteParser = InviteParser()
 
         parsers[Emoji::class.java] = EmojiParser()
@@ -150,7 +150,7 @@ public class CommandClientBuilder {
      *
      * @return a CommandClient instance
      */
-    public fun build(): CommandClient {
+    fun build(): CommandClient {
         val prefixProvider = this.prefixProvider ?: DefaultPrefixProvider(prefixes, allowMentionPrefix)
         return CommandClient(parsers, prefixProvider, useDefaultHelpCommand, ignoreBots, eventListeners.toList(), ownerIds)
     }

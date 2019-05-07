@@ -4,7 +4,7 @@ import me.devoxin.flight.CommandError
 import me.devoxin.flight.CommandWrapper
 import me.devoxin.flight.Context
 
-public interface Cog {
+interface Cog {
 
     /**
      * Invoked when an error occurs during command execution.

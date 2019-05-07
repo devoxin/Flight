@@ -2,6 +2,6 @@ package me.devoxin.flight.arguments
 
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.VALUE_PARAMETER)
-public annotation class Name(
+annotation class Name(
     val name: String = ""
 )
