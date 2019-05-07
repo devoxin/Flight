@@ -85,7 +85,7 @@ class Context(
     fun typingAsync(block: suspend CoroutineScope.() -> Unit) {
         messageChannel.sendTyping().queue {
             val task = Scheduler.every(5000) {
-                messageChannel.sendTyping()
+                messageChannel.sendTyping().queue()
             }
 
             GlobalScope.async {
