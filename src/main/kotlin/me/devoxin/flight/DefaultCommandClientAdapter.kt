@@ -1,5 +1,6 @@
 package me.devoxin.flight
 
+import me.devoxin.flight.exceptions.BadArgument
 import me.devoxin.flight.models.CommandClientAdapter
 import net.dv8tion.jda.api.Permission
 

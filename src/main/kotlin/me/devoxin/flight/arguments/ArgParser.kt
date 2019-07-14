@@ -1,7 +1,8 @@
 package me.devoxin.flight.arguments
 
-import me.devoxin.flight.BadArgument
+import me.devoxin.flight.exceptions.BadArgument
 import me.devoxin.flight.Context
+import me.devoxin.flight.exceptions.ParserNotRegistered
 import me.devoxin.flight.parsers.Parser
 import org.slf4j.LoggerFactory
 
@@ -85,11 +86,16 @@ class ArgParser(
         val argument = parseNextArgument(arg.greedy)
 
         if (!parsers.containsKey(arg.type)) {
-            logger.error("No parsers registered for `${arg.type}`")
-            return null
+            throw ParserNotRegistered("No parsers registered for `${arg.type}`")
         }
 
-        val result = parsers[arg.type]!!.parse(ctx, argument)
+        val result: Any?
+
+        try {
+            result = parsers[arg.type]!!.parse(ctx, argument)
+        } catch (e: Exception) {
+            throw BadArgument(arg, argument, e)
+        }
 
         if (!result.isPresent && arg.required) {
             throw BadArgument(arg, argument)

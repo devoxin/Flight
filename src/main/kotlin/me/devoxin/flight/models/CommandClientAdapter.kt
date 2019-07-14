@@ -1,6 +1,6 @@
 package me.devoxin.flight.models
 
-import me.devoxin.flight.BadArgument
+import me.devoxin.flight.exceptions.BadArgument
 import me.devoxin.flight.CommandError
 import me.devoxin.flight.CommandWrapper
 import me.devoxin.flight.Context

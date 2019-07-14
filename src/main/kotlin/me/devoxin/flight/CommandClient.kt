@@ -3,6 +3,7 @@ package me.devoxin.flight
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import me.devoxin.flight.arguments.ArgParser
+import me.devoxin.flight.exceptions.BadArgument
 import me.devoxin.flight.models.Cog
 import me.devoxin.flight.models.CommandClientAdapter
 import me.devoxin.flight.models.PrefixProvider
@@ -247,7 +248,7 @@ class CommandClient(
         }
     }
 
-    fun <T : Event> waitFor(event: Class<T>, predicate: (T) -> Boolean, timeout: Long): CompletableFuture<T?> {
+    fun <T: Event> waitFor(event: Class<T>, predicate: (T) -> Boolean, timeout: Long): CompletableFuture<T?> {
         val future = CompletableFuture<T?>()
         val we = WaitingEvent(event, predicate, future)
 
