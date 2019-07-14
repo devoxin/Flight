@@ -32,14 +32,14 @@ class ArgParser(
             return ""
         } else {
             if (consumeRest) {
-                return getArgs(args.size).joinToString(delimiter.toString())
+                return getArgs(args.size).joinToString(delimiter.toString()).trim()
             }
         }
 
         val isQuoted = args[0].startsWith("\"") // Quotes! TODO: accept other forms of quote chars
 
         if (!isQuoted) {
-            return getArgs(1).joinToString(delimiter.toString())
+            return getArgs(1).joinToString(delimiter.toString()).trim()
         }
 
         val iterator = args.joinToString(delimiter.toString()).iterator()
@@ -78,7 +78,7 @@ class ArgParser(
         iterator.forEachRemaining { remainingArgs.append(it) }
         args = remainingArgs.toString().split(delimiter).toMutableList()
 
-        return argument.toString()
+        return argument.toString().trim()
     }
 
     fun parse(arg: Argument): Any? {
