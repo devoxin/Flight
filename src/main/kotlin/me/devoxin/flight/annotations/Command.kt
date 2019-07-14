@@ -5,6 +5,7 @@ import com.mewna.catnip.entity.util.Permission
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FUNCTION)
 annotation class Command(
+        val argDelimiter: Char = ' ',
         val aliases: Array<String> = [],
         val description: String = "No description available",
         val developerOnly: Boolean = false,

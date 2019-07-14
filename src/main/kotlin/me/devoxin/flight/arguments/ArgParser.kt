@@ -6,10 +6,10 @@ import me.devoxin.flight.parsers.Parser
 import org.slf4j.LoggerFactory
 
 class ArgParser(
-        private val parsers: HashMap<Class<*>, Parser<*>>,
         private val ctx: Context,
-        private var args: MutableList<String>) {
-
+        private var args: MutableList<String>,
+        private val delimiter: Char
+) {
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
     private fun getArgs(amount: Int): List<String> {
@@ -27,6 +27,12 @@ class ArgParser(
     }
 
     private fun parseNextArgument(consumeRest: Boolean = false): String {
+        if (delimiter != ' ') {
+            val argument = args.first()
+            args = args.subList(1, args.size)
+            return argument.trim()
+        }
+
         if (args.isEmpty()) {
             return ""
         } else {
@@ -43,6 +49,7 @@ class ArgParser(
 
         val iterator = args.joinToString(" ").iterator()
         val argument = StringBuilder()
+        val handleQuotedArgs = delimiter == ' '
         var quoting = false
         var escaping = false
 
@@ -54,11 +61,14 @@ class ArgParser(
                 escaping = false
             } else if (char == '\\') {
                 escaping = true
-            } else if (quoting && char == '"') { // TODO: accept other forms of quote chars
+            } else if (handleQuotedArgs && quoting && char == '"') { // TODO: accept other forms of quote chars
                 quoting = false
-            } else if (!quoting && char == '"') { // TODO: accept other forms of quote chars
+            } else if (handleQuotedArgs && !quoting && char == '"') { // TODO: accept other forms of quote chars
                 quoting = true
-            } else if (!quoting && char.isWhitespace()) { // If we're not quoting and it's not whitespace we should throw
+            } else if (!quoting && char == delimiter) { // char.isWhitespace
+                // If we're not quoting and it's not whitespace we should throw
+                // ex: !test  blah -- Extraneous whitespace. Currently we ignore this
+                // (effectively "trimming" the argument) and just use the next part.
                 if (argument.isEmpty()) {
                     continue
                 } else {
@@ -73,7 +83,7 @@ class ArgParser(
         iterator.forEachRemaining { remainingArgs.append(it) }
         args = remainingArgs.toString().split(" +".toRegex()).toMutableList()
 
-        return argument.toString()
+        return argument.toString().trim()
     }
 
     fun parse(arg: Argument): Any? {
@@ -93,6 +103,7 @@ class ArgParser(
         return result.orElse(null)
     }
 
-
-
+    companion object {
+        val parsers = hashMapOf<Class<*>, Parser<*>>()
+    }
 }

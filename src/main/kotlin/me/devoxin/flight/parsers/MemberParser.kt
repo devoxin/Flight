@@ -17,7 +17,7 @@ class MemberParser : Parser<Member> {
                 val tag = param.split("#")
                 ctx.guild?.members()?.firstOrNull { it.user().username() == tag[0] && it.user().discriminator() == tag[1] }
             } else {
-                ctx.guild?.members()?.firstOrNull { it.effectiveName().contains(param) }
+                ctx.guild?.members()?.firstOrNull { it.effectiveName() == param }
             }
         }
 

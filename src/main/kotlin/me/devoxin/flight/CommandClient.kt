@@ -24,7 +24,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 class CommandClient(
-        private val parsers: HashMap<Class<*>, Parser<*>>,
+        parsers: HashMap<Class<*>, Parser<*>>,
         private val prefixProvider: PrefixProvider,
         private val useDefaultHelpCommand: Boolean,
         private val ignoreBots: Boolean,
@@ -45,6 +45,7 @@ class CommandClient(
         }
 
         ownerIds = customOwnerIds ?: mutableSetOf()
+        ArgParser.parsers.putAll(parsers)
     }
 
     override fun start() {
@@ -62,7 +63,7 @@ class CommandClient(
      * @param packageName
      *        The package name to look for commands in.
      */
-    public fun registerCommands(packageName: String) {
+    fun registerCommands(packageName: String) {
         val indexer = Indexer(packageName)
         val cogs = indexer.getCogs()
 
@@ -82,7 +83,7 @@ class CommandClient(
      * @param indexer
      *        The indexer to use. This can be omitted, but it's better to reuse an indexer if possible.
      */
-    public fun registerCommands(cog: Cog, indexer: Indexer? = null) {
+    fun registerCommands(cog: Cog, indexer: Indexer? = null) {
         val i = indexer ?: Indexer(cog::class.java.`package`.name)
 
         val commands = i.getCommands(cog)
@@ -229,7 +230,14 @@ class CommandClient(
             return emptyArray()
         }
 
-        val parser = ArgParser(parsers, ctx, args)
+        val delimiter = cmd.properties.argDelimiter
+        val commandArgs = if (delimiter == ' ') args else args.joinToString(" ")
+                .replace("([^\\\\])$delimiter".toRegex(), "$1 ,")
+                .split("[^\\\\]$delimiter".toRegex())
+                .map { it.replace("\\$delimiter", "$delimiter") }
+                .toMutableList()
+
+        val parser = ArgParser(ctx, commandArgs, cmd.properties.argDelimiter)
         val parsed = mutableListOf<Any?>()
 
         for (arg in arguments) {
