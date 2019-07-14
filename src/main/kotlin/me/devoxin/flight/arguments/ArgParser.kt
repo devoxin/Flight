@@ -76,9 +76,9 @@ class ArgParser(
 
         val remainingArgs = StringBuilder()
         iterator.forEachRemaining { remainingArgs.append(it) }
-        args = remainingArgs.toString().split(" +".toRegex()).toMutableList()
+        args = remainingArgs.toString().split(delimiter).toMutableList()
 
-        return argument.toString()
+        return argument.toString().trimStart()
     }
 
     fun parse(arg: Argument): Any? {
