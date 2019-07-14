@@ -222,7 +222,7 @@ class CommandClient(
         }
 
         val delimiter = cmd.properties.argDelimiter
-        val commandArgs = if (delimiter == ' ') args else args.joinToString(" ").split(delimiter).toMutableList()
+        val commandArgs = if (delimiter == ' ') args else args.joinToString(" ").split("$delimiter+").toMutableList()
 
         val parser = ArgParser(ctx, commandArgs, cmd.properties.argDelimiter)
         val parsed = mutableListOf<Any?>()
