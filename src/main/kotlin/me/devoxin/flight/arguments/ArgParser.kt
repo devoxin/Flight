@@ -28,7 +28,7 @@ class ArgParser(
 
     private fun parseNextArgument(consumeRest: Boolean = false): String {
         if (delimiter != ' ') {
-            val argument = args.first()
+            val argument = args.firstOrNull() ?: ""
             args = args.subList(1, args.size)
             return argument.trim()
         }
