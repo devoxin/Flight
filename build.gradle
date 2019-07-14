@@ -30,7 +30,7 @@ dependencies {
     compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutines"
     compile "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$kotlin_coroutines"
     compile 'org.reflections:reflections:0.9.11'
-    compileOnly 'net.dv8tion:JDA:4.ALPHA.0_48'
+    compileOnly 'net.dv8tion:JDA:4.BETA.0_23'
     api 'org.slf4j:slf4j-api:1.7.25'
 }
 
