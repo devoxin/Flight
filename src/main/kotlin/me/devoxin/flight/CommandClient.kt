@@ -22,7 +22,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 class CommandClient(
-        private val parsers: HashMap<Class<*>, Parser<*>>,
+        parsers: HashMap<Class<*>, Parser<*>>,
         private val prefixProvider: PrefixProvider,
         private val useDefaultHelpCommand: Boolean,
         private val ignoreBots: Boolean,
@@ -43,6 +43,8 @@ class CommandClient(
         }
 
         ownerIds = customOwnerIds ?: mutableSetOf()
+
+        ArgParser.parsers.putAll(parsers)
     }
 
 
@@ -130,7 +132,7 @@ class CommandClient(
 
         if (event.channelType.isGuild) {
             if (props.userPermissions.isNotEmpty()) {
-                val userCheck = performPermCheck(event.member, event.textChannel, props.userPermissions)
+                val userCheck = performPermCheck(event.member!!, event.textChannel, props.userPermissions)
 
                 if (userCheck.isNotEmpty()) {
                     return eventListeners.forEach { it.onUserMissingPermissions(ctx, cmd, userCheck) }
@@ -219,7 +221,7 @@ class CommandClient(
             return emptyArray()
         }
 
-        val parser = ArgParser(parsers, ctx, args)
+        val parser = ArgParser(ctx, args, cmd.properties.argDelimiter)
         val parsed = mutableListOf<Any?>()
 
         for (arg in arguments) {

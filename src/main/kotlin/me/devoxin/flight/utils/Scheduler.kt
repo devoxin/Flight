@@ -8,6 +8,6 @@ object Scheduler {
     private val schd = Executors.newSingleThreadScheduledExecutor()
 
     fun every(milliseconds: Long, block: () -> Unit): ScheduledFuture<*> {
-        return schd.scheduleAtFixedRate(block, 5000, milliseconds, TimeUnit.MILLISECONDS)
+        return schd.scheduleAtFixedRate(block, milliseconds, milliseconds, TimeUnit.MILLISECONDS)
     }
 }
