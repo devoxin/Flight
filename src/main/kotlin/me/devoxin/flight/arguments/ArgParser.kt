@@ -78,7 +78,7 @@ class ArgParser(
         iterator.forEachRemaining { remainingArgs.append(it) }
         args = remainingArgs.toString().split(delimiter).toMutableList()
 
-        return argument.toString().trimStart()
+        return argument.toString().trim()
     }
 
     fun parse(arg: Argument): Any? {
