@@ -4,6 +4,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import me.devoxin.flight.arguments.ArgParser
 import me.devoxin.flight.exceptions.BadArgument
+import me.devoxin.flight.exceptions.AwaitTimeoutException
 import me.devoxin.flight.models.Cog
 import me.devoxin.flight.models.CommandClientAdapter
 import me.devoxin.flight.models.PrefixProvider
@@ -31,6 +32,7 @@ class CommandClient(
         customOwnerIds: MutableSet<Long>?
 ) : ListenerAdapter() {
 
+    private val scheduler = Executors.newSingleThreadScheduledExecutor()
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
     private val waiterScheduler = Executors.newSingleThreadScheduledExecutor()!!
@@ -257,8 +259,9 @@ class CommandClient(
 
         if (timeout > 0) {
             waiterScheduler.schedule({
-                if (pendingEvents[event]!!.remove(we)) {
-                    we.accept(null)
+                if (!future.isDone) {
+                    future.completeExceptionally(AwaitTimeoutException())
+                    set.remove(we)
                 }
             }, timeout, TimeUnit.MILLISECONDS)
         }
