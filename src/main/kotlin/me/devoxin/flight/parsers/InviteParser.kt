@@ -19,7 +19,7 @@ class InviteParser : Parser<Invite> {
     }
 
     companion object {
-        public val INVITE_REGEX = Pattern.compile("discord(?:(?:app)?\\.com/invite|\\.gg)/([a-zA-Z0-9]{1,16})")!!
+        val INVITE_REGEX = Pattern.compile("discord(?:(?:app)?\\.com/invite|\\.gg)/([a-zA-Z0-9]{1,16})")!!
     }
 
 }

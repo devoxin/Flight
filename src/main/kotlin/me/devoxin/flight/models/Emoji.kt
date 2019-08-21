@@ -1,8 +1,8 @@
 package me.devoxin.flight.models
 
-class Emoji(public val name: String,
-            public val id: Long,
-            public val animated: Boolean) {
+class Emoji(val name: String,
+            val id: Long,
+            val animated: Boolean) {
 
     val url: String
             get() {

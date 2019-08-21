@@ -1,7 +1,7 @@
 package me.devoxin.flight.parsers
 
 import me.devoxin.flight.Context
-import net.dv8tion.jda.core.entities.Member
+import net.dv8tion.jda.api.entities.Member
 import java.util.*
 
 class MemberParser : Parser<Member> {
@@ -17,7 +17,7 @@ class MemberParser : Parser<Member> {
                 val tag = param.split("#")
                 ctx.guild?.memberCache?.find { it.user.name == tag[0] && it.user.discriminator == tag[1] }
             } else {
-                ctx.guild?.getMembersByEffectiveName(param, false)?.firstOrNull()
+                ctx.guild?.getMembersByName(param, false)?.firstOrNull()
             }
         }
 

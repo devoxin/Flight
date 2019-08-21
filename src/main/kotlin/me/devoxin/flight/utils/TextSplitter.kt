@@ -1,6 +1,6 @@
 package me.devoxin.flight.utils
 
-public fun split(content: String, limit: Int = 2000): Array<String> {
+fun split(content: String, limit: Int = 2000): Array<String> {
     val pages = ArrayList<String>()
 
     val lines = content.trim().split("\n").dropLastWhile { it.isEmpty() }.toTypedArray()
