@@ -22,7 +22,7 @@ class EmojiParser : Parser<Emoji> {
     }
 
     companion object {
-        public val EMOJI_REGEX = Pattern.compile("<(a)?:(\\w+):(\\d{17,21})")
+        val EMOJI_REGEX = Pattern.compile("<(a)?:(\\w+):(\\d{17,21})")!!
     }
 
 }

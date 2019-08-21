@@ -1,97 +1,97 @@
 package me.devoxin.flight
 
-import com.google.common.reflect.ClassPath
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
-import me.devoxin.flight.annotations.Async
-import me.devoxin.flight.annotations.Command
 import me.devoxin.flight.arguments.ArgParser
+import me.devoxin.flight.exceptions.BadArgument
 import me.devoxin.flight.exceptions.AwaitTimeoutException
 import me.devoxin.flight.models.Cog
 import me.devoxin.flight.models.CommandClientAdapter
 import me.devoxin.flight.models.PrefixProvider
 import me.devoxin.flight.parsers.Parser
-import net.dv8tion.jda.core.Permission
-import net.dv8tion.jda.core.entities.Member
-import net.dv8tion.jda.core.entities.TextChannel
-import net.dv8tion.jda.core.events.Event
-import net.dv8tion.jda.core.events.ReadyEvent
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent
-import net.dv8tion.jda.core.hooks.ListenerAdapter
+import me.devoxin.flight.utils.Indexer
+import net.dv8tion.jda.api.Permission
+import net.dv8tion.jda.api.entities.Member
+import net.dv8tion.jda.api.entities.TextChannel
+import net.dv8tion.jda.api.events.Event
+import net.dv8tion.jda.api.events.GenericEvent
+import net.dv8tion.jda.api.events.ReadyEvent
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import net.dv8tion.jda.api.hooks.ListenerAdapter
 import org.slf4j.LoggerFactory
-import java.lang.reflect.Modifier
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-@Suppress("UnstableApiUsage")
 class CommandClient(
-        private val parsers: HashMap<Class<*>, Parser<*>>,
+        parsers: HashMap<Class<*>, Parser<*>>,
         private val prefixProvider: PrefixProvider,
         private val useDefaultHelpCommand: Boolean,
         private val ignoreBots: Boolean,
         private val eventListeners: List<CommandClientAdapter>,
-        private val customOwnerIds: MutableSet<Long>?
+        customOwnerIds: MutableSet<Long>?
 ) : ListenerAdapter() {
 
     private val scheduler = Executors.newSingleThreadScheduledExecutor()
     private val logger = LoggerFactory.getLogger(this.javaClass)
+
+    private val waiterScheduler = Executors.newSingleThreadScheduledExecutor()!!
     private val pendingEvents = hashMapOf<Class<*>, HashSet<WaitingEvent<*>>>()
-    public val commands = hashMapOf<String, CommandWrapper>()
-    public var ownerIds: MutableSet<Long>
+    val commands = hashMapOf<String, CommandWrapper>()
+    var ownerIds: MutableSet<Long>
 
     init {
         if (this.useDefaultHelpCommand) {
-            registerCommands(NoCategory::class.java)
+            registerCommands(DefaultHelpCommand())
         }
 
         ownerIds = customOwnerIds ?: mutableSetOf()
+
+        ArgParser.parsers.putAll(parsers)
     }
+
 
     // +------------------+
     // | Custom Functions |
     // +------------------+
 
-    public fun registerCommands(packageName: String) {
-        logger.debug("Scanning $packageName for commands...")
-        val classes = ClassPath.from(this.javaClass.classLoader).getTopLevelClassesRecursive(packageName)
-        logger.debug("Found ${classes.size} commands")
+    /**
+     * Registers all commands that are discovered within the given package name.
+     *
+     * @param packageName
+     *        The package name to look for commands in.
+     */
+    fun registerCommands(packageName: String) {
+        val indexer = Indexer(packageName)
+        val cogs = indexer.getCogs()
 
-
-        for (clazz in classes) {
-            val klass = clazz.load()
-
-            if (Modifier.isAbstract(klass.modifiers) || klass.isInterface || !Cog::class.java.isAssignableFrom(klass)) {
-                continue
-            }
-
-            registerCommands(klass)
+        for (cogClass in cogs) {
+            val cog = cogClass.getDeclaredConstructor().newInstance()
+            registerCommands(cog, indexer)
         }
 
         logger.info("Successfully loaded ${commands.size} commands")
     }
 
-    public fun registerCommands(klass: Class<*>) {
-        if (!Cog::class.java.isAssignableFrom(klass)) {
-            throw IllegalArgumentException("${klass.simpleName} must implement `Cog`!")
-        }
+    /**
+     * Registers all commands in the given class
+     *
+     * @param cog
+     *        The cog to load commands from.
+     * @param indexer
+     *        The indexer to use. This can be omitted, but it's better to reuse an indexer if possible.
+     */
+    fun registerCommands(cog: Cog, indexer: Indexer? = null) {
+        val i = indexer ?: Indexer(cog::class.java.`package`.name)
 
-        val cog = klass.getDeclaredConstructor().newInstance() as Cog
-        val category = cog.name().replace("_", " ")
+        val commands = i.getCommands(cog)
 
-        for (meth in klass.methods) {
-            if (!meth.isAnnotationPresent(Command::class.java)) {
-                continue
-            }
-
-            val name = meth.name.toLowerCase()
-            val properties = meth.getAnnotation(Command::class.java)
-            val async = meth.isAnnotationPresent(Async::class.java)
-
-            val wrapper = CommandWrapper(name, category, properties, async, meth, cog)
-            this.commands[name] = wrapper
+        for (command in commands) {
+            val cmd = i.loadCommand(command, cog)
+            this.commands[cmd.name] = cmd
         }
     }
+
 
     // +------------------+
     // |  Event Handling  |
@@ -99,7 +99,7 @@ class CommandClient(
 
     override fun onReady(event: ReadyEvent) {
         if (ownerIds.isEmpty()) {
-            event.jda.asBot().applicationInfo.queue {
+            event.jda.retrieveApplicationInfo().queue {
                 ownerIds.add(it.owner.idLong)
             }
         }
@@ -135,7 +135,7 @@ class CommandClient(
 
         if (event.channelType.isGuild) {
             if (props.userPermissions.isNotEmpty()) {
-                val userCheck = performPermCheck(event.member, event.textChannel, props.userPermissions)
+                val userCheck = performPermCheck(event.member!!, event.textChannel, props.userPermissions)
 
                 if (userCheck.isNotEmpty()) {
                     return eventListeners.forEach { it.onUserMissingPermissions(ctx, cmd, userCheck) }
@@ -177,16 +177,15 @@ class CommandClient(
         }
 
         if (cmd.async) {
-            GlobalScope
-                    .async {
-                        cmd.executeAsync(ctx, *arguments) { success, err ->
-                            if (err != null) {
-                                handleCommandError(ctx, err)
-                            }
-
-                            handleCommandCompletion(ctx, cmd, !success)
-                        }
+            GlobalScope.async {
+                cmd.executeAsync(ctx, *arguments) { success, err ->
+                    if (err != null) {
+                        handleCommandError(ctx, err)
                     }
+
+                    handleCommandCompletion(ctx, cmd, !success)
+                }
+            }
         } else {
             cmd.execute(ctx, *arguments) { success, err ->
                 if (err != null) {
@@ -219,13 +218,16 @@ class CommandClient(
     }
 
     private fun parseArgs(ctx: Context, args: MutableList<String>, cmd: CommandWrapper): Array<Any?> {
-        val arguments = cmd.commandArguments()
+        val arguments = cmd.arguments
 
         if (arguments.isEmpty()) {
             return emptyArray()
         }
 
-        val parser = ArgParser(parsers, ctx, args)
+        val delimiter = cmd.properties.argDelimiter
+        val commandArgs = if (delimiter == ' ') args else args.joinToString(" ").split(delimiter).toMutableList()
+
+        val parser = ArgParser(ctx, commandArgs, cmd.properties.argDelimiter)
         val parsed = mutableListOf<Any?>()
 
         for (arg in arguments) {
@@ -235,7 +237,8 @@ class CommandClient(
         return parsed.toTypedArray()
     }
 
-    override fun onGenericEvent(event: Event) {
+
+    override fun onGenericEvent(event: GenericEvent) {
         val cls = event::class.java
 
         if (pendingEvents.containsKey(cls)) {
@@ -247,7 +250,7 @@ class CommandClient(
         }
     }
 
-    fun <T : Event> waitFor(event: Class<T>, predicate: (T) -> Boolean, timeout: Long): CompletableFuture<T?> {
+    fun <T: Event> waitFor(event: Class<T>, predicate: (T) -> Boolean, timeout: Long): CompletableFuture<T?> {
         val future = CompletableFuture<T?>()
         val we = WaitingEvent(event, predicate, future)
 
@@ -255,7 +258,7 @@ class CommandClient(
         set.add(we)
 
         if (timeout > 0) {
-            scheduler.schedule({
+            waiterScheduler.schedule({
                 if (!future.isDone) {
                     future.completeExceptionally(AwaitTimeoutException())
                     set.remove(we)
