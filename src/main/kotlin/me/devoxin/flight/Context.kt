@@ -23,12 +23,12 @@ class Context(
     val message: Message = event.message
 
     val author: User = event.author
-    val privateChannel: PrivateChannel? = event.privateChannel
 
     val guild: Guild? = event.guild
     val member: Member? = event.member
-    val textChannel: TextChannel? = event.textChannel
 
+    val textChannel: TextChannel? = if(event.isFromType(ChannelType.TEXT)) event.textChannel else null
+    val privateChannel: PrivateChannel? = if(event.isFromType(ChannelType.PRIVATE)) event.privateChannel else null
     val messageChannel: MessageChannel = event.channel
 
 
