@@ -6,6 +6,7 @@ import me.devoxin.flight.arguments.Greedy
 import me.devoxin.flight.arguments.Name
 import me.devoxin.flight.arguments.Optional
 import me.devoxin.flight.models.Cog
+import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.suspendCoroutine
@@ -42,6 +43,8 @@ class CommandWrapper(
             try {
                 method.invoke(cog, ctx, *additionalArgs, it)
                 complete(true, null)
+            } catch (e: InvocationTargetException) {
+                complete(false, CommandError(e.targetException, this))
             } catch (e: Throwable) {
                 complete(false, CommandError(e.cause ?: e, this))
                 //The elvis operator is necessary here as it returns the original error as thrown by the command itself.
