@@ -43,7 +43,11 @@ class CommandWrapper(
                 method.invoke(cog, ctx, *additionalArgs, it)
                 complete(true, null)
             } catch (e: Throwable) {
-                complete(false, CommandError(e, this))
+                complete(false, CommandError(e.cause ?: e, this))
+                //The elvis operator is necessary here as it returns the original error as thrown by the command itself.
+                // Without it, CommandError#original would return an InvocationTargetException, as part of reflections
+                // which is NOT what we want. In the event that somehow, cause is not available, it will fall back to the
+                // error as it was thrown.
             }
         }
     }
