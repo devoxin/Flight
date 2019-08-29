@@ -1,6 +1,6 @@
 package me.devoxin.flight
 
 class CommandError(
-        error: Throwable,
+        val error: Throwable,
         val command: CommandWrapper
 ) : Throwable(error)
