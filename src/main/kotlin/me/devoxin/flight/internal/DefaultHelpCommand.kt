@@ -9,7 +9,7 @@ import me.devoxin.flight.arguments.Optional
 import me.devoxin.flight.models.Cog
 import me.devoxin.flight.utils.TextSplitter
 
-class DefaultHelpCommand : Cog {
+class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
 
     override fun name(): String = "No Category"
 
@@ -89,12 +89,21 @@ class DefaultHelpCommand : Cog {
         for (arg in args) {
             if (arg.required) {
                 builder.append("<")
-                        .append(arg.name)
-                        .append(">")
             } else {
                 builder.append("[")
-                        .append(arg.name)
-                        .append("]")
+            }
+
+            builder.append(arg.name)
+
+            if (showParameterTypes) {
+                builder.append(": ")
+                    .append(arg.type.simpleName)
+            }
+
+            if (arg.required) {
+                builder.append(">")
+            } else {
+                builder.append("]")
             }
             builder.append(" ")
         }
