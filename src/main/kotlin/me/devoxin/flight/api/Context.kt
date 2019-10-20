@@ -1,9 +1,9 @@
-package me.devoxin.flight
+package me.devoxin.flight.api
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.future.await
+import kotlinx.coroutines.launch
 import me.devoxin.flight.models.Attachment
 import me.devoxin.flight.utils.Scheduler
 import net.dv8tion.jda.api.EmbedBuilder
@@ -11,12 +11,11 @@ import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.*
 import net.dv8tion.jda.api.events.Event
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
-import java.util.concurrent.TimeUnit
 
 class Context(
-        val commandClient: CommandClient,
-        private val event: MessageReceivedEvent,
-        val trigger: String
+    val commandClient: CommandClient,
+    private val event: MessageReceivedEvent,
+    val trigger: String
 ) {
 
     val jda: JDA = event.jda
@@ -88,12 +87,10 @@ class Context(
                 messageChannel.sendTyping().queue()
             }
 
-            GlobalScope.async {
-                block()
-            }.invokeOnCompletion {
-                task.cancel(true)
-            }
-
+            GlobalScope.launch(block = block)
+                .invokeOnCompletion {
+                    task.cancel(true)
+                }
         }
     }
 

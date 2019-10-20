@@ -1,17 +1,12 @@
-package me.devoxin.flight
+package me.devoxin.flight.internal
 
 import me.devoxin.flight.annotations.Command
+import me.devoxin.flight.api.CommandError
+import me.devoxin.flight.api.Context
 import me.devoxin.flight.arguments.Argument
-import me.devoxin.flight.arguments.Greedy
-import me.devoxin.flight.arguments.Name
-import me.devoxin.flight.arguments.Optional
 import me.devoxin.flight.models.Cog
-import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
-import kotlin.coroutines.Continuation
 import kotlin.coroutines.suspendCoroutine
-import kotlin.reflect.KCallable
-import kotlin.reflect.KFunction
 
 class CommandWrapper(
         val name: String,

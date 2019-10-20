@@ -1,6 +1,6 @@
 package me.devoxin.flight.parsers
 
-import me.devoxin.flight.Context
+import me.devoxin.flight.api.Context
 import net.dv8tion.jda.api.entities.Role
 import java.util.*
 

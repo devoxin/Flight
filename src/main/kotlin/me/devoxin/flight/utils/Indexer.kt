@@ -1,7 +1,7 @@
 package me.devoxin.flight.utils
 
-import me.devoxin.flight.CommandWrapper
-import me.devoxin.flight.Context
+import me.devoxin.flight.internal.CommandWrapper
+import me.devoxin.flight.api.Context
 import me.devoxin.flight.annotations.Async
 import me.devoxin.flight.annotations.Command
 import me.devoxin.flight.arguments.Argument

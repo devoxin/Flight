@@ -1,9 +1,9 @@
 package me.devoxin.flight.models
 
 import me.devoxin.flight.exceptions.BadArgument
-import me.devoxin.flight.CommandError
-import me.devoxin.flight.CommandWrapper
-import me.devoxin.flight.Context
+import me.devoxin.flight.api.CommandError
+import me.devoxin.flight.internal.CommandWrapper
+import me.devoxin.flight.api.Context
 import net.dv8tion.jda.api.Permission
 
 interface CommandClientAdapter {
@@ -28,9 +28,12 @@ interface CommandClientAdapter {
     /**
      * Invoked after a command has executed, regardless of whether the command execution encountered an error
      *
-     * @param ctx The command context.
-     * @param command The command that finished processing.
-     * @param failed Whether the command encountered an error or not.
+     * @param ctx
+     *        The command context.
+     * @param command
+     *        The command that finished processing.
+     * @param failed
+     *        Whether the command encountered an error or not. You can use `onCommandError` to retrieve the error.
      */
     fun onCommandPostInvoke(ctx: Context, command: CommandWrapper, failed: Boolean)
 
@@ -42,11 +45,11 @@ interface CommandClientAdapter {
     /**
      * Invoked when a user lacks permissions to execute a command
      */
-    fun onUserMissingPermissions(ctx: Context, command: CommandWrapper, permissions: Array<Permission>)
+    fun onUserMissingPermissions(ctx: Context, command: CommandWrapper, permissions: List<Permission>)
 
     /**
      * Invoked when the bot lacks permissions to execute a command
      */
-    fun onBotMissingPermissions(ctx: Context, command: CommandWrapper, permissions: Array<Permission>)
+    fun onBotMissingPermissions(ctx: Context, command: CommandWrapper, permissions: List<Permission>)
 
 }

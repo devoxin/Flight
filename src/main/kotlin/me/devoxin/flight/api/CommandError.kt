@@ -1,4 +1,6 @@
-package me.devoxin.flight
+package me.devoxin.flight.api
+
+import me.devoxin.flight.internal.CommandWrapper
 
 class CommandError(
         val original: Throwable,

@@ -1,4 +1,4 @@
-package me.devoxin.flight
+package me.devoxin.flight.internal
 
 import me.devoxin.flight.models.PrefixProvider
 import net.dv8tion.jda.api.entities.Message
