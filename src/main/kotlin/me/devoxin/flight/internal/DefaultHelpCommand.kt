@@ -6,7 +6,7 @@ import me.devoxin.flight.api.Context
 import me.devoxin.flight.arguments.Name
 import me.devoxin.flight.arguments.Optional
 import me.devoxin.flight.models.Cog
-import me.devoxin.flight.utils.split
+import me.devoxin.flight.utils.TextSplitter
 
 class DefaultHelpCommand : Cog {
 
@@ -55,7 +55,7 @@ class DefaultHelpCommand : Cog {
             }
         }
 
-        val pages = split(helpMenu.toString().trim(), 1990)
+        val pages = TextSplitter.split(helpMenu.toString().trim(), 1990)
 
         for (page in pages) {
             ctx.sendAsync("```\n$page```")
