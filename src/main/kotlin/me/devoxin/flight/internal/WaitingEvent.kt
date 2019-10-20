@@ -1,4 +1,4 @@
-package me.devoxin.flight
+package me.devoxin.flight.internal
 
 import net.dv8tion.jda.api.events.GenericEvent
 import java.util.concurrent.CompletableFuture

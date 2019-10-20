@@ -1,10 +1,13 @@
-package me.devoxin.flight
+package me.devoxin.flight.api
 
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import me.devoxin.flight.arguments.ArgParser
 import me.devoxin.flight.exceptions.BadArgument
 import me.devoxin.flight.exceptions.AwaitTimeoutException
+import me.devoxin.flight.internal.CommandWrapper
+import me.devoxin.flight.internal.DefaultHelpCommand
+import me.devoxin.flight.internal.WaitingEvent
 import me.devoxin.flight.models.Cog
 import me.devoxin.flight.models.CommandClientAdapter
 import me.devoxin.flight.models.PrefixProvider
@@ -32,10 +35,7 @@ class CommandClient(
         customOwnerIds: MutableSet<Long>?
 ) : ListenerAdapter() {
 
-    private val scheduler = Executors.newSingleThreadScheduledExecutor()
-    private val logger = LoggerFactory.getLogger(this.javaClass)
-
-    private val waiterScheduler = Executors.newSingleThreadScheduledExecutor()!!
+    private val waiterScheduler = Executors.newSingleThreadScheduledExecutor()
     private val pendingEvents = hashMapOf<Class<*>, HashSet<WaitingEvent<*>>>()
     val commands = hashMapOf<String, CommandWrapper>()
     var ownerIds: MutableSet<Long>
@@ -46,7 +46,6 @@ class CommandClient(
         }
 
         ownerIds = customOwnerIds ?: mutableSetOf()
-
         ArgParser.parsers.putAll(parsers)
     }
 
@@ -126,10 +125,13 @@ class CommandClient(
                 ?: return
 
         val ctx = Context(this, event, trigger)
-
         val props = cmd.properties
 
         if (props.developerOnly && !ownerIds.contains(event.author.idLong)) {
+            return
+        }
+
+        if (!event.channelType.isGuild && props.guildOnly) {
             return
         }
 
@@ -155,10 +157,6 @@ class CommandClient(
             }
         }
 
-        if (!event.channelType.isGuild && props.guildOnly) {
-            return
-        }
-
         val shouldExecute = eventListeners.all { it.onCommandPreInvoke(ctx, cmd) }
                 && cmd.cog.localCheck(ctx, cmd)
 
@@ -169,43 +167,32 @@ class CommandClient(
         val arguments: Array<Any?>
 
         try {
-            arguments = parseArgs(ctx, args, cmd)
+            arguments = ArgParser.parseArguments(cmd, ctx, args)
         } catch (e: BadArgument) {
             return eventListeners.forEach { it.onBadArgument(ctx, e) }
         } catch (e: Throwable) {
             return eventListeners.forEach { it.onParseError(ctx, e) }
         }
 
-        if (cmd.async) {
-            GlobalScope.async {
-                cmd.executeAsync(ctx, *arguments) { success, err ->
-                    if (err != null) {
-                        handleCommandError(ctx, err)
-                    }
+        val cb = { success: Boolean, err: CommandError? ->
+            if (err != null) {
+                val handled = err.command.cog.onCommandError(ctx, err)
 
-                    handleCommandCompletion(ctx, cmd, !success)
+                if (!handled) {
+                    eventListeners.forEach { it.onCommandError(ctx, err) }
                 }
+            }
+
+            eventListeners.forEach { it.onCommandPostInvoke(ctx, cmd, !success) }
+        }
+
+        if (cmd.async) {
+            GlobalScope.launch {
+                cmd.executeAsync(ctx, *arguments, complete = cb)
             }
         } else {
-            cmd.execute(ctx, *arguments) { success, err ->
-                if (err != null) {
-                    handleCommandError(ctx, err)
-                }
-
-                handleCommandCompletion(ctx, cmd, !success)
-            }
+            cmd.execute(ctx, *arguments, complete = cb)
         }
-    }
-
-    private fun handleCommandError(ctx: Context, error: CommandError) {
-        val handled = error.command.cog.onCommandError(ctx, error)
-        if (!handled) {
-            eventListeners.forEach { it.onCommandError(ctx, error) }
-        }
-    }
-
-    private fun handleCommandCompletion(ctx: Context, cmd: CommandWrapper, failed: Boolean) {
-        eventListeners.forEach { it.onCommandPostInvoke(ctx, cmd, failed) }
     }
 
 
@@ -213,41 +200,17 @@ class CommandClient(
     // | Execution-Related |
     // +-------------------+
 
-    private fun performPermCheck(member: Member, channel: TextChannel, permissions: Array<Permission>): Array<Permission> {
-        return permissions.filter { !member.hasPermission(channel, it) }.toTypedArray()
-    }
-
-    private fun parseArgs(ctx: Context, args: MutableList<String>, cmd: CommandWrapper): Array<Any?> {
-        val arguments = cmd.arguments
-
-        if (arguments.isEmpty()) {
-            return emptyArray()
-        }
-
-        val delimiter = cmd.properties.argDelimiter
-        val commandArgs = if (delimiter == ' ') args else args.joinToString(" ").split(delimiter).toMutableList()
-
-        val parser = ArgParser(ctx, commandArgs, cmd.properties.argDelimiter)
-        val parsed = mutableListOf<Any?>()
-
-        for (arg in arguments) {
-            parsed.add(parser.parse(arg))
-        }
-
-        return parsed.toTypedArray()
-    }
+    private fun performPermCheck(member: Member, channel: TextChannel,
+                                 permissions: Array<Permission>) = permissions.filter { !member.hasPermission(channel, it) }
 
 
     override fun onGenericEvent(event: GenericEvent) {
         val cls = event::class.java
+        val events = pendingEvents[cls] ?: return
+        val passed = events.filter { it.check(event) }
 
-        if (pendingEvents.containsKey(cls)) {
-            val events = pendingEvents[cls]!!
-            val passed = events.filter { it.check(event) }
-
-            events.removeAll(passed)
-            passed.forEach { it.accept(event) }
-        }
+        events.removeAll(passed)
+        passed.forEach { it.accept(event) }
     }
 
     fun <T: Event> waitFor(event: Class<T>, predicate: (T) -> Boolean, timeout: Long): CompletableFuture<T?> {
@@ -269,4 +232,7 @@ class CommandClient(
         return future
     }
 
+    companion object {
+        private val logger = LoggerFactory.getLogger(CommandClient::class.java)
+    }
 }

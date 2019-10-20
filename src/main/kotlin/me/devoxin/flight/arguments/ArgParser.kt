@@ -1,31 +1,26 @@
 package me.devoxin.flight.arguments
 
+import me.devoxin.flight.internal.CommandWrapper
 import me.devoxin.flight.exceptions.BadArgument
-import me.devoxin.flight.Context
+import me.devoxin.flight.api.Context
 import me.devoxin.flight.exceptions.ParserNotRegistered
 import me.devoxin.flight.parsers.Parser
 import org.slf4j.LoggerFactory
 
 class ArgParser(
-        private val ctx: Context,
-        private var args: MutableList<String>,
-        private val delimiter: Char
+    private val ctx: Context,
+    private val commandArgs: List<String>,
+    private val delimiter: Char
 ) {
 
-    private val logger = LoggerFactory.getLogger(this.javaClass)
+    private var args = commandArgs.toMutableList()
 
     private fun getArgs(amount: Int): List<String> {
         if (args.isEmpty()) {
             return emptyList()
         }
 
-        val elements = args.take(amount)
-
-        for (i in 0 until amount) {
-            args.removeAt(0)
-        }
-
-        return elements
+        return args.drop(amount)
     }
 
     private fun parseNextArgument(consumeRest: Boolean = false): String {
@@ -105,9 +100,24 @@ class ArgParser(
     }
 
     companion object {
+        private val logger = LoggerFactory.getLogger(ArgParser::class.java)
         val parsers = hashMapOf<Class<*>, Parser<*>>()
+
+        fun parseArguments(cmd: CommandWrapper, ctx: Context, args: List<String>): Array<Any?> {
+            if (cmd.arguments.isEmpty()) {
+                return emptyArray()
+            }
+
+            val delimiter = cmd.properties.argDelimiter
+            val commandArgs = if (delimiter == ' ') {
+                args
+            } else {
+                args.joinToString(" ").split(delimiter).toMutableList()
+            }
+
+            val parser = ArgParser(ctx, commandArgs, delimiter)
+
+            return cmd.arguments.map(parser::parse).toTypedArray()
+        }
     }
-
-
-
 }

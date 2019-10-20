@@ -1,5 +1,6 @@
-package me.devoxin.flight
+package me.devoxin.flight.api
 
+import me.devoxin.flight.internal.DefaultPrefixProvider
 import me.devoxin.flight.arguments.Snowflake
 import me.devoxin.flight.models.CommandClientAdapter
 import me.devoxin.flight.models.Emoji

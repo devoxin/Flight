@@ -1,5 +1,6 @@
-package me.devoxin.flight
+package me.devoxin.flight.api
 
+import me.devoxin.flight.internal.CommandWrapper
 import me.devoxin.flight.exceptions.BadArgument
 import me.devoxin.flight.models.CommandClientAdapter
 import net.dv8tion.jda.api.Permission
@@ -16,8 +17,8 @@ abstract class DefaultCommandClientAdapter : CommandClientAdapter {
 
     override fun onParseError(ctx: Context, error: Throwable) {}
 
-    override fun onBotMissingPermissions(ctx: Context, command: CommandWrapper, permissions: Array<Permission>) {}
+    override fun onBotMissingPermissions(ctx: Context, command: CommandWrapper, permissions: List<Permission>) {}
 
-    override fun onUserMissingPermissions(ctx: Context, command: CommandWrapper, permissions: Array<Permission>) {}
+    override fun onUserMissingPermissions(ctx: Context, command: CommandWrapper, permissions: List<Permission>) {}
 
 }
