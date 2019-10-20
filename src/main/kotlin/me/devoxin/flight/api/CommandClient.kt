@@ -5,7 +5,6 @@ import kotlinx.coroutines.launch
 import me.devoxin.flight.arguments.ArgParser
 import me.devoxin.flight.exceptions.BadArgument
 import me.devoxin.flight.exceptions.AwaitTimeoutException
-import me.devoxin.flight.internal.CommandWrapper
 import me.devoxin.flight.internal.DefaultHelpCommand
 import me.devoxin.flight.internal.WaitingEvent
 import me.devoxin.flight.models.Cog

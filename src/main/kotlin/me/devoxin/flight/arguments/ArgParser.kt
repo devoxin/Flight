@@ -1,6 +1,6 @@
 package me.devoxin.flight.arguments
 
-import me.devoxin.flight.internal.CommandWrapper
+import me.devoxin.flight.api.CommandWrapper
 import me.devoxin.flight.exceptions.BadArgument
 import me.devoxin.flight.api.Context
 import me.devoxin.flight.exceptions.ParserNotRegistered
