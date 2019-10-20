@@ -20,11 +20,13 @@ class ArgParser(
             return emptyList()
         }
 
-        return args.drop(amount)
+        val taken = args.take(amount)
+        args.drop(amount)
+
+        return taken
     }
 
     private fun parseNextArgument(consumeRest: Boolean = false): String {
-        println(args)
         if (args.isEmpty()) {
             return ""
         } else {
@@ -79,7 +81,6 @@ class ArgParser(
 
     fun parse(arg: Argument): Any? {
         val argument = parseNextArgument(arg.greedy)
-        println(argument)
         val parser = parsers[arg.type]
             ?: throw ParserNotRegistered("No parsers registered for `${arg.type}`")
 
