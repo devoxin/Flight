@@ -28,7 +28,6 @@ import java.util.concurrent.TimeUnit
 class CommandClient(
         parsers: HashMap<Class<*>, Parser<*>>,
         private val prefixProvider: PrefixProvider,
-        private val useDefaultHelpCommand: Boolean,
         private val ignoreBots: Boolean,
         private val eventListeners: List<CommandClientAdapter>,
         customOwnerIds: MutableSet<Long>?
@@ -37,14 +36,9 @@ class CommandClient(
     private val waiterScheduler = Executors.newSingleThreadScheduledExecutor()
     private val pendingEvents = hashMapOf<Class<*>, HashSet<WaitingEvent<*>>>()
     val commands = hashMapOf<String, CommandWrapper>()
-    var ownerIds: MutableSet<Long>
+    var ownerIds: MutableSet<Long> = customOwnerIds ?: mutableSetOf()
 
     init {
-        if (this.useDefaultHelpCommand) {
-            registerCommands(DefaultHelpCommand())
-        }
-
-        ownerIds = customOwnerIds ?: mutableSetOf()
         ArgParser.parsers.putAll(parsers)
     }
 

@@ -2,6 +2,7 @@ package me.devoxin.flight.api
 
 import me.devoxin.flight.internal.DefaultPrefixProvider
 import me.devoxin.flight.arguments.Snowflake
+import me.devoxin.flight.internal.DefaultHelpCommand
 import me.devoxin.flight.models.CommandClientAdapter
 import me.devoxin.flight.models.Emoji
 import me.devoxin.flight.models.Invite
@@ -16,6 +17,7 @@ class CommandClientBuilder {
     private var prefixes: List<String> = emptyList()
     private var allowMentionPrefix: Boolean = true
     private var useDefaultHelpCommand: Boolean = true
+    private var showParameterTypes: Boolean = false
     private var ignoreBots: Boolean = true
     private var prefixProvider: PrefixProvider? = null
     private var eventListeners: MutableList<CommandClientAdapter> = mutableListOf()
@@ -65,8 +67,9 @@ class CommandClientBuilder {
      *
      * @return The builder instance. Useful for chaining.
      */
-    fun useDefaultHelpCommand(useDefaultHelpCommand: Boolean): CommandClientBuilder {
+    fun useDefaultHelpCommand(useDefaultHelpCommand: Boolean, showParameterTypes: Boolean = false): CommandClientBuilder {
         this.useDefaultHelpCommand = useDefaultHelpCommand
+        this.showParameterTypes = showParameterTypes
         return this
     }
 
@@ -153,7 +156,13 @@ class CommandClientBuilder {
      */
     fun build(): CommandClient {
         val prefixProvider = this.prefixProvider ?: DefaultPrefixProvider(prefixes, allowMentionPrefix)
-        return CommandClient(parsers, prefixProvider, useDefaultHelpCommand, ignoreBots, eventListeners.toList(), ownerIds)
+        val commandClient = CommandClient(parsers, prefixProvider, ignoreBots, eventListeners.toList(), ownerIds)
+
+        if (useDefaultHelpCommand) {
+            commandClient.registerCommands(DefaultHelpCommand(showParameterTypes))
+        }
+
+        return commandClient
     }
 
 }
