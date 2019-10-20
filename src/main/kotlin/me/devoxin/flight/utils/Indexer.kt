@@ -40,13 +40,8 @@ class Indexer(private val pkg: String) {
     }
 
     fun loadCommand(meth: Method, cog: Cog): CommandWrapper {
-        if (meth.declaringClass != cog::class.java) {
-            throw IllegalArgumentException("${meth.name} is not from ${cog.name()}")
-        }
-
-        if (!meth.isAnnotationPresent(Command::class.java)) {
-            throw IllegalArgumentException("${meth.name} is not annotated with Command!")
-        }
+        require(meth.declaringClass == cog::class.java) { "${meth.name} is not from ${cog.name()}" }
+        require(meth.isAnnotationPresent(Command::class.java)) { "${meth.name} is not annotated with Command!" }
 
         val category = cog.name()
         val name = meth.name
@@ -58,20 +53,15 @@ class Indexer(private val pkg: String) {
                 .filter { !it.startsWith("$") } // Continuation, Completion
         val parameters = meth.parameters.filter { it.type != Context::class.java && it.type != Continuation::class.java }
 
-        if (paramNames.size != parameters.size) {
-            throw IllegalArgumentException(
-                    "Parameter count mismatch in command ${meth.name}, expected: ${parameters.size}, got: ${paramNames.size}\n" +
-                            "Expected: ${parameters.map { it.type.simpleName }}\n" +
-                            "Got: ${paramNames.joinToString(", ")}\n"
-            )
+        require(paramNames.size == parameters.size) {
+            "Parameter count mismatch in command ${meth.name}, expected: ${parameters.size}, got: ${paramNames.size}\n" +
+                "Expected: ${parameters.map { it.type.simpleName }}\n" +
+                "Got: ${paramNames.joinToString(", ")}\n"
         }
 
         val arguments = mutableListOf<Argument>()
 
-        for (a in parameters.withIndex()) {
-            val i = a.index
-            val p = a.value
-
+        for ((i, p) in parameters.withIndex()) {
             val pName = if (p.isAnnotationPresent(Name::class.java)) {
                 p.getAnnotation(Name::class.java).name
             } else {

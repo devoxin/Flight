@@ -6,6 +6,7 @@ import me.devoxin.flight.api.Context
 import me.devoxin.flight.exceptions.ParserNotRegistered
 import me.devoxin.flight.parsers.Parser
 import org.slf4j.LoggerFactory
+import java.util.Optional
 
 class ArgParser(
     private val ctx: Context,
@@ -84,12 +85,16 @@ class ArgParser(
         val parser = parsers[arg.type]
             ?: throw ParserNotRegistered("No parsers registered for `${arg.type}`")
 
-        val result: Any?
+        val result: Optional<out Any?>
 
-        try {
-            result = parser.parse(ctx, argument)
-        } catch (e: Exception) {
-            throw BadArgument(arg, argument, e)
+        result = if (argument.isEmpty()) {
+            Optional.empty()
+        } else {
+            try {
+                parser.parse(ctx, argument)
+            } catch (e: Exception) {
+                throw BadArgument(arg, argument, e)
+            }
         }
 
         if (!result.isPresent && arg.required) {
