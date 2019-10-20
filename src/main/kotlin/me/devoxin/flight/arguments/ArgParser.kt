@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory
 
 class ArgParser(
     private val ctx: Context,
-    private val commandArgs: List<String>,
+    commandArgs: List<String>,
     private val delimiter: Char
 ) {
 
@@ -24,6 +24,7 @@ class ArgParser(
     }
 
     private fun parseNextArgument(consumeRest: Boolean = false): String {
+        println(args)
         if (args.isEmpty()) {
             return ""
         } else {
@@ -32,15 +33,14 @@ class ArgParser(
             }
         }
 
-        val isQuoted = args[0].startsWith("\"") // Quotes! TODO: accept other forms of quote chars
+        val isQuoted = args[0].startsWith('"') // Quotes! TODO: accept other forms of quote chars
 
-        if (!isQuoted) {
+        if (!isQuoted || delimiter != ' ') { // Don't handle quote arguments if a custom delimiter was specified.
             return getArgs(1).joinToString(delimiter.toString()).trim()
         }
 
         val iterator = args.joinToString(delimiter.toString()).iterator()
         val argument = StringBuilder()
-        val handleQuotedArgs = delimiter == ' '
         var quoting = false
         var escaping = false
 
@@ -52,9 +52,9 @@ class ArgParser(
                 escaping = false
             } else if (char == '\\') {
                 escaping = true
-            } else if (handleQuotedArgs && quoting && char == '"') { // TODO: accept other forms of quote chars
+            } else if (quoting && char == '"') { // TODO: accept other forms of quote chars
                 quoting = false
-            } else if (handleQuotedArgs && !quoting && char == '"') { // TODO: accept other forms of quote chars
+            } else if (!quoting && char == '"') { // TODO: accept other forms of quote chars
                 quoting = true
             } else if (!quoting && char == delimiter) { // char.isWhitespace
                 // If we're not quoting and it's not whitespace we should throw
@@ -79,15 +79,14 @@ class ArgParser(
 
     fun parse(arg: Argument): Any? {
         val argument = parseNextArgument(arg.greedy)
-
-        if (!parsers.containsKey(arg.type)) {
-            throw ParserNotRegistered("No parsers registered for `${arg.type}`")
-        }
+        println(argument)
+        val parser = parsers[arg.type]
+            ?: throw ParserNotRegistered("No parsers registered for `${arg.type}`")
 
         val result: Any?
 
         try {
-            result = parsers[arg.type]!!.parse(ctx, argument)
+            result = parser.parse(ctx, argument)
         } catch (e: Exception) {
             throw BadArgument(arg, argument, e)
         }
@@ -116,7 +115,6 @@ class ArgParser(
             }
 
             val parser = ArgParser(ctx, commandArgs, delimiter)
-
             return cmd.arguments.map(parser::parse).toTypedArray()
         }
     }
