@@ -1,4 +1,4 @@
-package me.devoxin.flight.internal
+package me.devoxin.flight.api
 
 import me.devoxin.flight.annotations.Command
 import me.devoxin.flight.api.CommandError

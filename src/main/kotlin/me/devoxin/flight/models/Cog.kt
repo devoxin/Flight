@@ -1,7 +1,7 @@
 package me.devoxin.flight.models
 
 import me.devoxin.flight.api.CommandError
-import me.devoxin.flight.internal.CommandWrapper
+import me.devoxin.flight.api.CommandWrapper
 import me.devoxin.flight.api.Context
 
 interface Cog {

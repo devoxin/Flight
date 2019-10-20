@@ -2,7 +2,7 @@ package me.devoxin.flight.models
 
 import me.devoxin.flight.exceptions.BadArgument
 import me.devoxin.flight.api.CommandError
-import me.devoxin.flight.internal.CommandWrapper
+import me.devoxin.flight.api.CommandWrapper
 import me.devoxin.flight.api.Context
 import net.dv8tion.jda.api.Permission
 

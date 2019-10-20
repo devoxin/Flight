@@ -2,6 +2,7 @@ package me.devoxin.flight.internal
 
 import me.devoxin.flight.annotations.Async
 import me.devoxin.flight.annotations.Command
+import me.devoxin.flight.api.CommandWrapper
 import me.devoxin.flight.api.Context
 import me.devoxin.flight.arguments.Name
 import me.devoxin.flight.arguments.Optional
