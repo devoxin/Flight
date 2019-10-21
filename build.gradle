@@ -31,7 +31,7 @@ dependencies {
     compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutines"
     compile "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$kotlin_coroutines"
     compile 'org.reflections:reflections:0.9.11'
-    compileOnly 'com.github.mewna:catnip:1.3.3'
+    compileOnly 'com.github.mewna:catnip:319e0c97d5eac4eb6ae3da2c09ebd60447cbe70b'
     api 'org.slf4j:slf4j-api:1.7.25'
 }
 

@@ -8,6 +8,7 @@ import com.mewna.catnip.entity.guild.Guild
 import com.mewna.catnip.entity.guild.Member
 import com.mewna.catnip.entity.message.Message
 import com.mewna.catnip.entity.message.MessageOptions
+import com.mewna.catnip.entity.message.ReactionUpdate
 import com.mewna.catnip.entity.user.User
 import com.mewna.catnip.shard.event.EventType
 import kotlinx.coroutines.CoroutineScope
@@ -16,6 +17,7 @@ import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import me.devoxin.flight.models.Attachment
 import me.devoxin.flight.utils.Scheduler
+import java.util.concurrent.CompletableFuture
 
 class Context(
         val commandClient: CommandClient,
@@ -35,7 +37,7 @@ class Context(
 
     fun send(content: String, callback: ((Message) -> Unit)? = null) {
         if (callback != null) {
-            messageChannel.sendMessage(content).thenAccept(callback)
+            messageChannel.sendMessage(content).subscribe(callback)
         } else {
             messageChannel.sendMessage(content)
         }
@@ -50,17 +52,29 @@ class Context(
     }
 
     fun dm(content: String) {
-        author.createDM().thenAccept {
-            it.sendMessage(content).thenRun { it.delete() }
+        author.createDM().subscribe { channel ->
+            channel.sendMessage(content).subscribe { message ->
+                message.delete()
+            }
         }
     }
 
     suspend fun sendAsync(content: String): Message {
-        return messageChannel.sendMessage(content).await()
+        val future = CompletableFuture<Message>()
+        messageChannel.sendMessage(content).subscribe { message, throwable ->
+            if (throwable == null) future.complete(message)
+            else future.completeExceptionally(throwable)
+        }
+        return future.await()
     }
 
     suspend fun embedAsync(block: EmbedBuilder.() -> Unit): Message {
-        return messageChannel.sendMessage(EmbedBuilder().apply(block).build()).await()
+        val future = CompletableFuture<Message>()
+        messageChannel.sendMessage(EmbedBuilder().apply(block).build()).subscribe { message, throwable ->
+            if (throwable == null) future.complete(message)
+            else future.completeExceptionally(throwable)
+        }
+        return future.await()
     }
 
     /**
@@ -70,8 +84,7 @@ class Context(
      *        The code that should be executed while the typing status is active.
      */
     fun typing(block: () -> Unit) {
-        messageChannel.type()
-        messageChannel.triggerTypingIndicator().thenAccept {
+        messageChannel.triggerTypingIndicator().subscribe {
             val task = Scheduler.every(5000) {
                 messageChannel.triggerTypingIndicator()
             }
@@ -87,7 +100,7 @@ class Context(
      *        The code that should be executed while the typing status is active.
      */
     fun typingAsync(block: suspend CoroutineScope.() -> Unit) {
-        messageChannel.triggerTypingIndicator().thenAccept {
+        messageChannel.triggerTypingIndicator().subscribe {
             val task = Scheduler.every(5000) {
                 messageChannel.triggerTypingIndicator()
             }
@@ -109,7 +122,7 @@ class Context(
      * @param timeout
      *        How long to wait, in milliseconds, for the given event type before expiring.
      */
-    suspend fun <T : EventType<T>> waitFor(event: EventType<T>, predicate: (T) -> Boolean, timeout: Long): T? {
+    suspend fun <T> waitFor(event: EventType<T>, predicate: (T) -> Boolean, timeout: Long): T? {
         val r = commandClient.waitFor(event, predicate, timeout)
         return r.await()
     }

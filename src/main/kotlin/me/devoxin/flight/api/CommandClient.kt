@@ -8,6 +8,8 @@ import com.mewna.catnip.entity.util.Permission
 import com.mewna.catnip.extension.AbstractExtension
 import com.mewna.catnip.shard.DiscordEvent
 import com.mewna.catnip.shard.event.EventType
+import io.reactivex.Completable
+import io.reactivex.functions.Consumer
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import me.devoxin.flight.arguments.ArgParser
@@ -39,10 +41,10 @@ class CommandClient(
         ArgParser.parsers.putAll(parsers)
     }
 
-    override fun start() {
-        // @todo: Catnip 2
-        on(DiscordEvent.READY, this::onReady)
-        on(DiscordEvent.MESSAGE_CREATE, this::onMessageReceived)
+    override fun onLoaded(): Completable? {
+        observable(DiscordEvent.READY).subscribe(this::onReady)
+        observable(DiscordEvent.MESSAGE_CREATE).subscribe(this::onMessageReceived)
+        return null
     }
 
     // +------------------+
@@ -90,13 +92,11 @@ class CommandClient(
     // +------------------+
     // |  Event Handling  |
     // +------------------+
-
     fun onReady(event: Ready) {
         if (ownerIds.isEmpty()) {
-            event.catnip().rest().user().currentApplicationInformation.thenAccept {
-                @Suppress("ControlFlowWithEmptyBody")
+            event.catnip().rest().user().currentApplicationInformation.doOnSuccess {
                 if (it.owner().isTeam) {
-                    // @todo: hey discord add members fetching when
+                    ownerIds.addAll(it.team()!!.members().map { u -> u.user().idAsLong() })
                 } else {
                     ownerIds.add(it.owner().idAsLong())
                 }
@@ -199,14 +199,14 @@ class CommandClient(
     private fun performPermCheck(member: Member, channel: TextChannel, permissions: Array<Permission>) =
             permissions.filter { !member.permissions(channel).containsAll(permissions.toCollection(mutableListOf())) }
 
-    fun <T : EventType<T>> waitFor(event: EventType<T>, predicate: (T) -> Boolean, timeout: Long): CompletableFuture<T?> {
+    fun <T> waitFor(event: EventType<T>, predicate: (T) -> Boolean, timeout: Long): CompletableFuture<T?> {
         val future = CompletableFuture<T?>()
-        val handler = on(event)
-        handler.handler {
-            val data = it.body()
-            if (predicate(data)) {
-                handler.unregister()
-                future.complete(it.body())
+        val obs = observable(event)
+        var awaiting = true
+        obs.takeWhile { awaiting }.subscribe {
+            if (predicate(it)) {
+                awaiting = false
+                future.complete(it)
             }
         }
 
@@ -214,7 +214,7 @@ class CommandClient(
             scheduler.schedule({
                 if (!future.isDone) {
                     future.completeExceptionally(AwaitTimeoutException())
-                    handler.unregister()
+                    awaiting = false
                 }
             }, timeout, TimeUnit.MILLISECONDS)
         }
