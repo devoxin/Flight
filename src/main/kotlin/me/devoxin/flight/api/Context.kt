@@ -68,7 +68,7 @@ class Context(
     fun typing(block: () -> Unit) {
         messageChannel.sendTyping().queue {
             val task = Scheduler.every(5000) {
-                messageChannel.sendTyping()
+                messageChannel.sendTyping().queue()
             }
             block()
             task.cancel(true)
