@@ -1,10 +1,10 @@
 package me.devoxin.flight.models
 
-import me.devoxin.flight.CommandError
-import me.devoxin.flight.CommandWrapper
-import me.devoxin.flight.Context
+import me.devoxin.flight.api.CommandError
+import me.devoxin.flight.api.CommandWrapper
+import me.devoxin.flight.api.Context
 
-public interface Cog {
+interface Cog {
 
     /**
      * Invoked when an error occurs during command execution.
@@ -30,5 +30,4 @@ public interface Cog {
      * @return The cog's name
      */
     fun name(): String = this::class.java.simpleName
-
 }

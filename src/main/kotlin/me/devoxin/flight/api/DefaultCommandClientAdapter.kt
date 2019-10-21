@@ -1,10 +1,10 @@
-package me.devoxin.flight
+package me.devoxin.flight.api
 
 import com.mewna.catnip.entity.util.Permission
+import me.devoxin.flight.exceptions.BadArgument
 import me.devoxin.flight.models.CommandClientAdapter
 
-public abstract class DefaultCommandClientAdapter : CommandClientAdapter {
-
+abstract class DefaultCommandClientAdapter : CommandClientAdapter {
     override fun onBadArgument(ctx: Context, error: BadArgument) {}
 
     override fun onCommandError(ctx: Context, error: CommandError) {}
@@ -15,8 +15,7 @@ public abstract class DefaultCommandClientAdapter : CommandClientAdapter {
 
     override fun onParseError(ctx: Context, error: Throwable) {}
 
-    override fun onBotMissingPermissions(ctx: Context, command: CommandWrapper, permissions: Array<Permission>) {}
+    override fun onBotMissingPermissions(ctx: Context, command: CommandWrapper, permissions: List<Permission>) {}
 
-    override fun onUserMissingPermissions(ctx: Context, command: CommandWrapper, permissions: Array<Permission>) {}
-
+    override fun onUserMissingPermissions(ctx: Context, command: CommandWrapper, permissions: List<Permission>) {}
 }

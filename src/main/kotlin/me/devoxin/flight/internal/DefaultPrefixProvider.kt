@@ -1,4 +1,4 @@
-package me.devoxin.flight
+package me.devoxin.flight.internal
 
 import com.mewna.catnip.entity.message.Message
 import me.devoxin.flight.models.PrefixProvider

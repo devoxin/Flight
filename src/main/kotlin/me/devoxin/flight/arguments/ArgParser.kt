@@ -1,29 +1,29 @@
 package me.devoxin.flight.arguments
 
-import me.devoxin.flight.BadArgument
-import me.devoxin.flight.Context
+import me.devoxin.flight.api.CommandWrapper
+import me.devoxin.flight.exceptions.BadArgument
+import me.devoxin.flight.api.Context
+import me.devoxin.flight.exceptions.ParserNotRegistered
 import me.devoxin.flight.parsers.Parser
 import org.slf4j.LoggerFactory
+import java.util.Optional
 
 class ArgParser(
         private val ctx: Context,
-        private var args: MutableList<String>,
+        commandArgs: List<String>,
         private val delimiter: Char
 ) {
-    private val logger = LoggerFactory.getLogger(this.javaClass)
+    private var args = commandArgs.toMutableList()
 
     private fun getArgs(amount: Int): List<String> {
         if (args.isEmpty()) {
             return emptyList()
         }
 
-        val elements = args.take(amount)
+        val taken = args.take(amount)
+        args.drop(amount)
 
-        for (i in 0 until amount) {
-            args.removeAt(0)
-        }
-
-        return elements
+        return taken
     }
 
     private fun parseNextArgument(consumeRest: Boolean = false): String {
@@ -41,15 +41,14 @@ class ArgParser(
             }
         }
 
-        val isQuoted = args[0].startsWith("\"") // Quotes! TODO: accept other forms of quote chars
+        val isQuoted = args[0].startsWith('"') // Quotes! TODO: accept other forms of quote chars
 
-        if (!isQuoted) {
+        if (!isQuoted || delimiter != ' ') { // Don't handle quote arguments if a custom delimiter was specified.
             return getArgs(1).joinToString(" ")
         }
 
         val iterator = args.joinToString(" ").iterator()
         val argument = StringBuilder()
-        val handleQuotedArgs = delimiter == ' '
         var quoting = false
         var escaping = false
 
@@ -61,9 +60,9 @@ class ArgParser(
                 escaping = false
             } else if (char == '\\') {
                 escaping = true
-            } else if (handleQuotedArgs && quoting && char == '"') { // TODO: accept other forms of quote chars
+            } else if (quoting && char == '"') { // TODO: accept other forms of quote chars
                 quoting = false
-            } else if (handleQuotedArgs && !quoting && char == '"') { // TODO: accept other forms of quote chars
+            } else if (!quoting && char == '"') { // TODO: accept other forms of quote chars
                 quoting = true
             } else if (!quoting && char == delimiter) { // char.isWhitespace
                 // If we're not quoting and it's not whitespace we should throw
@@ -88,13 +87,19 @@ class ArgParser(
 
     fun parse(arg: Argument): Any? {
         val argument = parseNextArgument(arg.greedy)
+        val parser = parsers[arg.type]
+                ?: throw ParserNotRegistered("No parsers registered for `${arg.type}`")
 
-        if (!parsers.containsKey(arg.type)) {
-            logger.error("No parsers registered for `${arg.type}`")
-            return null
+        val result: Optional<out Any?>
+        result = if (argument.isEmpty()) {
+            Optional.empty()
+        } else {
+            try {
+                parser.parse(ctx, argument)
+            } catch (e: Exception) {
+                throw BadArgument(arg, argument, e)
+            }
         }
-
-        val result = parsers[arg.type]!!.parse(ctx, argument)
 
         if (!result.isPresent && arg.required) {
             throw BadArgument(arg, argument)
@@ -104,6 +109,23 @@ class ArgParser(
     }
 
     companion object {
+        private val logger = LoggerFactory.getLogger(ArgParser::class.java)
         val parsers = hashMapOf<Class<*>, Parser<*>>()
+
+        fun parseArguments(cmd: CommandWrapper, ctx: Context, args: List<String>): Array<Any?> {
+            if (cmd.arguments.isEmpty()) {
+                return emptyArray()
+            }
+
+            val delimiter = cmd.properties.argDelimiter
+            val commandArgs = if (delimiter == ' ') {
+                args
+            } else {
+                args.joinToString(" ").split(delimiter).toMutableList()
+            }
+
+            val parser = ArgParser(ctx, commandArgs, delimiter)
+            return cmd.arguments.map(parser::parse).toTypedArray()
+        }
     }
 }

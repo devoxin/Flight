@@ -1,6 +1,5 @@
-package me.devoxin.flight
+package me.devoxin.flight.api
 
-import com.mewna.catnip.Catnip
 import com.mewna.catnip.entity.channel.TextChannel
 import com.mewna.catnip.entity.guild.Member
 import com.mewna.catnip.entity.message.Message
@@ -10,8 +9,9 @@ import com.mewna.catnip.extension.AbstractExtension
 import com.mewna.catnip.shard.DiscordEvent
 import com.mewna.catnip.shard.event.EventType
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import me.devoxin.flight.arguments.ArgParser
+import me.devoxin.flight.exceptions.BadArgument
 import me.devoxin.flight.exceptions.AwaitTimeoutException
 import me.devoxin.flight.models.Cog
 import me.devoxin.flight.models.CommandClientAdapter
@@ -26,29 +26,21 @@ import java.util.concurrent.TimeUnit
 class CommandClient(
         parsers: HashMap<Class<*>, Parser<*>>,
         private val prefixProvider: PrefixProvider,
-        private val useDefaultHelpCommand: Boolean,
         private val ignoreBots: Boolean,
         private val eventListeners: List<CommandClientAdapter>,
         customOwnerIds: MutableSet<Long>?
 ): AbstractExtension("Flight command client") {
 
-
     private val scheduler = Executors.newSingleThreadScheduledExecutor()
-    private val logger = LoggerFactory.getLogger(this.javaClass)
-
-    public val commands = hashMapOf<String, CommandWrapper>()
-    public var ownerIds: MutableSet<Long>
+    val commands = hashMapOf<String, CommandWrapper>()
+    var ownerIds: MutableSet<Long> = customOwnerIds ?: mutableSetOf()
 
     init {
-        if (this.useDefaultHelpCommand) {
-            registerCommands(DefaultHelpCommand())
-        }
-
-        ownerIds = customOwnerIds ?: mutableSetOf()
         ArgParser.parsers.putAll(parsers)
     }
 
     override fun start() {
+        // @todo: Catnip 2
         on(DiscordEvent.READY, this::onReady)
         on(DiscordEvent.MESSAGE_CREATE, this::onMessageReceived)
     }
@@ -102,6 +94,7 @@ class CommandClient(
     fun onReady(event: Ready) {
         if (ownerIds.isEmpty()) {
             event.catnip().rest().user().currentApplicationInformation.thenAccept {
+                @Suppress("ControlFlowWithEmptyBody")
                 if (it.owner().isTeam) {
                     // @todo: hey discord add members fetching when
                 } else {
@@ -132,10 +125,13 @@ class CommandClient(
                 ?: return
 
         val ctx = Context(this, message, trigger)
-
         val props = cmd.properties
 
         if (props.developerOnly && !ownerIds.contains(message.author().idAsLong())) {
+            return
+        }
+
+        if (!message.channel().isGuild && props.guildOnly) {
             return
         }
 
@@ -161,10 +157,6 @@ class CommandClient(
             }
         }
 
-        if (!message.channel().isGuild && props.guildOnly) {
-            return
-        }
-
         val shouldExecute = eventListeners.all { it.onCommandPreInvoke(ctx, cmd) }
                 && cmd.cog.localCheck(ctx, cmd)
 
@@ -175,77 +167,37 @@ class CommandClient(
         val arguments: Array<Any?>
 
         try {
-            arguments = parseArgs(ctx, args, cmd)
+            arguments = ArgParser.parseArguments(cmd, ctx, args)
         } catch (e: BadArgument) {
             return eventListeners.forEach { it.onBadArgument(ctx, e) }
         } catch (e: Throwable) {
             return eventListeners.forEach { it.onParseError(ctx, e) }
         }
 
-        if (cmd.async) {
-            GlobalScope.async {
-                cmd.executeAsync(ctx, *arguments) { success, err ->
-                    if (err != null) {
-                        handleCommandError(ctx, err)
-                    }
-
-                    handleCommandCompletion(ctx, cmd, !success)
+        val cb = { success: Boolean, err: CommandError? ->
+            if (err != null) {
+                val handled = err.command.cog.onCommandError(ctx, err)
+                if (!handled) {
+                    eventListeners.forEach { it.onCommandError(ctx, err) }
                 }
+            }
+            eventListeners.forEach { it.onCommandPostInvoke(ctx, cmd, !success) }
+        }
+
+        if (cmd.async) {
+            GlobalScope.launch {
+                cmd.executeAsync(ctx, *arguments, complete = cb)
             }
         } else {
-            cmd.execute(ctx, *arguments) { success, err ->
-                if (err != null) {
-                    handleCommandError(ctx, err)
-                }
-
-                handleCommandCompletion(ctx, cmd, !success)
-            }
+            cmd.execute(ctx, *arguments, complete = cb)
         }
     }
-
-    private fun handleCommandError(ctx: Context, error: CommandError) {
-        val handled = error.command.cog.onCommandError(ctx, error)
-        if (!handled) {
-            eventListeners.forEach { it.onCommandError(ctx, error) }
-        }
-    }
-
-    private fun handleCommandCompletion(ctx: Context, cmd: CommandWrapper, failed: Boolean) {
-        eventListeners.forEach { it.onCommandPostInvoke(ctx, cmd, failed) }
-    }
-
 
     // +-------------------+
     // | Execution-Related |
     // +-------------------+
-
-    private fun performPermCheck(member: Member, channel: TextChannel, permissions: Array<Permission>): Array<Permission> {
-        return permissions.filter { !member.permissions(channel).containsAll(permissions.toCollection(mutableListOf())) }.toTypedArray()
-    }
-
-    private fun parseArgs(ctx: Context, args: MutableList<String>, cmd: CommandWrapper): Array<Any?> {
-        val arguments = cmd.arguments
-
-        if (arguments.isEmpty()) {
-            return emptyArray()
-        }
-
-        val delimiter = cmd.properties.argDelimiter
-        val commandArgs = if (delimiter == ' ') args else args.joinToString(" ")
-                .replace("([^\\\\])$delimiter".toRegex(), "$1 ,")
-                .split("[^\\\\]$delimiter".toRegex())
-                .map { it.replace("\\$delimiter", "$delimiter") }
-                .toMutableList()
-
-        val parser = ArgParser(ctx, commandArgs, cmd.properties.argDelimiter)
-        val parsed = mutableListOf<Any?>()
-
-        for (arg in arguments) {
-            parsed.add(parser.parse(arg))
-        }
-
-        return parsed.toTypedArray()
-    }
+    private fun performPermCheck(member: Member, channel: TextChannel, permissions: Array<Permission>) =
+            permissions.filter { !member.permissions(channel).containsAll(permissions.toCollection(mutableListOf())) }
 
     fun <T : EventType<T>> waitFor(event: EventType<T>, predicate: (T) -> Boolean, timeout: Long): CompletableFuture<T?> {
         val future = CompletableFuture<T?>()
@@ -270,4 +222,7 @@ class CommandClient(
         return future
     }
 
+    companion object {
+        private val logger = LoggerFactory.getLogger(CommandClient::class.java)
+    }
 }

@@ -1,13 +1,15 @@
-package me.devoxin.flight
+package me.devoxin.flight.internal
 
 import me.devoxin.flight.annotations.Async
 import me.devoxin.flight.annotations.Command
+import me.devoxin.flight.api.CommandWrapper
+import me.devoxin.flight.api.Context
 import me.devoxin.flight.arguments.Name
 import me.devoxin.flight.arguments.Optional
 import me.devoxin.flight.models.Cog
-import me.devoxin.flight.utils.split
+import me.devoxin.flight.utils.TextSplitter
 
-public class DefaultHelpCommand : Cog {
+class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
 
     override fun name(): String = "No Category"
 
@@ -54,7 +56,7 @@ public class DefaultHelpCommand : Cog {
             }
         }
 
-        val pages = split(helpMenu.toString().trim(), 1990)
+        val pages = TextSplitter.split(helpMenu.toString().trim(), 1990)
 
         for (page in pages) {
             ctx.sendAsync("```\n$page```")
@@ -64,8 +66,8 @@ public class DefaultHelpCommand : Cog {
     private fun sendCommandHelp(ctx: Context, command: CommandWrapper) {
         val builder = StringBuilder("```\n")
 
-        if (ctx.trigger.matches(Regex.fromLiteral("<@!?${ctx.catnip.selfUser()!!.id()}>"))) {
-            builder.append("@${ctx.catnip.selfUser()!!.username()}")
+        if (ctx.trigger.matches(Regex("<@!?${ctx.catnip.selfUser()!!.id()}> "))) {
+            builder.append("@${ctx.catnip.selfUser()!!.username()} ")
         } else {
             builder.append(ctx.trigger)
         }
@@ -87,12 +89,21 @@ public class DefaultHelpCommand : Cog {
         for (arg in args) {
             if (arg.required) {
                 builder.append("<")
-                        .append(arg.name)
-                        .append(">")
             } else {
                 builder.append("[")
-                        .append(arg.name)
-                        .append("]")
+            }
+
+            builder.append(arg.name)
+
+            if (showParameterTypes) {
+                builder.append(": ")
+                        .append(arg.type.simpleName)
+            }
+
+            if (arg.required) {
+                builder.append(">")
+            } else {
+                builder.append("]")
             }
             builder.append(" ")
         }

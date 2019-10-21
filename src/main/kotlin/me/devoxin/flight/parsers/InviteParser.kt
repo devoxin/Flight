@@ -1,6 +1,6 @@
 package me.devoxin.flight.parsers
 
-import me.devoxin.flight.Context
+import me.devoxin.flight.api.Context
 import me.devoxin.flight.models.Invite
 import java.util.*
 import java.util.regex.Pattern
@@ -19,7 +19,7 @@ class InviteParser : Parser<Invite> {
     }
 
     companion object {
-        public val INVITE_REGEX = Pattern.compile("discord(?:(?:app)?\\.com/invite|\\.gg)/([a-zA-Z0-9]{1,16})")!!
+        val INVITE_REGEX = Pattern.compile("discord(?:(?:app)?\\.com/invite|\\.gg)/([a-zA-Z0-9]{1,16})")!!
     }
 
 }

@@ -1,7 +1,7 @@
 package me.devoxin.flight.utils
 
-import me.devoxin.flight.CommandWrapper
-import me.devoxin.flight.Context
+import me.devoxin.flight.api.CommandWrapper
+import me.devoxin.flight.api.Context
 import me.devoxin.flight.annotations.Async
 import me.devoxin.flight.annotations.Command
 import me.devoxin.flight.arguments.Argument
@@ -21,7 +21,7 @@ class Indexer(private val pkg: String) {
 
     private val reflections = Reflections(pkg, MethodParameterNamesScanner(), SubTypesScanner())
 
-    public fun getCogs(): List<Class<out Cog>> {
+    fun getCogs(): List<Class<out Cog>> {
         logger.debug("Scanning $pkg for cogs...")
         val cogs = reflections.getSubTypesOf(Cog::class.java)
         logger.debug("Found ${cogs.size} cogs")
@@ -31,7 +31,7 @@ class Indexer(private val pkg: String) {
                 .toList()
     }
 
-    public fun getCommands(cog: Cog): List<Method> {
+    fun getCommands(cog: Cog): List<Method> {
         logger.debug("Scanning ${cog.name()} for commands...")
         val commands = cog::class.java.methods.filter { it.isAnnotationPresent(Command::class.java) }
         logger.debug("Found ${commands.size} commands in cog ${cog.name()}")
@@ -39,14 +39,9 @@ class Indexer(private val pkg: String) {
         return commands.toList()
     }
 
-    public fun loadCommand(meth: Method, cog: Cog): CommandWrapper {
-        if (meth.declaringClass != cog::class.java) {
-            throw IllegalArgumentException("${meth.name} is not from ${cog.name()}")
-        }
-
-        if (!meth.isAnnotationPresent(Command::class.java)) {
-            throw IllegalArgumentException("${meth.name} is not annotated with Command!")
-        }
+    fun loadCommand(meth: Method, cog: Cog): CommandWrapper {
+        require(meth.declaringClass == cog::class.java) { "${meth.name} is not from ${cog.name()}" }
+        require(meth.isAnnotationPresent(Command::class.java)) { "${meth.name} is not annotated with Command!" }
 
         val category = cog.name()
         val name = meth.name
@@ -58,20 +53,15 @@ class Indexer(private val pkg: String) {
                 .filter { !it.startsWith("$") } // Continuation, Completion
         val parameters = meth.parameters.filter { it.type != Context::class.java && it.type != Continuation::class.java }
 
-        if (paramNames.size != parameters.size) {
-            throw IllegalArgumentException(
-                    "Parameter count mismatch in command ${meth.name}, expected: ${parameters.size}, got: ${paramNames.size}\n" +
-                            "Expected: ${parameters.map { it.type.simpleName }}\n" +
-                            "Got: ${paramNames.joinToString(", ")}\n"
-            )
+        require(paramNames.size == parameters.size) {
+            "Parameter count mismatch in command ${meth.name}, expected: ${parameters.size}, got: ${paramNames.size}\n" +
+                    "Expected: ${parameters.map { it.type.simpleName }}\n" +
+                    "Got: ${paramNames.joinToString(", ")}\n"
         }
 
         val arguments = mutableListOf<Argument>()
 
-        for (a in parameters.withIndex()) {
-            val i = a.index
-            val p = a.value
-
+        for ((i, p) in parameters.withIndex()) {
             val pName = if (p.isAnnotationPresent(Name::class.java)) {
                 p.getAnnotation(Name::class.java).name
             } else {
@@ -87,7 +77,7 @@ class Indexer(private val pkg: String) {
         return CommandWrapper(name, arguments.toList(), category, properties, async, meth, cog)
     }
 
-    public fun getParamNames(meth: Method): List<String> {
+    fun getParamNames(meth: Method): List<String> {
         return reflections.getMethodParamNames(meth)
     }
 

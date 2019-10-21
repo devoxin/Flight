@@ -1,7 +1,7 @@
 package me.devoxin.flight.parsers
 
 import com.mewna.catnip.entity.guild.Member
-import me.devoxin.flight.Context
+import me.devoxin.flight.api.Context
 import java.util.*
 
 class MemberParser : Parser<Member> {

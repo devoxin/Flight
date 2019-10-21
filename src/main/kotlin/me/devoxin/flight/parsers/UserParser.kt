@@ -1,7 +1,7 @@
 package me.devoxin.flight.parsers
 
 import com.mewna.catnip.entity.user.User
-import me.devoxin.flight.Context
+import me.devoxin.flight.api.Context
 import java.util.*
 
 class UserParser : Parser<User> {

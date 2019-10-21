@@ -1,6 +1,6 @@
 package me.devoxin.flight.parsers
 
-import me.devoxin.flight.Context
+import me.devoxin.flight.api.Context
 import java.net.URL
 import java.util.*
 

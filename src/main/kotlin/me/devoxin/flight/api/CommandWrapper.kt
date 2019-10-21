@@ -1,4 +1,4 @@
-package me.devoxin.flight
+package me.devoxin.flight.api
 
 import me.devoxin.flight.annotations.Command
 import me.devoxin.flight.arguments.Argument
@@ -24,7 +24,7 @@ class CommandWrapper(
             method.invoke(cog, ctx, *additionalArgs)
             complete(true, null)
         } catch (e: Throwable) {
-            complete(false, CommandError(e, this))
+            complete(false, CommandError(e.cause ?: e, this))
         }
     }
 
@@ -37,7 +37,7 @@ class CommandWrapper(
                 method.invoke(cog, ctx, *additionalArgs, it)
                 complete(true, null)
             } catch (e: Throwable) {
-                complete(false, CommandError(e, this))
+                complete(false, CommandError(e.cause ?: e, this))
             }
         }
     }
