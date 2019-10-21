@@ -7,6 +7,7 @@ import java.util.regex.Pattern
 
 class EmojiParser : Parser<Emoji> {
 
+    // TODO: Support unicode emoji?
     override fun parse(ctx: Context, param: String): Optional<Emoji> {
         val match = EMOJI_REGEX.matcher(param)
 
