@@ -1,5 +1,5 @@
 # Flight
-Lightweight Command Handler+Arg Parser for JDA, using Kotlin.
+Lightweight Command Handler+Arg Parser for Catnip, using Kotlin.
 
 
 ## Using Flight
@@ -9,7 +9,7 @@ repositories {
 }
 
 dependencies {
-  compile 'com.github.Devoxin:Flight:master-SNAPSHOT' /* For latest versions, otherwise use a commit hash */
+  compile 'com.github.Devoxin:Flight:catnip-SNAPSHOT' /* For latest versions, otherwise use a commit hash */
 }
 ```
 
