@@ -7,7 +7,7 @@ class DefaultPrefixProvider(
         private val prefixes: List<String>,
         private val allowMentionPrefix: Boolean
 ) : PrefixProvider {
-
+    // @todo: Get rid of specific types
     override fun provide(message: Message): List<String> {
         val prefixes = mutableListOf<String>()
 

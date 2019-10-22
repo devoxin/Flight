@@ -1,13 +1,15 @@
 package me.devoxin.flight.internal
 
+import com.mewna.catnip.Catnip
 import me.devoxin.flight.annotations.Async
 import me.devoxin.flight.annotations.Command
 import me.devoxin.flight.api.CommandWrapper
 import me.devoxin.flight.api.Context
-import me.devoxin.flight.arguments.Name
+import me.devoxin.flight.api.jda.JDAContext
 import me.devoxin.flight.arguments.Optional
 import me.devoxin.flight.models.Cog
 import me.devoxin.flight.utils.TextSplitter
+import net.dv8tion.jda.api.JDA
 
 class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
 
@@ -15,20 +17,20 @@ class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
 
     @Async
     @Command(aliases = ["commands", "cmds"], description = "Displays bot help.")
-    suspend fun help(ctx: Context, @Name("command") @Optional cmd: String?) {
-        if (cmd != null) {
+    suspend fun help(ctx: Context<*>, @Optional command: String?) {
+        if (command != null) {
             val commands = ctx.commandClient.commands
-            val command = commands[cmd]
-                    ?: commands.values.firstOrNull { it.properties.aliases.contains(cmd) }
-                    ?: return ctx.send("No commands matching `$cmd` found.")
+            val cmd = commands[command]
+                    ?: commands.values.firstOrNull { it.properties.aliases.contains(command) }
+                    ?: return ctx.send("No commands matching `$command` found.")
 
-            sendCommandHelp(ctx, command)
+            sendCommandHelp(ctx, cmd)
         } else {
             sendHelpMenu(ctx)
         }
     }
 
-    private suspend fun sendHelpMenu(ctx: Context) {
+    private suspend fun sendHelpMenu(ctx: Context<*>) {
         val categories = hashMapOf<String, HashSet<CommandWrapper>>()
         val helpMenu = StringBuilder()
 
@@ -63,11 +65,19 @@ class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
         }
     }
 
-    private fun sendCommandHelp(ctx: Context, command: CommandWrapper) {
+    private fun sendCommandHelp(ctx: Context<*>, command: CommandWrapper) {
         val builder = StringBuilder("```\n")
-
-        if (ctx.trigger.matches("<@!?${ctx.jda.selfUser.id}>".toRegex())) {
-            builder.append("@${ctx.jda.selfUser.name}")
+        var selfUserId = ""
+        var selfUserName = ""
+        if (ctx is JDAContext) {
+            selfUserId = ctx.client.selfUser.id
+            selfUserName = ctx.client.selfUser.name
+        } /* else if (ctx is CatnipContext) {
+            selfUserId = (ctx.client as Catnip).selfUser()!!.id()
+            selfUserName = (ctx.client as Catnip).selfUser()!!.username()
+        } */
+        if (ctx.trigger.matches("<@!?${selfUserId}> ".toRegex())) {
+            builder.append("@${selfUserName} ")
         } else {
             builder.append(ctx.trigger)
         }

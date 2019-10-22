@@ -3,26 +3,20 @@ package me.devoxin.flight.api
 import me.devoxin.flight.internal.DefaultPrefixProvider
 import me.devoxin.flight.arguments.Snowflake
 import me.devoxin.flight.internal.DefaultHelpCommand
-import me.devoxin.flight.models.CommandClientAdapter
 import me.devoxin.flight.models.Emoji
-import me.devoxin.flight.models.Invite
 import me.devoxin.flight.models.PrefixProvider
 import me.devoxin.flight.parsers.*
-import net.dv8tion.jda.api.entities.*
 import java.net.URL
 
-class CommandClientBuilder {
-
-    private var parsers = hashMapOf<Class<*>, Parser<*>>()
-    private var prefixes: List<String> = emptyList()
-    private var allowMentionPrefix: Boolean = true
-    private var useDefaultHelpCommand: Boolean = true
-    private var showParameterTypes: Boolean = false
-    private var ignoreBots: Boolean = true
-    private var prefixProvider: PrefixProvider? = null
-    private var eventListeners: MutableList<CommandClientAdapter> = mutableListOf()
-    private var ownerIds: MutableSet<Long>? = null
-
+abstract class CommandClientBuilder(private val client: DiscordClient) {
+    protected var parsers = hashMapOf<Class<*>, Parser<*>>()
+    protected var prefixes: List<String> = emptyList()
+    protected var allowMentionPrefix: Boolean = true
+    protected var useDefaultHelpCommand: Boolean = true
+    protected var showParameterTypes: Boolean = false
+    protected var ignoreBots: Boolean = true
+    protected var prefixProvider: PrefixProvider? = null
+    protected var ownerIds: MutableSet<Long>? = null
 
     /**
      * Strings that messages must start with to trigger the bot.
@@ -106,21 +100,11 @@ class CommandClientBuilder {
     }
 
     /**
-     * Registers the provided listeners to make use of hooks
-     *
-     * @return The builder instance. Useful for chaining.
-     */
-    fun addEventListeners(vararg listeners: CommandClientAdapter): CommandClientBuilder {
-        this.eventListeners.addAll(listeners)
-        return this
-    }
-
-    /**
      * Registers an argument parser to the given class.
      *
      * @return The builder instance. Useful for chaining.
      */
-    fun addCustomParser(klass: Class<*>, parser: Parser<*>): CommandClientBuilder {
+    fun addCustomParser(klass: Class<Any>, parser: Parser<*>): CommandClientBuilder {
         this.parsers[klass] = parser
         return this
     }
@@ -130,22 +114,12 @@ class CommandClientBuilder {
      *
      * @return The builder instance. Useful for chaining.
      */
-    fun registerDefaultParsers(): CommandClientBuilder {
-        val inviteParser = InviteParser()
-
+    open fun registerDefaultParsers(): CommandClientBuilder {
         parsers[Emoji::class.java] = EmojiParser()
         parsers[Int::class.java] = IntParser()
-        parsers[Invite::class.java] = inviteParser
-        parsers[net.dv8tion.jda.api.entities.Invite::class.java] = inviteParser
-        parsers[Member::class.java] = MemberParser()
-        parsers[Role::class.java] = RoleParser()
         parsers[Snowflake::class.java] = SnowflakeParser()
         parsers[String::class.java] = StringParser()
-        parsers[TextChannel::class.java] = TextChannelParser()
         parsers[URL::class.java] = UrlParser()
-        parsers[User::class.java] = UserParser()
-        parsers[VoiceChannel::class.java] = VoiceChannelParser()
-
         return this
     }
 
@@ -156,7 +130,7 @@ class CommandClientBuilder {
      */
     fun build(): CommandClient {
         val prefixProvider = this.prefixProvider ?: DefaultPrefixProvider(prefixes, allowMentionPrefix)
-        val commandClient = CommandClient(parsers, prefixProvider, ignoreBots, eventListeners.toList(), ownerIds)
+        val commandClient = buildClient(parsers, prefixProvider, ignoreBots, ownerIds)
 
         if (useDefaultHelpCommand) {
             commandClient.registerCommands(DefaultHelpCommand(showParameterTypes))
@@ -165,4 +139,5 @@ class CommandClientBuilder {
         return commandClient
     }
 
+    protected abstract fun buildClient(parsers: HashMap<Class<*>, Parser<*>>, prefixProvider: PrefixProvider, ignoreBots: Boolean, ownerIds: MutableSet<Long>?): CommandClient
 }

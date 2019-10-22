@@ -9,9 +9,9 @@ import org.slf4j.LoggerFactory
 import java.util.Optional
 
 class ArgParser(
-    private val ctx: Context,
-    commandArgs: List<String>,
-    private val delimiter: Char
+        private val ctx: Context<*>,
+        commandArgs: List<String>,
+        private val delimiter: Char
 ) {
 
     private var args = commandArgs.toMutableList()
@@ -108,7 +108,7 @@ class ArgParser(
         private val logger = LoggerFactory.getLogger(ArgParser::class.java)
         val parsers = hashMapOf<Class<*>, Parser<*>>()
 
-        fun parseArguments(cmd: CommandWrapper, ctx: Context, args: List<String>): Array<Any?> {
+        fun parseArguments(cmd: CommandWrapper, ctx: Context<*>, args: List<String>): Array<Any?> {
             if (cmd.arguments.isEmpty()) {
                 return emptyArray()
             }

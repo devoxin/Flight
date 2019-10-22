@@ -1,63 +1,27 @@
 package me.devoxin.flight.api
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.future.await
-import kotlinx.coroutines.launch
 import me.devoxin.flight.models.Attachment
-import me.devoxin.flight.utils.Scheduler
 import net.dv8tion.jda.api.EmbedBuilder
-import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.*
 import net.dv8tion.jda.api.events.Event
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 
-class Context(
-    val commandClient: CommandClient,
-    private val event: MessageReceivedEvent,
+interface Context<C> {
+    val client: C
+
+    val commandClient: CommandClient
     val trigger: String
-) {
 
-    val jda: JDA = event.jda
-    val message: Message = event.message
+    // @todo: Get rid of specific types
+    fun send(content: String, callback: ((Message) -> Unit)? = null)
+    fun upload(attachment: Attachment)
+    // @todo: Get rid of specific types
+    fun embed(block: EmbedBuilder.() -> Unit)
+    fun dm(content: String)
 
-    val author: User = event.author
-
-    val guild: Guild? = if (event.isFromGuild) event.guild else null
-    val member: Member? = event.member
-
-    val textChannel: TextChannel? = if (event.isFromType(ChannelType.TEXT)) event.textChannel else null
-    val privateChannel: PrivateChannel? = if (event.isFromType(ChannelType.PRIVATE)) event.privateChannel else null
-    val messageChannel: MessageChannel = event.channel
-
-
-    fun send(content: String, callback: ((Message) -> Unit)? = null) {
-        messageChannel.sendMessage(content).queue(callback)
-    }
-
-    fun upload(attachment: Attachment) {
-        messageChannel.sendFile(attachment.stream, attachment.filename).queue()
-    }
-
-    fun embed(block: EmbedBuilder.() -> Unit) {
-        messageChannel.sendMessage(EmbedBuilder().apply(block).build()).queue()
-    }
-
-    fun dm(content: String) {
-        author.openPrivateChannel().queue { channel ->
-            channel.sendMessage(content)
-                    .submit()
-                    .handle { _, _ -> channel.close().queue() }
-        }
-    }
-
-    suspend fun sendAsync(content: String): Message {
-        return messageChannel.sendMessage(content).submit().await()
-    }
-
-    suspend fun embedAsync(block: EmbedBuilder.() -> Unit): Message {
-        return messageChannel.sendMessage(EmbedBuilder().apply(block).build()).submit().await()
-    }
+    suspend fun sendAsync(content: String): Message
+    // @todo: Get rid of specific types
+    suspend fun embedAsync(block: EmbedBuilder.() -> Unit): Message
 
     /**
      * Sends a typing status within the channel until the provided function is exited.
@@ -65,15 +29,7 @@ class Context(
      * @param block
      *        The code that should be executed while the typing status is active.
      */
-    fun typing(block: () -> Unit) {
-        messageChannel.sendTyping().queue {
-            val task = Scheduler.every(5000) {
-                messageChannel.sendTyping().queue()
-            }
-            block()
-            task.cancel(true)
-        }
-    }
+    fun typing(block: () -> Unit)
 
     /**
      * Sends a typing status within the channel until the provided function is exited.
@@ -81,18 +37,7 @@ class Context(
      * @param block
      *        The code that should be executed while the typing status is active.
      */
-    fun typingAsync(block: suspend CoroutineScope.() -> Unit) {
-        messageChannel.sendTyping().queue {
-            val task = Scheduler.every(5000) {
-                messageChannel.sendTyping().queue()
-            }
-
-            GlobalScope.launch(block = block)
-                .invokeOnCompletion {
-                    task.cancel(true)
-                }
-        }
-    }
+    fun typingAsync(block: suspend CoroutineScope.() -> Unit)
 
     /**
      * Waits for the given event. Only events that pass the given predicate will be returned.
@@ -104,11 +49,8 @@ class Context(
      * @param timeout
      *        How long to wait, in milliseconds, for the given event type before expiring.
      */
-    suspend fun <T: Event> waitFor(event: Class<T>, predicate: (T) -> Boolean, timeout: Long): T? {
-        val r = commandClient.waitFor(event, predicate, timeout)
-        return r.await()
-    }
+    // @todo: Move this somewhere else
+    suspend fun <T : Event> waitFor(event: Class<T>, predicate: (T) -> Boolean, timeout: Long): T?
 
     // TODO: Method to clean a string.
-
 }

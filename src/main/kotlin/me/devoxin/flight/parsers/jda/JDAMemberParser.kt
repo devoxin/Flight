@@ -1,12 +1,17 @@
-package me.devoxin.flight.parsers
+package me.devoxin.flight.parsers.jda
 
 import me.devoxin.flight.api.Context
+import me.devoxin.flight.api.jda.JDAContext
+import me.devoxin.flight.parsers.Parser
+import me.devoxin.flight.parsers.SnowflakeParser
+import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.Member
 import java.util.*
 
-class MemberParser : Parser<Member> {
+class JDAMemberParser : Parser<Member> {
 
-    override fun parse(ctx: Context, param: String): Optional<Member> {
+    override fun parse(ctx: Context<*>, param: String): Optional<Member> {
+        require(ctx is JDAContext) { "Wrong context type" }
         val snowflake = snowflakeParser.parse(ctx, param)
         val member: Member?
 

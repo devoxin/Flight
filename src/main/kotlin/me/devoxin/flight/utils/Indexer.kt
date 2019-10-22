@@ -51,7 +51,7 @@ class Indexer(private val pkg: String) {
         val allParamNames = getParamNames(meth)
         val paramNames = allParamNames.drop(allParamNames.indexOf("this") + 2)
                 .filter { !it.startsWith("$") } // Continuation, Completion
-        val parameters = meth.parameters.filter { it.type != Context::class.java && it.type != Continuation::class.java }
+        val parameters = meth.parameters.filter { !Context::class.java.isAssignableFrom(it.type) && it.type != Continuation::class.java }
 
         require(paramNames.size == parameters.size) {
             "Parameter count mismatch in command ${meth.name}, expected: ${parameters.size}, got: ${paramNames.size}\n" +

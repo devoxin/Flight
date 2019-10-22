@@ -14,7 +14,7 @@ interface Cog {
      *         the error will be passed back to the registered
      *         CommandClientAdapter for handling.
      */
-    fun onCommandError(ctx: Context, error: CommandError): Boolean = false
+    fun onCommandError(ctx: Context<*>, error: CommandError): Boolean = false
 
     /**
      * Invoked before a command is executed. This check is local to
@@ -22,7 +22,7 @@ interface Cog {
      *
      * @return Whether the command execution should continue or not.
      */
-    fun localCheck(ctx: Context, command: CommandWrapper): Boolean = true
+    fun localCheck(ctx: Context<*>, command: CommandWrapper): Boolean = true
 
     /**
      * Used to determine the cog's name.

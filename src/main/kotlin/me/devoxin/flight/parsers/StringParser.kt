@@ -5,7 +5,7 @@ import java.util.*
 
 class StringParser : Parser<String> {
 
-    override fun parse(ctx: Context, param: String): Optional<String> {
+    override fun parse(ctx: Context<*>, param: String): Optional<String> {
         if (param.isEmpty() || param.isBlank()) {
             return Optional.empty()
         }

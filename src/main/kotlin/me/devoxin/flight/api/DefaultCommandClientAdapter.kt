@@ -4,20 +4,22 @@ import me.devoxin.flight.exceptions.BadArgument
 import me.devoxin.flight.models.CommandClientAdapter
 import net.dv8tion.jda.api.Permission
 
-abstract class DefaultCommandClientAdapter : CommandClientAdapter {
+abstract class DefaultCommandClientAdapter<C> : CommandClientAdapter<C> {
 
-    override fun onBadArgument(ctx: Context, error: BadArgument) {}
+    override fun onBadArgument(ctx: Context<C>, error: BadArgument) {}
 
-    override fun onCommandError(ctx: Context, error: CommandError) {}
+    override fun onCommandError(ctx: Context<C>, error: CommandError) {}
 
-    override fun onCommandPostInvoke(ctx: Context, command: CommandWrapper, failed: Boolean) {}
+    override fun onCommandPostInvoke(ctx: Context<C>, command: CommandWrapper, failed: Boolean) {}
 
-    override fun onCommandPreInvoke(ctx: Context, command: CommandWrapper) = true
+    override fun onCommandPreInvoke(ctx: Context<C>, command: CommandWrapper) = true
 
-    override fun onParseError(ctx: Context, error: Throwable) {}
+    override fun onParseError(ctx: Context<C>, error: Throwable) {}
 
-    override fun onBotMissingPermissions(ctx: Context, command: CommandWrapper, permissions: List<Permission>) {}
+    // @todo: Get rid of specific types
+    override fun onBotMissingPermissions(ctx: Context<C>, command: CommandWrapper, permissions: List<Permission>) {}
 
-    override fun onUserMissingPermissions(ctx: Context, command: CommandWrapper, permissions: List<Permission>) {}
+    // @todo: Get rid of specific types
+    override fun onUserMissingPermissions(ctx: Context<C>, command: CommandWrapper, permissions: List<Permission>) {}
 
 }
