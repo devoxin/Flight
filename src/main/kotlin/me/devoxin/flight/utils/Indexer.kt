@@ -37,8 +37,8 @@ class Indexer : Closeable {
         this.packageName = packageName
 
         val commandJar = File(jarPath)
-        check(commandJar.exists()) { "jarPath must lead to a valid jar file!" }
-        check(commandJar.extension == "jar") { "jarPath must lead to a valid jar file!" }
+        check(commandJar.exists()) { "jarPath points to a non-existent file." }
+        check(commandJar.extension == "jar") { "jarPath leads to a file which is not a jar." }
 
         val path = URL("jar:file:${commandJar.absolutePath}!/")
         this.classLoader = URLClassLoader.newInstance(arrayOf(path))

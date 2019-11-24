@@ -51,4 +51,29 @@ class CommandRegistry : HashMap<String, CommandWrapper>() {
         }
     }
 
+    /**
+     * Attempts to load the jar at the given path. If successful,
+     * Flight will attempt to discover all cogs in the jar, under the given package name.
+     *
+     * Before registering the cogs, any existing cogs whose names match those found in the jar will
+     * automatically be unregistered and removed.
+     *
+     * @param jarPath
+     *        A string-representation of the path to the jar file.
+     *
+     * @param packageName
+     *        The package name to scan for cogs/commands in.
+     */
+    fun reload(jarPath: String, packageName: String) {Indexer(packageName, jarPath).use {
+        val cogClasses = it.getCogs()
+
+        for (cls in cogClasses) {
+            val cog = cls.getDeclaredConstructor().newInstance()
+            removeByCog(cog.name())
+            registerCommands(cog, it)
+        }
+    }
+
+    }
+
 }
