@@ -22,7 +22,10 @@ class ArgParser(
         }
 
         val taken = args.take(amount)
-        args.drop(amount)
+
+        for (i in 0..amount) {
+            args.removeAt(0)
+        }
 
         return taken
     }

@@ -20,7 +20,11 @@ import net.dv8tion.jda.api.events.GenericEvent
 import net.dv8tion.jda.api.events.ReadyEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
+import org.reflections.Reflections
 import org.slf4j.LoggerFactory
+import java.io.File
+import java.net.URL
+import java.net.URLClassLoader
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -36,7 +40,7 @@ class CommandClient(
     private val waiterScheduler = Executors.newSingleThreadScheduledExecutor()
     private val pendingEvents = hashMapOf<Class<*>, HashSet<WaitingEvent<*>>>()
     val commands = hashMapOf<String, CommandWrapper>()
-    var ownerIds: MutableSet<Long> = customOwnerIds ?: mutableSetOf()
+    val ownerIds = customOwnerIds ?: mutableSetOf()
 
     init {
         ArgParser.parsers.putAll(parsers)
@@ -66,7 +70,7 @@ class CommandClient(
     }
 
     /**
-     * Registers all commands in the given class
+     * Registers all commands in the given class.
      *
      * @param cog
      *        The cog to load commands from.
@@ -75,13 +79,35 @@ class CommandClient(
      */
     fun registerCommands(cog: Cog, indexer: Indexer? = null) {
         val i = indexer ?: Indexer(cog::class.java.`package`.name)
-
         val commands = i.getCommands(cog)
 
         for (command in commands) {
             val cmd = i.loadCommand(command, cog)
             this.commands[cmd.name] = cmd
         }
+    }
+
+    /**
+     * Registers all commands in a jar file.
+     *
+     * @param jar
+     *        A file representing the jar.
+     *
+     * @param pkg
+     *        The package name to scan for commands in.
+     *
+     * @param indexer
+     *        The indexer to use. This can be omitted, but it's better to reuse an indexer if possible.
+     */
+    fun registerCommands(jar: File, pkg: String, indexer: Indexer? = null) {
+        require(jar.exists()) { "File does not exist!" }
+
+        val path = URL("jar:file:${jar.absolutePath}!/")
+        val classLoader = URLClassLoader.newInstance(arrayOf(path))
+
+        val reflections = Reflections(pkg, classLoader)
+
+        reflections.getSubTypesOf(Cog::class.java).map { it.simpleName }
     }
 
 
