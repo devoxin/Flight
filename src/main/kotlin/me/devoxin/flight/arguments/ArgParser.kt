@@ -14,7 +14,7 @@ class ArgParser(
     private val delimiter: Char
 ) {
 
-    private var args = commandArgs.toMutableList()
+    private var args = commandArgs.toList()
 
     private fun getArgs(amount: Int): List<String> {
         if (args.isEmpty()) {
@@ -22,10 +22,7 @@ class ArgParser(
         }
 
         val taken = args.take(amount)
-
-        for (i in 0..amount) {
-            args.removeAt(0)
-        }
+        args = args.drop(amount) // I don't like re-assignment, so @todo figure out why .removeAt didn't work.
 
         return taken
     }
