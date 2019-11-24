@@ -16,8 +16,7 @@ class CommandClientBuilder {
     private var parsers = hashMapOf<Class<*>, Parser<*>>()
     private var prefixes: List<String> = emptyList()
     private var allowMentionPrefix: Boolean = true
-    private var useDefaultHelpCommand: Boolean = true
-    private var showParameterTypes: Boolean = false
+    private var helpCommandConfig: DefaultHelpCommandConfig = DefaultHelpCommandConfig()
     private var ignoreBots: Boolean = true
     private var prefixProvider: PrefixProvider? = null
     private var eventListeners: MutableList<CommandClientAdapter> = mutableListOf()
@@ -67,9 +66,8 @@ class CommandClientBuilder {
      *
      * @return The builder instance. Useful for chaining.
      */
-    fun useDefaultHelpCommand(useDefaultHelpCommand: Boolean, showParameterTypes: Boolean = false): CommandClientBuilder {
-        this.useDefaultHelpCommand = useDefaultHelpCommand
-        this.showParameterTypes = showParameterTypes
+    fun configureDefaultHelpCommand(config: DefaultHelpCommandConfig.() -> Unit): CommandClientBuilder {
+        config(helpCommandConfig)
         return this
     }
 
@@ -158,8 +156,8 @@ class CommandClientBuilder {
         val prefixProvider = this.prefixProvider ?: DefaultPrefixProvider(prefixes, allowMentionPrefix)
         val commandClient = CommandClient(parsers, prefixProvider, ignoreBots, eventListeners.toList(), ownerIds)
 
-        if (useDefaultHelpCommand) {
-            commandClient.registerCommands(DefaultHelpCommand(showParameterTypes))
+        if (helpCommandConfig.enabled) {
+            commandClient.registerCommands(DefaultHelpCommand(helpCommandConfig.showParameterTypes))
         }
 
         return commandClient
