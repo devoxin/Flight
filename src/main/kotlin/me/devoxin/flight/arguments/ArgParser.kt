@@ -24,6 +24,12 @@ class ArgParser(
         val taken = args.take(amount)
         args = args.drop(amount) // I don't like re-assignment, so @todo figure out why .removeAt didn't work.
 
+        /*
+        for (i in 0 until amount) {
+            args.removeAt(0)
+        }
+         */
+
         return taken
     }
 

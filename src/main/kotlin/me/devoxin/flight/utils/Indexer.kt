@@ -13,16 +13,40 @@ import org.reflections.Reflections
 import org.reflections.scanners.MethodParameterNamesScanner
 import org.reflections.scanners.SubTypesScanner
 import org.slf4j.LoggerFactory
+import java.io.Closeable
+import java.io.File
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
+import java.net.URL
+import java.net.URLClassLoader
 import kotlin.coroutines.Continuation
 
-class Indexer(private val pkg: String) {
+class Indexer : Closeable {
 
-    private val reflections = Reflections(pkg, MethodParameterNamesScanner(), SubTypesScanner())
+    private val packageName: String
+    private val reflections: Reflections
+    private val classLoader: URLClassLoader?
+
+    constructor(packageName: String) {
+        this.packageName = packageName
+        this.classLoader = null
+        reflections = Reflections(packageName, MethodParameterNamesScanner(), SubTypesScanner())
+    }
+
+    constructor(packageName: String, jarPath: String) {
+        this.packageName = packageName
+
+        val commandJar = File(jarPath)
+        check(commandJar.exists()) { "jarPath must lead to a valid jar file!" }
+        check(commandJar.extension == "jar") { "jarPath must lead to a valid jar file!" }
+
+        val path = URL("jar:file:${commandJar.absolutePath}!/")
+        this.classLoader = URLClassLoader.newInstance(arrayOf(path))
+        reflections = Reflections(packageName, this.classLoader, MethodParameterNamesScanner(), SubTypesScanner())
+    }
 
     fun getCogs(): List<Class<out Cog>> {
-        logger.debug("Scanning $pkg for cogs...")
+        logger.debug("Scanning $packageName for cogs...")
         val cogs = reflections.getSubTypesOf(Cog::class.java)
         logger.debug("Found ${cogs.size} cogs")
 
@@ -79,6 +103,13 @@ class Indexer(private val pkg: String) {
 
     fun getParamNames(meth: Method): List<String> {
         return reflections.getMethodParamNames(meth)
+    }
+
+    override fun close() {
+        this.classLoader?.close()
+        // classLoader must be closed otherwise external jar files will remain open
+        // which kinda defeats the purpose of reloadable commands.
+        // This is only a problem if loading from jar files anyway.
     }
 
     companion object {
