@@ -5,6 +5,7 @@ import kotlinx.coroutines.launch
 import me.devoxin.flight.arguments.ArgParser
 import me.devoxin.flight.exceptions.BadArgument
 import me.devoxin.flight.exceptions.AwaitTimeoutException
+import me.devoxin.flight.internal.CommandRegistry
 import me.devoxin.flight.internal.DefaultHelpCommand
 import me.devoxin.flight.internal.WaitingEvent
 import me.devoxin.flight.models.Cog
@@ -20,7 +21,11 @@ import net.dv8tion.jda.api.events.GenericEvent
 import net.dv8tion.jda.api.events.ReadyEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
+import org.reflections.Reflections
 import org.slf4j.LoggerFactory
+import java.io.File
+import java.net.URL
+import java.net.URLClassLoader
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -35,8 +40,8 @@ class CommandClient(
 
     private val waiterScheduler = Executors.newSingleThreadScheduledExecutor()
     private val pendingEvents = hashMapOf<Class<*>, HashSet<WaitingEvent<*>>>()
-    val commands = hashMapOf<String, CommandWrapper>()
-    var ownerIds: MutableSet<Long> = customOwnerIds ?: mutableSetOf()
+    val commands = CommandRegistry()
+    val ownerIds = customOwnerIds ?: mutableSetOf()
 
     init {
         ArgParser.parsers.putAll(parsers)
@@ -53,36 +58,28 @@ class CommandClient(
      * @param packageName
      *        The package name to look for commands in.
      */
-    fun registerCommands(packageName: String) {
-        val indexer = Indexer(packageName)
-        val cogs = indexer.getCogs()
-
-        for (cogClass in cogs) {
-            val cog = cogClass.getDeclaredConstructor().newInstance()
-            registerCommands(cog, indexer)
-        }
-
-        logger.info("Successfully loaded ${commands.size} commands")
-    }
+    fun registerCommands(packageName: String) = commands.registerCommands(packageName)
 
     /**
-     * Registers all commands in the given class
+     * Registers all commands in the given class.
      *
      * @param cog
      *        The cog to load commands from.
      * @param indexer
      *        The indexer to use. This can be omitted, but it's better to reuse an indexer if possible.
      */
-    fun registerCommands(cog: Cog, indexer: Indexer? = null) {
-        val i = indexer ?: Indexer(cog::class.java.`package`.name)
+    fun registerCommands(cog: Cog, indexer: Indexer? = null) = commands.registerCommands(cog, indexer)
 
-        val commands = i.getCommands(cog)
-
-        for (command in commands) {
-            val cmd = i.loadCommand(command, cog)
-            this.commands[cmd.name] = cmd
-        }
-    }
+    /**
+     * Registers all commands in a jar file.
+     *
+     * @param jarPath
+     *        A string-representation of the path to the jar file.
+     *
+     * @param packageName
+     *        The package name to scan for cogs/commands in.
+     */
+    fun registerCommands(jarPath: String, packageName: String) = commands.registerCommands(jarPath, packageName)
 
 
     // +------------------+
