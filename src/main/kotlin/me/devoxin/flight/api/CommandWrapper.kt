@@ -1,8 +1,6 @@
 package me.devoxin.flight.api
 
 import me.devoxin.flight.annotations.Command
-import me.devoxin.flight.api.CommandError
-import me.devoxin.flight.api.Context
 import me.devoxin.flight.arguments.Argument
 import me.devoxin.flight.models.Cog
 import java.lang.reflect.Method
@@ -21,25 +19,25 @@ class CommandWrapper(
     /**
      * Calls the related method with the given args.
      */
-    fun execute(ctx: Context, vararg additionalArgs: Any?, complete: (Boolean, CommandError?) -> Unit) {
+    fun execute(ctx: Context, vararg additionalArgs: Any?, complete: (Boolean, Throwable?) -> Unit) {
         try {
             method.invoke(cog, ctx, *additionalArgs)
             complete(true, null)
         } catch (e: Throwable) {
-            complete(false, CommandError(e.cause ?: e, this))
+            complete(false, e.cause ?: e)
         }
     }
 
     /**
      * Calls the related method with the given args, except in an async manner.
      */
-    suspend fun executeAsync(ctx: Context, vararg additionalArgs: Any?, complete: (Boolean, CommandError?) -> Unit) {
+    suspend fun executeAsync(ctx: Context, vararg additionalArgs: Any?, complete: (Boolean, Throwable?) -> Unit) {
         suspendCoroutine<Unit> {
             try {
                 method.invoke(cog, ctx, *additionalArgs, it)
                 complete(true, null)
             } catch (e: Throwable) {
-                complete(false, CommandError(e.cause ?: e, this))
+                complete(false, e.cause ?: e)
             }
         }
     }

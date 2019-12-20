@@ -159,17 +159,17 @@ class CommandClient(
         try {
             arguments = ArgParser.parseArguments(cmd, ctx, args)
         } catch (e: BadArgument) {
-            return eventListeners.forEach { it.onBadArgument(ctx, e) }
+            return eventListeners.forEach { it.onBadArgument(ctx, cmd, e) }
         } catch (e: Throwable) {
-            return eventListeners.forEach { it.onParseError(ctx, e) }
+            return eventListeners.forEach { it.onParseError(ctx, cmd, e) }
         }
 
-        val cb = { success: Boolean, err: CommandError? ->
+        val cb = { success: Boolean, err: Throwable? ->
             if (err != null) {
-                val handled = err.command.cog.onCommandError(ctx, err)
+                val handled = cmd.cog.onCommandError(ctx, cmd, err)
 
                 if (!handled) {
-                    eventListeners.forEach { it.onCommandError(ctx, err) }
+                    eventListeners.forEach { it.onCommandError(ctx, cmd, err) }
                 }
             }
 
