@@ -129,20 +129,39 @@ class CommandClientBuilder {
      * @return The builder instance. Useful for chaining.
      */
     fun registerDefaultParsers(): CommandClientBuilder {
-        val inviteParser = InviteParser()
+        // Kotlin types and primitives
+        val booleanParser = BooleanParser()
+        parsers[Boolean::class.java] = booleanParser
+        parsers[java.lang.Boolean::class.java] = booleanParser
 
-        parsers[Emoji::class.java] = EmojiParser()
-        parsers[Int::class.java] = IntParser()
+        val doubleParser = DoubleParser()
+        parsers[Double::class.java] = doubleParser
+        parsers[java.lang.Double::class.java] = doubleParser
+
+        val floatParser = FloatParser()
+        parsers[Float::class.java] = floatParser
+        parsers[java.lang.Float::class.java] = floatParser
+
+        val intParser = IntParser()
+        parsers[Int::class.java] = intParser
+        parsers[java.lang.Integer::class.java] = intParser
+
+        // JDA entities
+        val inviteParser = InviteParser()
         parsers[Invite::class.java] = inviteParser
         parsers[net.dv8tion.jda.api.entities.Invite::class.java] = inviteParser
+
         parsers[Member::class.java] = MemberParser()
         parsers[Role::class.java] = RoleParser()
-        parsers[Snowflake::class.java] = SnowflakeParser()
-        parsers[String::class.java] = StringParser()
         parsers[TextChannel::class.java] = TextChannelParser()
-        parsers[URL::class.java] = UrlParser()
         parsers[User::class.java] = UserParser()
         parsers[VoiceChannel::class.java] = VoiceChannelParser()
+
+        // Custom entities
+        parsers[Emoji::class.java] = EmojiParser()
+        parsers[String::class.java] = StringParser()
+        parsers[Snowflake::class.java] = SnowflakeParser()
+        parsers[URL::class.java] = UrlParser()
 
         return this
     }
