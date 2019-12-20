@@ -1,7 +1,6 @@
 package me.devoxin.flight.models
 
 import me.devoxin.flight.exceptions.BadArgument
-import me.devoxin.flight.api.CommandError
 import me.devoxin.flight.api.CommandWrapper
 import me.devoxin.flight.api.Context
 import net.dv8tion.jda.api.Permission
@@ -11,12 +10,12 @@ interface CommandClientAdapter {
     /**
      * Invoked when an invalid argument is passed.
      */
-    fun onBadArgument(ctx: Context, error: BadArgument)
+    fun onBadArgument(ctx: Context, command: CommandWrapper, error: BadArgument)
 
     /**
      * Invoked when the parser encounters an internal error.
      */
-    fun onParseError(ctx: Context, error: Throwable)
+    fun onParseError(ctx: Context, command: CommandWrapper, error: Throwable)
 
     /**
      * Invoked before a command is executed. Useful for logging command usage etc.
@@ -40,7 +39,7 @@ interface CommandClientAdapter {
     /**
      * Invoked when a command encounters an error during execution.
      */
-    fun onCommandError(ctx: Context, error: CommandError)
+    fun onCommandError(ctx: Context, command: CommandWrapper, error: Throwable)
 
     /**
      * Invoked when a user lacks permissions to execute a command
