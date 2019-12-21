@@ -1,6 +1,5 @@
 package me.devoxin.flight.utils
 
-import me.devoxin.flight.TestingCog
 import me.devoxin.flight.api.CommandWrapper
 import me.devoxin.flight.api.Context
 import me.devoxin.flight.annotations.Async
