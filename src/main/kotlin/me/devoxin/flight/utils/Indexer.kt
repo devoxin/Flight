@@ -98,7 +98,7 @@ class Indexer : Closeable {
 
         for (p in parameters) {
             val pName = p.findAnnotation<Name>()?.name ?: p.name ?: p.index.toString()
-            val type = p.type
+            val type = p.type.classifier!!
             val greedy = p.hasAnnotation<Greedy>()
             val required = !p.type.isMarkedNullable
 
