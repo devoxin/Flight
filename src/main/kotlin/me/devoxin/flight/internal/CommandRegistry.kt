@@ -30,6 +30,17 @@ class CommandRegistry : HashMap<String, CommandWrapper>() {
         }
     }
 
+    @ExperimentalStdlibApi
+    fun registerCommandsAlternate(cog: Cog, indexer: Indexer? = null) {
+        val i = indexer ?: Indexer(cog::class.java.`package`.name)
+        val commands = i.getCommands(cog::class)
+
+        for (command in commands) {
+            val cmd = i.loadCommand(command, cog)
+            this[cmd.name] = cmd
+        }
+    }
+
     fun registerCommands(packageName: String) {
         val indexer = Indexer(packageName)
         val cogs = indexer.getCogs()
