@@ -81,7 +81,7 @@ class Indexer : Closeable {
 
     @ExperimentalStdlibApi
     fun loadCommand(meth: KFunction<*>, cog: Cog): CommandWrapper {
-        require(meth.javaClass.declaringClass == cog::class.java) { "${meth.name} is not from ${cog.name()}" }
+        require(meth.javaMethod!!.declaringClass == cog::class.java) { "${meth.name} is not from ${cog.name()}" }
         require(meth.hasAnnotation<Command>()) { "${meth.name} is not annotated with Command!" }
 
         val category = cog.name()
