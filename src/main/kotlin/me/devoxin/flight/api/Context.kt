@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.*
 import net.dv8tion.jda.api.events.Event
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import java.util.regex.Pattern
 
 class Context(
     val commandClient: CommandClient,
@@ -109,6 +110,47 @@ class Context(
         return r.await()
     }
 
-    // TODO: Method to clean a string.
+    /**
+     * Cleans a string, sanitizing all forms of mentions (role, channel and user), replacing them with
+     * their display-equivalent where possible (For example, <@123456789123456789> becomes @User).
+     *
+     * For cases where the mentioned entity is not cached by the bot, the mention will be replaced
+     * with @invalid-<entity type>.
+     *
+     * @param str
+     *        The string to clean.
+     *
+     * @returns The sanitized string.
+     */
+    fun cleanContent(str: String): String {
+        var content = str
+        val matcher = mentionPattern.matcher(str)
 
+        while (matcher.find()) {
+            val entityType = matcher.group("type")
+            val entityId = matcher.group("id").toLong()
+            val fullEntity = matcher.group("mention")
+
+            when (entityType) {
+                "@", "@!" -> {
+                    val entity = jda.getUserById(entityId)?.name ?: "invalid-user"
+                    content = content.replace(fullEntity, "@$entity")
+                }
+                "@&" -> {
+                    val entity = jda.getRoleById(entityId)?.name ?: "invalid-role"
+                    content = content.replace(fullEntity, "@$entity")
+                }
+                "#" -> {
+                    val entity = jda.getTextChannelById(entityId)?.name ?: "invalid-channel"
+                    content = content.replace(fullEntity, "#$entity")
+                }
+            }
+        }
+
+        return content
+    }
+
+    companion object {
+        private val mentionPattern = Pattern.compile("(?<mention><(?<type>@!?|@&|#)(?<id>[0-9]{17,21})>)")
+    }
 }
