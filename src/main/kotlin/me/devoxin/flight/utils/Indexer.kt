@@ -1,5 +1,6 @@
 package me.devoxin.flight.utils
 
+import me.devoxin.flight.TestingCog
 import me.devoxin.flight.api.CommandWrapper
 import me.devoxin.flight.api.Context
 import me.devoxin.flight.annotations.Async
@@ -20,6 +21,11 @@ import java.lang.reflect.Modifier
 import java.net.URL
 import java.net.URLClassLoader
 import kotlin.coroutines.Continuation
+import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
+import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.hasAnnotation
+import kotlin.reflect.jvm.javaMethod
 
 class Indexer : Closeable {
 
@@ -61,6 +67,44 @@ class Indexer : Closeable {
         logger.debug("Found ${commands.size} commands in cog ${cog.name()}")
 
         return commands.toList()
+    }
+
+    @ExperimentalStdlibApi
+    fun getCommands(cog: KClass<out Cog>): List<KFunction<*>> {
+        logger.debug("Scanning ${cog.simpleName} for commands...")
+        val commands = cog.members
+            .filterIsInstance<KFunction<*>>()
+            .filter { it.hasAnnotation<Command>() }
+
+        logger.debug("Found ${commands.size} commands in cog ${cog.simpleName}")
+        return commands.toList()
+    }
+
+    @ExperimentalStdlibApi
+    fun loadCommand(meth: KFunction<*>, cog: Cog): CommandWrapper {
+        require(meth.javaClass.declaringClass == cog::class.java) { "${meth.name} is not from ${cog.name()}" }
+        require(meth.hasAnnotation<Command>()) { "${meth.name} is not annotated with Command!" }
+
+        val category = cog.name()
+        val name = meth.name
+        val properties = meth.findAnnotation<Command>()!!
+        val async = meth.isSuspend
+
+        val parameters = meth.parameters
+            .filter { it.type != Context::class }
+
+        val arguments = mutableListOf<Argument>()
+
+        for (p in parameters) {
+            val pName = p.findAnnotation<Name>()?.name ?: p.name ?: p.index.toString()
+            val type = p.type
+            val greedy = p.hasAnnotation<Greedy>()
+            val required = !p.type.isMarkedNullable
+
+            arguments.add(Argument(pName, type::class.java, greedy, required))
+        }
+
+        return CommandWrapper(name, arguments.toList(), category, properties, async, meth.javaMethod!!, cog)
     }
 
     fun loadCommand(meth: Method, cog: Cog): CommandWrapper {
