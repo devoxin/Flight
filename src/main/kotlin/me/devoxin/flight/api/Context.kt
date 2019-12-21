@@ -123,7 +123,8 @@ class Context(
      * @returns The sanitized string.
      */
     fun cleanContent(str: String): String {
-        var content = str
+        var content = str.replace("@everyone", "@\u200beveryone")
+            .replace("@here", "@\u200bhere")
         val matcher = mentionPattern.matcher(str)
 
         while (matcher.find()) {
@@ -133,7 +134,9 @@ class Context(
 
             when (entityType) {
                 "@", "@!" -> {
-                    val entity = jda.getUserById(entityId)?.name ?: "invalid-user"
+                    val entity = guild?.getMemberById(entityId)?.effectiveName
+                        ?: jda.getUserById(entityId)?.name
+                        ?: "invalid-user"
                     content = content.replace(fullEntity, "@$entity")
                 }
                 "@&" -> {
@@ -145,6 +148,10 @@ class Context(
                     content = content.replace(fullEntity, "#$entity")
                 }
             }
+        }
+
+        for (emote in message.emotes) {
+            content = content.replace(emote.asMention, ":${emote.name}:")
         }
 
         return content
