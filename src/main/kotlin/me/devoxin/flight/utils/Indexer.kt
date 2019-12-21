@@ -24,7 +24,9 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.hasAnnotation
+import kotlin.reflect.full.valueParameters
 import kotlin.reflect.jvm.javaMethod
+import kotlin.reflect.jvm.jvmErasure
 
 class Indexer : Closeable {
 
@@ -89,8 +91,8 @@ class Indexer : Closeable {
         val properties = meth.findAnnotation<Command>()!!
         val async = meth.isSuspend
 
-        val parameters = meth.parameters
-            .filter { it.type != Context::class }
+        val parameters = meth.valueParameters
+            .filterNot { it.type.classifier?.equals(Context::class) == true }
 
         val arguments = mutableListOf<Argument>()
 
