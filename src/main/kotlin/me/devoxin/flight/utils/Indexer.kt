@@ -91,10 +91,10 @@ class Indexer : Closeable {
             val pName = p.findAnnotation<Name>()?.name ?: p.name ?: p.index.toString()
             val type = p.type.jvmErasure.javaObjectType
             val greedy = p.hasAnnotation<Greedy>()
-            val required = !p.isOptional
-            //val required = !p.type.isMarkedNullable
+            val optional = p.isOptional
+            val valueRequired = p.type.isMarkedNullable
 
-            arguments.add(Argument(pName, type, greedy, required, p))
+            arguments.add(Argument(pName, type, greedy, optional, valueRequired, p))
         }
 
         return CommandWrapper(name, arguments, category, properties, async, meth, cog, ctxParam)

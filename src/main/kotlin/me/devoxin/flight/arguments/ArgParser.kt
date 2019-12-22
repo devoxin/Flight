@@ -105,7 +105,7 @@ class ArgParser(
             }
         }
 
-        if (!result.isPresent && arg.required) {
+        if (!result.isPresent && !arg.optional) {
             throw BadArgument(arg, argument)
         }
 
@@ -133,13 +133,14 @@ class ArgParser(
 
             for (arg in cmd.arguments) {
                 val res = parser.parse(arg)
-                    ?: continue
-                //parse() will take care of arguments whose values are null but are required, and will
-                // throw an exception accordingly. Arguments that make it to this point are deemed optional
-                // so we can just skip putting them into the map. This allows us to leverage default method parameters
-                // within Kotlin.
 
-                resolvedArgs[arg.kparam] = res
+                if (res != null || arg.valueRequired) {
+                    //parse() will take care of arguments whose values are null but are required, and will
+                    // throw an exception accordingly. Arguments that make it to this point are deemed optional
+                    // so we can just skip putting them into the map. This allows us to leverage default method parameters
+                    // within Kotlin.
+                    resolvedArgs[arg.kparam] = res
+                }
             }
 
             return resolvedArgs
