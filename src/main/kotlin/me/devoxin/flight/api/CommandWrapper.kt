@@ -5,6 +5,9 @@ import me.devoxin.flight.arguments.Argument
 import me.devoxin.flight.models.Cog
 import java.lang.reflect.Method
 import kotlin.coroutines.suspendCoroutine
+import kotlin.reflect.KFunction
+import kotlin.reflect.KParameter
+import kotlin.reflect.full.callSuspendBy
 
 class CommandWrapper(
         val name: String,
@@ -12,16 +15,20 @@ class CommandWrapper(
         val category: String,
         val properties: Command,
         val async: Boolean,
-        val method: Method,
-        val cog: Cog
+        val method: KFunction<*>,
+        val cog: Cog,
+        internal val contextParameter: KParameter
 ) {
 
     /**
      * Calls the related method with the given args.
      */
-    fun execute(ctx: Context, vararg additionalArgs: Any?, complete: (Boolean, Throwable?) -> Unit) {
+    fun execute(ctx: Context, args: HashMap<KParameter, Any?>, complete: (Boolean, Throwable?) -> Unit) {
+        args[contextParameter] = ctx
+
         try {
-            method.invoke(cog, ctx, *additionalArgs)
+            //method.invoke(cog, ctx, *additionalArgs)
+            method.callBy(args)
             complete(true, null)
         } catch (e: Throwable) {
             complete(false, e.cause ?: e)
@@ -31,15 +38,17 @@ class CommandWrapper(
     /**
      * Calls the related method with the given args, except in an async manner.
      */
-    suspend fun executeAsync(ctx: Context, vararg additionalArgs: Any?, complete: (Boolean, Throwable?) -> Unit) {
-        suspendCoroutine<Unit> {
+    suspend fun executeAsync(ctx: Context, args: HashMap<KParameter, Any?>, complete: (Boolean, Throwable?) -> Unit) {
+        args[contextParameter] = ctx
+        //suspendCoroutine<Unit> {
             try {
-                method.invoke(cog, ctx, *additionalArgs, it)
+                //method.invoke(cog, ctx, *additionalArgs, it)
+                method.callSuspendBy(args)
                 complete(true, null)
             } catch (e: Throwable) {
                 complete(false, e.cause ?: e)
             }
-        }
+        //}
     }
 
     /**

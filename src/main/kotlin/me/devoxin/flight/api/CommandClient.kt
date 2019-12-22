@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import kotlin.reflect.KParameter
 
 class CommandClient(
         parsers: HashMap<Class<*>, Parser<*>>,
@@ -152,7 +153,7 @@ class CommandClient(
             return
         }
 
-        val arguments: Array<Any?>
+        val arguments: HashMap<KParameter, Any?>
 
         try {
             arguments = ArgParser.parseArguments(cmd, ctx, args)
@@ -176,10 +177,10 @@ class CommandClient(
 
         if (cmd.async) {
             GlobalScope.launch {
-                cmd.executeAsync(ctx, *arguments, complete = cb)
+                cmd.executeAsync(ctx, arguments, complete = cb)
             }
         } else {
-            cmd.execute(ctx, *arguments, complete = cb)
+            cmd.execute(ctx, arguments, complete = cb)
         }
     }
 

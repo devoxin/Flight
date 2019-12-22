@@ -78,6 +78,9 @@ class Indexer : Closeable {
         val name = meth.name
         val properties = meth.findAnnotation<Command>()!!
         val async = meth.isSuspend
+        val ctxParam = meth.valueParameters.firstOrNull { it.type.classifier?.equals(Context::class) == true }
+
+        require(ctxParam != null) { "${meth.name} is missing the Context parameter!" }
 
         val parameters = meth.valueParameters
             .filterNot { it.type.classifier?.equals(Context::class) == true }
@@ -88,12 +91,13 @@ class Indexer : Closeable {
             val pName = p.findAnnotation<Name>()?.name ?: p.name ?: p.index.toString()
             val type = p.type.jvmErasure.javaObjectType
             val greedy = p.hasAnnotation<Greedy>()
-            val required = !p.type.isMarkedNullable
+            val required = !p.isOptional
+            //val required = !p.type.isMarkedNullable
 
-            arguments.add(Argument(pName, type, greedy, required))
+            arguments.add(Argument(pName, type, greedy, required, p))
         }
 
-        return CommandWrapper(name, arguments.toList(), category, properties, async, meth.javaMethod!!, cog)
+        return CommandWrapper(name, arguments, category, properties, async, meth, cog, ctxParam)
     }
 
 //    fun getParamNames(meth: Method): List<String> {

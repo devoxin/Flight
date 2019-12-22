@@ -7,6 +7,8 @@ import me.devoxin.flight.exceptions.ParserNotRegistered
 import me.devoxin.flight.parsers.Parser
 import org.slf4j.LoggerFactory
 import java.util.*
+import kotlin.collections.HashMap
+import kotlin.reflect.KParameter
 
 class ArgParser(
     private val ctx: Context,
@@ -114,9 +116,9 @@ class ArgParser(
         private val logger = LoggerFactory.getLogger(ArgParser::class.java)
         val parsers = hashMapOf<Class<*>, Parser<*>>()
 
-        fun parseArguments(cmd: CommandWrapper, ctx: Context, args: List<String>): Array<Any?> {
+        fun parseArguments(cmd: CommandWrapper, ctx: Context, args: List<String>): HashMap<KParameter, Any?> {
             if (cmd.arguments.isEmpty()) {
-                return emptyArray()
+                return hashMapOf()
             }
 
             val delimiter = cmd.properties.argDelimiter
@@ -127,7 +129,20 @@ class ArgParser(
             }
 
             val parser = ArgParser(ctx, commandArgs, delimiter)
-            return cmd.arguments.map(parser::parse).toTypedArray()
+            val resolvedArgs = hashMapOf<KParameter, Any?>()
+
+            for (arg in cmd.arguments) {
+                val res = parser.parse(arg)
+                    ?: continue
+                //parse() will take care of arguments whose values are null but are required, and will
+                // throw an exception accordingly. Arguments that make it to this point are deemed optional
+                // so we can just skip putting them into the map. This allows us to leverage default method parameters
+                // within Kotlin.
+
+                resolvedArgs[arg.kparam] = res
+            }
+
+            return resolvedArgs
         }
     }
 }
