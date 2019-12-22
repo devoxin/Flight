@@ -20,6 +20,13 @@ import java.lang.reflect.Modifier
 import java.net.URL
 import java.net.URLClassLoader
 import kotlin.coroutines.Continuation
+import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
+import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.hasAnnotation
+import kotlin.reflect.full.valueParameters
+import kotlin.reflect.jvm.javaMethod
+import kotlin.reflect.jvm.jvmErasure
 
 class Indexer : Closeable {
 
@@ -55,55 +62,48 @@ class Indexer : Closeable {
                 .toList()
     }
 
-    fun getCommands(cog: Cog): List<Method> {
+    @ExperimentalStdlibApi
+    fun getCommands(cog: Cog): List<KFunction<*>> {
+        val cogClass = cog::class
         logger.debug("Scanning ${cog.name()} for commands...")
-        val commands = cog::class.java.methods.filter { it.isAnnotationPresent(Command::class.java) }
-        logger.debug("Found ${commands.size} commands in cog ${cog.name()}")
+        val commands = cogClass.members
+            .filterIsInstance<KFunction<*>>()
+            .filter { it.hasAnnotation<Command>() }
 
+        logger.debug("Found ${commands.size} commands in cog ${cog.name()}")
         return commands.toList()
     }
 
-    fun loadCommand(meth: Method, cog: Cog): CommandWrapper {
-        require(meth.declaringClass == cog::class.java) { "${meth.name} is not from ${cog.name()}" }
-        require(meth.isAnnotationPresent(Command::class.java)) { "${meth.name} is not annotated with Command!" }
+    @ExperimentalStdlibApi
+    fun loadCommand(meth: KFunction<*>, cog: Cog): CommandWrapper {
+        require(meth.javaMethod!!.declaringClass == cog::class.java) { "${meth.name} is not from ${cog.name()}" }
+        require(meth.hasAnnotation<Command>()) { "${meth.name} is not annotated with Command!" }
 
         val category = cog.name()
         val name = meth.name
-        val properties = meth.getAnnotation(Command::class.java)
-        val async = meth.isAnnotationPresent(Async::class.java)
+        val properties = meth.findAnnotation<Command>()!!
+        val async = meth.isSuspend
 
-        val allParamNames = getParamNames(meth)
-        val paramNames = allParamNames.drop(allParamNames.indexOf("this") + 2)
-                .filter { !it.startsWith("$") } // Continuation, Completion
-        val parameters = meth.parameters.filter { it.type != Context::class.java && it.type != Continuation::class.java }
-
-        require(paramNames.size == parameters.size) {
-            "Parameter count mismatch in command ${meth.name}, expected: ${parameters.size}, got: ${paramNames.size}\n" +
-                "Expected: ${parameters.map { it.type.simpleName }}\n" +
-                "Got: ${paramNames.joinToString(", ")}\n"
-        }
+        val parameters = meth.valueParameters
+            .filterNot { it.type.classifier?.equals(Context::class) == true }
 
         val arguments = mutableListOf<Argument>()
 
-        for ((i, p) in parameters.withIndex()) {
-            val pName = if (p.isAnnotationPresent(Name::class.java)) {
-                p.getAnnotation(Name::class.java).name
-            } else {
-                paramNames[i]
-            }
-            val type = p.type
-            val greedy = p.isAnnotationPresent(Greedy::class.java)
-            val required = !p.isAnnotationPresent(Optional::class.java)
+        for (p in parameters) {
+            val pName = p.findAnnotation<Name>()?.name ?: p.name ?: p.index.toString()
+            val type = p.type.jvmErasure.javaObjectType
+            val greedy = p.hasAnnotation<Greedy>()
+            val required = !p.type.isMarkedNullable
 
             arguments.add(Argument(pName, type, greedy, required))
         }
 
-        return CommandWrapper(name, arguments.toList(), category, properties, async, meth, cog)
+        return CommandWrapper(name, arguments.toList(), category, properties, async, meth.javaMethod!!, cog)
     }
 
-    fun getParamNames(meth: Method): List<String> {
-        return reflections.getMethodParamNames(meth)
-    }
+//    fun getParamNames(meth: Method): List<String> {
+//        return reflections.getMethodParamNames(meth)
+//    }
 
     override fun close() {
         this.classLoader?.close()

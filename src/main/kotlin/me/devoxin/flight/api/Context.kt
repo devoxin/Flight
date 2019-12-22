@@ -11,6 +11,8 @@ import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.*
 import net.dv8tion.jda.api.events.Event
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import java.util.concurrent.CompletableFuture
+import java.util.regex.Pattern
 
 class Context(
     val commandClient: CommandClient,
@@ -31,33 +33,29 @@ class Context(
     val messageChannel: MessageChannel = event.channel
 
 
-    fun send(content: String, callback: ((Message) -> Unit)? = null) {
-        messageChannel.sendMessage(content).queue(callback)
+    fun send(content: String): CompletableFuture<Message> {
+        return messageChannel.sendMessage(content).submit()
     }
 
-    fun upload(attachment: Attachment) {
-        messageChannel.sendFile(attachment.stream, attachment.filename).queue()
+    fun send(attachment: Attachment): CompletableFuture<Message> {
+        return messageChannel.sendFile(attachment.stream, attachment.filename).submit()
     }
 
-    fun embed(block: EmbedBuilder.() -> Unit) {
-        messageChannel.sendMessage(EmbedBuilder().apply(block).build()).queue()
+    fun send(embed: EmbedBuilder.() -> Unit): CompletableFuture<Message> {
+        return messageChannel.sendMessage(EmbedBuilder().apply(embed).build()).submit()
     }
 
     fun dm(content: String) {
-        author.openPrivateChannel().queue { channel ->
-            channel.sendMessage(content)
-                    .submit()
-                    .handle { _, _ -> channel.close().queue() }
-        }
+        author.openPrivateChannel().submit()
+            .thenAccept {
+                it.sendMessage(content).submit()
+                    .handle { _, _ -> it.close().submit() }
+            }
     }
 
-    suspend fun sendAsync(content: String): Message {
-        return messageChannel.sendMessage(content).submit().await()
-    }
+    suspend fun sendAsync(content: String) = send(content).await()
 
-    suspend fun embedAsync(block: EmbedBuilder.() -> Unit): Message {
-        return messageChannel.sendMessage(EmbedBuilder().apply(block).build()).submit().await()
-    }
+    suspend fun embedAsync(embed: EmbedBuilder.() -> Unit) = send(embed).await()
 
     /**
      * Sends a typing status within the channel until the provided function is exited.
@@ -109,6 +107,54 @@ class Context(
         return r.await()
     }
 
-    // TODO: Method to clean a string.
+    /**
+     * Cleans a string, sanitizing all forms of mentions (role, channel and user), replacing them with
+     * their display-equivalent where possible (For example, <@123456789123456789> becomes @User).
+     *
+     * For cases where the mentioned entity is not cached by the bot, the mention will be replaced
+     * with @invalid-<entity type>.
+     *
+     * @param str
+     *        The string to clean.
+     *
+     * @returns The sanitized string.
+     */
+    fun cleanContent(str: String): String {
+        var content = str.replace("@everyone", "@\u200beveryone")
+            .replace("@here", "@\u200bhere")
+        val matcher = mentionPattern.matcher(str)
 
+        while (matcher.find()) {
+            val entityType = matcher.group("type")
+            val entityId = matcher.group("id").toLong()
+            val fullEntity = matcher.group("mention")
+
+            when (entityType) {
+                "@", "@!" -> {
+                    val entity = guild?.getMemberById(entityId)?.effectiveName
+                        ?: jda.getUserById(entityId)?.name
+                        ?: "invalid-user"
+                    content = content.replace(fullEntity, "@$entity")
+                }
+                "@&" -> {
+                    val entity = jda.getRoleById(entityId)?.name ?: "invalid-role"
+                    content = content.replace(fullEntity, "@$entity")
+                }
+                "#" -> {
+                    val entity = jda.getTextChannelById(entityId)?.name ?: "invalid-channel"
+                    content = content.replace(fullEntity, "#$entity")
+                }
+            }
+        }
+
+        for (emote in message.emotes) {
+            content = content.replace(emote.asMention, ":${emote.name}:")
+        }
+
+        return content
+    }
+
+    companion object {
+        private val mentionPattern = Pattern.compile("(?<mention><(?<type>@!?|@&|#)(?<id>[0-9]{17,21})>)")
+    }
 }
