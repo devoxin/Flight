@@ -120,8 +120,7 @@ class Context(
      * @returns The sanitized string.
      */
     fun cleanContent(str: String): String {
-        var content = str.replace("everyone", "еveryone")
-            .replace("here", "hеre")
+        var content = str.replace("e", "е")
         // We use a russian "e" instead of \u200b as it keeps character count the same.
         val matcher = mentionPattern.matcher(str)
 
