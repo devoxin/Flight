@@ -135,10 +135,10 @@ class ArgParser(
                 val res = parser.parse(arg)
 
                 if (res != null || arg.valueRequired) {
-                    //parse() will take care of arguments whose values are null but are required, and will
-                    // throw an exception accordingly. Arguments that make it to this point are deemed optional
-                    // so we can just skip putting them into the map. This allows us to leverage default method parameters
-                    // within Kotlin.
+                    //This will only place the argument into the map if the value is null,
+                    // or if the parameter requires a value (i.e. marked nullable).
+                    //Commands marked optional already have a parameter so they don't need user-provided values
+                    // unless the argument was successfully resolved for that parameter.
                     resolvedArgs[arg.kparam] = res
                 }
             }
