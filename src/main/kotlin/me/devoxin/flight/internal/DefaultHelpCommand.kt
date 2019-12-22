@@ -1,11 +1,9 @@
 package me.devoxin.flight.internal
 
-import me.devoxin.flight.annotations.Async
 import me.devoxin.flight.annotations.Command
 import me.devoxin.flight.api.CommandWrapper
 import me.devoxin.flight.api.Context
 import me.devoxin.flight.arguments.Name
-import me.devoxin.flight.arguments.Optional
 import me.devoxin.flight.models.Cog
 import me.devoxin.flight.utils.TextSplitter
 
@@ -13,19 +11,23 @@ class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
 
     override fun name(): String = "No Category"
 
-    @Async
     @Command(aliases = ["commands", "cmds"], description = "Displays bot help.")
-    suspend fun help(ctx: Context, @Name("command") @Optional cmd: String?) {
-        if (cmd != null) {
-            val commands = ctx.commandClient.commands
-            val command = commands[cmd]
-                    ?: commands.values.firstOrNull { it.properties.aliases.contains(cmd) }
-                    ?: return ctx.send("No commands matching `$cmd` found.")
-
-            sendCommandHelp(ctx, command)
-        } else {
+    suspend fun help(ctx: Context, @Name("command") command: String?) {
+        if (command == null) {
             sendHelpMenu(ctx)
+            return
         }
+
+        val commands = ctx.commandClient.commands
+        val cmd = commands[command]
+            ?: commands.values.firstOrNull { it.properties.aliases.contains(command) }
+
+        if (cmd == null) {
+            ctx.send("No commands matching `${ctx.cleanContent(command)}` found.")
+            return
+        }
+
+        sendCommandHelp(ctx, cmd)
     }
 
     private suspend fun sendHelpMenu(ctx: Context) {
