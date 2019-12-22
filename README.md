@@ -32,11 +32,11 @@ val jda = JDABuilder(yourBotToken)
 ```
 
 Now for the part you've been waiting for -- commands!
-Commands need to be contained inside a `Cog`. The cog serves not only as the container, but the category too -- so you can group commands up based on what they do, for example; moderation. However we'll just be sticking with the basic `ping` command for now.
+Commands need to be contained inside a `Cog`. The cog serves not only as the container, but the category too -- so you can group commands based on what they do, for example; moderation. However we'll just be sticking with the basic `ping` command for now.
 ```kotlin
 package my.bot.commands // Your package name most likely won't be this, but this is included as it's necessary for registering commands with the command client.
 
-class YourCog : Cog { // The name provided here is used as the category name for commands.
+class YourCog : Cog { // "YourCog" will be used as the category name for commands within this cog.
 
   @Command(description = "Ping, pong!")
   fun ping(ctx: Context) {
