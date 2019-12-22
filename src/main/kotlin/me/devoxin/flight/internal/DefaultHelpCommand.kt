@@ -89,7 +89,7 @@ class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
         val args = command.arguments
 
         for (arg in args) {
-            if (arg.required) {
+            if (!arg.optional) {
                 builder.append("<")
             } else {
                 builder.append("[")
@@ -102,7 +102,7 @@ class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
                     .append(arg.type.simpleName)
             }
 
-            if (arg.required) {
+            if (!arg.optional) {
                 builder.append(">")
             } else {
                 builder.append("]")
