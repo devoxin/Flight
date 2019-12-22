@@ -62,22 +62,15 @@ class Indexer : Closeable {
                 .toList()
     }
 
-    fun getCommands(cog: Cog): List<Method> {
-        logger.debug("Scanning ${cog.name()} for commands...")
-        val commands = cog::class.java.methods.filter { it.isAnnotationPresent(Command::class.java) }
-        logger.debug("Found ${commands.size} commands in cog ${cog.name()}")
-
-        return commands.toList()
-    }
-
     @ExperimentalStdlibApi
-    fun getCommands(cog: KClass<out Cog>): List<KFunction<*>> {
-        logger.debug("Scanning ${cog.simpleName} for commands...")
-        val commands = cog.members
+    fun getCommands(cog: Cog): List<KFunction<*>> {
+        val cogClass = cog::class
+        logger.debug("Scanning ${cog.name()} for commands...")
+        val commands = cogClass.members
             .filterIsInstance<KFunction<*>>()
             .filter { it.hasAnnotation<Command>() }
 
-        logger.debug("Found ${commands.size} commands in cog ${cog.simpleName}")
+        logger.debug("Found ${commands.size} commands in cog ${cog.name()}")
         return commands.toList()
     }
 
@@ -108,47 +101,9 @@ class Indexer : Closeable {
         return CommandWrapper(name, arguments.toList(), category, properties, async, meth.javaMethod!!, cog)
     }
 
-    fun loadCommand(meth: Method, cog: Cog): CommandWrapper {
-        require(meth.declaringClass == cog::class.java) { "${meth.name} is not from ${cog.name()}" }
-        require(meth.isAnnotationPresent(Command::class.java)) { "${meth.name} is not annotated with Command!" }
-
-        val category = cog.name()
-        val name = meth.name
-        val properties = meth.getAnnotation(Command::class.java)
-        val async = meth.isAnnotationPresent(Async::class.java)
-
-        val allParamNames = getParamNames(meth)
-        val paramNames = allParamNames.drop(allParamNames.indexOf("this") + 2)
-                .filter { !it.startsWith("$") } // Continuation, Completion
-        val parameters = meth.parameters.filter { it.type != Context::class.java && it.type != Continuation::class.java }
-
-        require(paramNames.size == parameters.size) {
-            "Parameter count mismatch in command ${meth.name}, expected: ${parameters.size}, got: ${paramNames.size}\n" +
-                "Expected: ${parameters.map { it.type.simpleName }}\n" +
-                "Got: ${paramNames.joinToString(", ")}\n"
-        }
-
-        val arguments = mutableListOf<Argument>()
-
-        for ((i, p) in parameters.withIndex()) {
-            val pName = if (p.isAnnotationPresent(Name::class.java)) {
-                p.getAnnotation(Name::class.java).name
-            } else {
-                paramNames[i]
-            }
-            val type = p.type
-            val greedy = p.isAnnotationPresent(Greedy::class.java)
-            val required = !p.isAnnotationPresent(Optional::class.java)
-
-            arguments.add(Argument(pName, type, greedy, required))
-        }
-
-        return CommandWrapper(name, arguments.toList(), category, properties, async, meth, cog)
-    }
-
-    fun getParamNames(meth: Method): List<String> {
-        return reflections.getMethodParamNames(meth)
-    }
+//    fun getParamNames(meth: Method): List<String> {
+//        return reflections.getMethodParamNames(meth)
+//    }
 
     override fun close() {
         this.classLoader?.close()
