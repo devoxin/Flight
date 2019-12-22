@@ -3,10 +3,9 @@ package me.devoxin.flight.api
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import me.devoxin.flight.arguments.ArgParser
-import me.devoxin.flight.exceptions.BadArgument
 import me.devoxin.flight.exceptions.AwaitTimeoutException
+import me.devoxin.flight.exceptions.BadArgument
 import me.devoxin.flight.internal.CommandRegistry
-import me.devoxin.flight.internal.DefaultHelpCommand
 import me.devoxin.flight.internal.WaitingEvent
 import me.devoxin.flight.models.Cog
 import me.devoxin.flight.models.CommandClientAdapter
@@ -21,11 +20,7 @@ import net.dv8tion.jda.api.events.GenericEvent
 import net.dv8tion.jda.api.events.ReadyEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
-import org.reflections.Reflections
 import org.slf4j.LoggerFactory
-import java.io.File
-import java.net.URL
-import java.net.URLClassLoader
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit

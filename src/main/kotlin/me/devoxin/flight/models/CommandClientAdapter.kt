@@ -1,8 +1,8 @@
 package me.devoxin.flight.models
 
-import me.devoxin.flight.exceptions.BadArgument
 import me.devoxin.flight.api.CommandWrapper
 import me.devoxin.flight.api.Context
+import me.devoxin.flight.exceptions.BadArgument
 import net.dv8tion.jda.api.Permission
 
 interface CommandClientAdapter {

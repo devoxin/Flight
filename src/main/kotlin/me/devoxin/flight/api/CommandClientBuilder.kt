@@ -1,8 +1,8 @@
 package me.devoxin.flight.api
 
-import me.devoxin.flight.internal.DefaultPrefixProvider
 import me.devoxin.flight.arguments.Snowflake
 import me.devoxin.flight.internal.DefaultHelpCommand
+import me.devoxin.flight.internal.DefaultPrefixProvider
 import me.devoxin.flight.models.CommandClientAdapter
 import me.devoxin.flight.models.Emoji
 import me.devoxin.flight.models.Invite
@@ -171,6 +171,7 @@ class CommandClientBuilder {
      *
      * @return a CommandClient instance
      */
+    @ExperimentalStdlibApi
     fun build(): CommandClient {
         val prefixProvider = this.prefixProvider ?: DefaultPrefixProvider(prefixes, allowMentionPrefix)
         val commandClient = CommandClient(parsers, prefixProvider, ignoreBots, eventListeners.toList(), ownerIds)
