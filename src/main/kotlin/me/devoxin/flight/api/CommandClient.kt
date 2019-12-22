@@ -58,6 +58,7 @@ class CommandClient(
      * @param packageName
      *        The package name to look for commands in.
      */
+    @ExperimentalStdlibApi
     fun registerCommands(packageName: String) = commands.registerCommands(packageName)
 
     /**
@@ -68,23 +69,8 @@ class CommandClient(
      * @param indexer
      *        The indexer to use. This can be omitted, but it's better to reuse an indexer if possible.
      */
-    fun registerCommands(cog: Cog, indexer: Indexer? = null) = commands.registerCommands(cog, indexer)
-
-    /**
-     * Registers all commands in the given cog, using Kotlin reflections.
-     *
-     * Registering commands this way benefits from not needing annotations when marking a command as
-     * async. Additionally, optional command arguments don't need to be annotated with @Optional.
-     *
-     * This method is experimental, so may be subject to changes and/or bugs.
-     *
-     * @param cog
-     *        The cog to load commands from.
-     * @param indexer
-     *        The indexer to use. This can be omitted, but it's better to reuse an indexer if possible.
-     */
     @ExperimentalStdlibApi
-    fun registerCommandsAlternate(cog: Cog, indexer: Indexer? = null) = commands.registerCommandsAlternate(cog, indexer)
+    fun registerCommands(cog: Cog, indexer: Indexer? = null) = commands.registerCommands(cog, indexer)
 
     /**
      * Registers all commands in a jar file.
@@ -95,6 +81,7 @@ class CommandClient(
      * @param packageName
      *        The package name to scan for cogs/commands in.
      */
+    @ExperimentalStdlibApi
     fun registerCommands(jarPath: String, packageName: String) = commands.registerCommands(jarPath, packageName)
 
 

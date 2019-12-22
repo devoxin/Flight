@@ -20,18 +20,8 @@ class CommandRegistry : HashMap<String, CommandWrapper>() {
         }
     }
 
-    fun registerCommands(cog: Cog, indexer: Indexer? = null) {
-        val i = indexer ?: Indexer(cog::class.java.`package`.name)
-        val commands = i.getCommands(cog)
-
-        for (command in commands) {
-            val cmd = i.loadCommand(command, cog)
-            this[cmd.name] = cmd
-        }
-    }
-
     @ExperimentalStdlibApi
-    fun registerCommandsAlternate(cog: Cog, indexer: Indexer? = null) {
+    fun registerCommands(cog: Cog, indexer: Indexer? = null) {
         val i = indexer ?: Indexer(cog::class.java.`package`.name)
         val commands = i.getCommands(cog::class)
 
@@ -41,6 +31,7 @@ class CommandRegistry : HashMap<String, CommandWrapper>() {
         }
     }
 
+    @ExperimentalStdlibApi
     fun registerCommands(packageName: String) {
         val indexer = Indexer(packageName)
         val cogs = indexer.getCogs()
@@ -51,6 +42,7 @@ class CommandRegistry : HashMap<String, CommandWrapper>() {
         }
     }
 
+    @ExperimentalStdlibApi
     fun registerCommands(jarPath: String, packageName: String) {
         Indexer(packageName, jarPath).use {
             val cogClasses = it.getCogs()
@@ -75,16 +67,17 @@ class CommandRegistry : HashMap<String, CommandWrapper>() {
      * @param packageName
      *        The package name to scan for cogs/commands in.
      */
-    fun reload(jarPath: String, packageName: String) {Indexer(packageName, jarPath).use {
-        val cogClasses = it.getCogs()
+    @ExperimentalStdlibApi
+    fun reload(jarPath: String, packageName: String) {
+        Indexer(packageName, jarPath).use {
+            val cogClasses = it.getCogs()
 
-        for (cls in cogClasses) {
-            val cog = cls.getDeclaredConstructor().newInstance()
-            removeByCog(cog.name())
-            registerCommands(cog, it)
+            for (cls in cogClasses) {
+                val cog = cls.getDeclaredConstructor().newInstance()
+                removeByCog(cog.name())
+                registerCommands(cog, it)
+            }
         }
-    }
-
     }
 
 }
