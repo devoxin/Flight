@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.*
 import net.dv8tion.jda.api.events.Event
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import java.util.concurrent.CompletableFuture
 import java.util.regex.Pattern
 
 class Context(
@@ -32,33 +33,29 @@ class Context(
     val messageChannel: MessageChannel = event.channel
 
 
-    fun send(content: String, callback: ((Message) -> Unit)? = null) {
-        messageChannel.sendMessage(content).queue(callback)
+    fun send(content: String): CompletableFuture<Message> {
+        return messageChannel.sendMessage(content).submit()
     }
 
-    fun upload(attachment: Attachment) {
-        messageChannel.sendFile(attachment.stream, attachment.filename).queue()
+    fun send(attachment: Attachment): CompletableFuture<Message> {
+        return messageChannel.sendFile(attachment.stream, attachment.filename).submit()
     }
 
-    fun embed(block: EmbedBuilder.() -> Unit) {
-        messageChannel.sendMessage(EmbedBuilder().apply(block).build()).queue()
+    fun send(embed: EmbedBuilder.() -> Unit): CompletableFuture<Message> {
+        return messageChannel.sendMessage(EmbedBuilder().apply(embed).build()).submit()
     }
 
     fun dm(content: String) {
-        author.openPrivateChannel().queue { channel ->
-            channel.sendMessage(content)
-                    .submit()
-                    .handle { _, _ -> channel.close().queue() }
-        }
+        author.openPrivateChannel().submit()
+            .thenAccept {
+                it.sendMessage(content).submit()
+                    .handle { _, _ -> it.close().submit() }
+            }
     }
 
-    suspend fun sendAsync(content: String): Message {
-        return messageChannel.sendMessage(content).submit().await()
-    }
+    suspend fun sendAsync(content: String) = send(content).await()
 
-    suspend fun embedAsync(block: EmbedBuilder.() -> Unit): Message {
-        return messageChannel.sendMessage(EmbedBuilder().apply(block).build()).submit().await()
-    }
+    suspend fun embedAsync(embed: EmbedBuilder.() -> Unit) = send(embed).await()
 
     /**
      * Sends a typing status within the channel until the provided function is exited.
