@@ -58,16 +58,18 @@ class CommandClient(
      * @param packageName
      *        The package name to look for commands in.
      */
+    @ExperimentalStdlibApi
     fun registerCommands(packageName: String) = commands.registerCommands(packageName)
 
     /**
-     * Registers all commands in the given class.
+     * Registers all commands in the given cog.
      *
      * @param cog
      *        The cog to load commands from.
      * @param indexer
      *        The indexer to use. This can be omitted, but it's better to reuse an indexer if possible.
      */
+    @ExperimentalStdlibApi
     fun registerCommands(cog: Cog, indexer: Indexer? = null) = commands.registerCommands(cog, indexer)
 
     /**
@@ -79,6 +81,7 @@ class CommandClient(
      * @param packageName
      *        The package name to scan for cogs/commands in.
      */
+    @ExperimentalStdlibApi
     fun registerCommands(jarPath: String, packageName: String) = commands.registerCommands(jarPath, packageName)
 
 
