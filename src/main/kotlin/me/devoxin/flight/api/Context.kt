@@ -114,6 +114,8 @@ class Context(
      * For cases where the mentioned entity is not cached by the bot, the mention will be replaced
      * with @invalid-<entity type>.
      *
+     * It's recommended that you use this only for sending responses back to a user.
+     *
      * @param str
      *        The string to clean.
      *
