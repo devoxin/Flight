@@ -2,7 +2,6 @@ package me.devoxin.flight.models
 
 import me.devoxin.flight.api.CommandWrapper
 import me.devoxin.flight.api.Context
-import me.devoxin.flight.internal.Jar
 
 interface Cog {
 

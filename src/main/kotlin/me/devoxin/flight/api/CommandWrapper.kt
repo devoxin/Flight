@@ -4,8 +4,6 @@ import me.devoxin.flight.annotations.Command
 import me.devoxin.flight.arguments.Argument
 import me.devoxin.flight.internal.Jar
 import me.devoxin.flight.models.Cog
-import java.lang.reflect.Method
-import kotlin.coroutines.suspendCoroutine
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.callSuspendBy
