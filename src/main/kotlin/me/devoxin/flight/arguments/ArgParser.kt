@@ -7,7 +7,6 @@ import me.devoxin.flight.exceptions.ParserNotRegistered
 import me.devoxin.flight.parsers.Parser
 import org.slf4j.LoggerFactory
 import java.util.*
-import kotlin.collections.HashMap
 import kotlin.reflect.KParameter
 
 class ArgParser(
