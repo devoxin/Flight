@@ -69,7 +69,7 @@ class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
         val builder = StringBuilder("```\n")
 
         if (ctx.trigger.matches("<@!?${ctx.jda.selfUser.id}> ".toRegex())) {
-            builder.append("@${ctx.jda.selfUser.name}")
+            builder.append("@${ctx.jda.selfUser.name} ")
         } else {
             builder.append(ctx.trigger)
         }
