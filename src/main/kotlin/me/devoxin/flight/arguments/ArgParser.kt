@@ -105,7 +105,7 @@ class ArgParser(
             }
         }
 
-        if (!result.isPresent && !arg.optional) {
+        if (!result.isPresent && !arg.optional && !arg.isNullable) {
             throw BadArgument(arg, argument)
         }
 
@@ -134,7 +134,7 @@ class ArgParser(
             for (arg in cmd.arguments) {
                 val res = parser.parse(arg)
 
-                if (res != null || arg.valueRequired) {
+                if (res != null || (arg.isNullable && !arg.optional)) {
                     //This will only place the argument into the map if the value is null,
                     // or if the parameter requires a value (i.e. marked nullable).
                     //Commands marked optional already have a parameter so they don't need user-provided values

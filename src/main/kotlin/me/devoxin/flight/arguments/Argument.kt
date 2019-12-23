@@ -7,6 +7,6 @@ class Argument(
     val type: Class<*>,
     val greedy: Boolean,
     val optional: Boolean, // Denotes that a parameter has a default value.
-    val valueRequired: Boolean, // Denotes whether it's marked nullable, thus always requires a value.
+    val isNullable: Boolean,
     internal val kparam: KParameter
 )

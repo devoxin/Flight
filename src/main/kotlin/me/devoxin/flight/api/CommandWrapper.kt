@@ -8,22 +8,26 @@ import kotlin.coroutines.suspendCoroutine
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.callSuspendBy
+import kotlin.reflect.full.instanceParameter
 
 class CommandWrapper(
-        val name: String,
-        val arguments: List<Argument>,
-        val category: String,
-        val properties: Command,
-        val async: Boolean,
-        val method: KFunction<*>,
-        val cog: Cog,
-        internal val contextParameter: KParameter
+    val name: String,
+    val arguments: List<Argument>,
+    val category: String,
+    val properties: Command,
+    val async: Boolean,
+    val method: KFunction<*>,
+    val cog: Cog,
+    private val contextParameter: KParameter
 ) {
 
     /**
      * Calls the related method with the given args.
      */
     fun execute(ctx: Context, args: HashMap<KParameter, Any?>, complete: (Boolean, Throwable?) -> Unit) {
+        method.instanceParameter?.let {
+            args[it] = cog
+        }
         args[contextParameter] = ctx
 
         try {
@@ -39,6 +43,9 @@ class CommandWrapper(
      * Calls the related method with the given args, except in an async manner.
      */
     suspend fun executeAsync(ctx: Context, args: HashMap<KParameter, Any?>, complete: (Boolean, Throwable?) -> Unit) {
+        method.instanceParameter?.let {
+            args[it] = cog
+        }
         args[contextParameter] = ctx
         //suspendCoroutine<Unit> {
             try {
