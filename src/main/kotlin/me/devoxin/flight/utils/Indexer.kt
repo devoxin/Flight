@@ -6,12 +6,12 @@ import me.devoxin.flight.api.Context
 import me.devoxin.flight.arguments.Argument
 import me.devoxin.flight.arguments.Greedy
 import me.devoxin.flight.arguments.Name
+import me.devoxin.flight.internal.Jar
 import me.devoxin.flight.models.Cog
 import org.reflections.Reflections
 import org.reflections.scanners.MethodParameterNamesScanner
 import org.reflections.scanners.SubTypesScanner
 import org.slf4j.LoggerFactory
-import java.io.Closeable
 import java.io.File
 import java.lang.reflect.Modifier
 import java.net.URL
@@ -23,8 +23,9 @@ import kotlin.reflect.full.valueParameters
 import kotlin.reflect.jvm.javaMethod
 import kotlin.reflect.jvm.jvmErasure
 
-class Indexer : Closeable {
+class Indexer {
 
+    private val jar: Jar?
     private val packageName: String
     private val reflections: Reflections
     private val classLoader: URLClassLoader?
@@ -32,6 +33,7 @@ class Indexer : Closeable {
     constructor(packageName: String) {
         this.packageName = packageName
         this.classLoader = null
+        this.jar = null
         reflections = Reflections(packageName, MethodParameterNamesScanner(), SubTypesScanner())
     }
 
@@ -44,17 +46,17 @@ class Indexer : Closeable {
 
         val path = URL("jar:file:${commandJar.absolutePath}!/")
         this.classLoader = URLClassLoader.newInstance(arrayOf(path))
+        this.jar = Jar(commandJar.nameWithoutExtension, commandJar.absolutePath, packageName, classLoader)
         reflections = Reflections(packageName, this.classLoader, MethodParameterNamesScanner(), SubTypesScanner())
     }
 
-    fun getCogs(): List<Class<out Cog>> {
-        logger.debug("Scanning $packageName for cogs...")
+    fun getCogs(): List<Cog> {
         val cogs = reflections.getSubTypesOf(Cog::class.java)
-        logger.debug("Found ${cogs.size} cogs")
+        logger.debug("Discovered ${cogs.size} cogs in $packageName")
 
         return cogs
-                .filter { !Modifier.isAbstract(it.modifiers) && !it.isInterface && Cog::class.java.isAssignableFrom(it) }
-                .toList()
+            .filter { !Modifier.isAbstract(it.modifiers) && !it.isInterface && Cog::class.java.isAssignableFrom(it) }
+            .map { it.getDeclaredConstructor().newInstance() }
     }
 
     @ExperimentalStdlibApi
@@ -97,19 +99,12 @@ class Indexer : Closeable {
             arguments.add(Argument(pName, type, greedy, optional, isNullable, p))
         }
 
-        return CommandWrapper(name, arguments, category, properties, async, meth, cog, ctxParam)
+        return CommandWrapper(name, arguments, category, properties, async, meth, cog, jar, ctxParam)
     }
 
 //    fun getParamNames(meth: Method): List<String> {
 //        return reflections.getMethodParamNames(meth)
 //    }
-
-    override fun close() {
-        this.classLoader?.close()
-        // classLoader must be closed otherwise external jar files will remain open
-        // which kinda defeats the purpose of reloadable commands.
-        // This is only a problem if loading from jar files anyway.
-    }
 
     companion object {
         private val logger = LoggerFactory.getLogger(Indexer::class.java)

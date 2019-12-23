@@ -14,9 +14,50 @@ class CommandRegistry : HashMap<String, CommandWrapper>() {
         return this.values.firstOrNull { it.properties.aliases.contains(alias) }
     }
 
-    fun removeByCog(cogName: String, ignoreCase: Boolean = true) {
-        this.values.removeIf {
-            it.cog.name().equals(cogName, ignoreCase)
+    fun unload(commandWrapper: CommandWrapper) {
+        this.values.remove(commandWrapper)
+    }
+
+    fun unload(cog: Cog) {
+        val commands = this.values.filter { it.cog == cog }
+        this.values.removeAll(commands)
+
+        val jar = commands.firstOrNull { it.jar != null }?.jar
+            ?: return // No commands loaded from jar, thus no classloader to close.
+
+        val canCloseLoader = this.values.none { it.jar == jar }
+
+        // No other commands were loaded from the jar, so it's safe to close the loader.
+        if (canCloseLoader) {
+            println("Closing loader.")
+            jar.close()
+        }
+    }
+
+    fun unload(jar: Jar) {
+        val commands = this.values.filter { it.jar == jar }
+        this.values.removeAll(commands)
+
+        jar.close()
+    }
+
+    @ExperimentalStdlibApi
+    fun registerCommands(packageName: String) {
+        val indexer = Indexer(packageName)
+        val cogs = indexer.getCogs()
+
+        for (cog in cogs) {
+            registerCommands(cog, indexer)
+        }
+    }
+
+    @ExperimentalStdlibApi
+    fun registerCommands(jarPath: String, packageName: String) {
+        val indexer = Indexer(packageName, jarPath)
+        val cogs = indexer.getCogs()
+
+        for (cog in cogs) {
+            registerCommands(cog, indexer)
         }
     }
 
@@ -27,57 +68,12 @@ class CommandRegistry : HashMap<String, CommandWrapper>() {
 
         for (command in commands) {
             val cmd = i.loadCommand(command, cog)
+
+            if (this.containsKey(cmd.name)) {
+                continue
+            }
+
             this[cmd.name] = cmd
         }
     }
-
-    @ExperimentalStdlibApi
-    fun registerCommands(packageName: String) {
-        val indexer = Indexer(packageName)
-        val cogs = indexer.getCogs()
-
-        for (cogClass in cogs) {
-            val cog = cogClass.getDeclaredConstructor().newInstance()
-            registerCommands(cog, indexer)
-        }
-    }
-
-    @ExperimentalStdlibApi
-    fun registerCommands(jarPath: String, packageName: String) {
-        Indexer(packageName, jarPath).use {
-            val cogClasses = it.getCogs()
-
-            for (cls in cogClasses) {
-                val cog = cls.getDeclaredConstructor().newInstance()
-                registerCommands(cog, it)
-            }
-        }
-    }
-
-    /**
-     * Attempts to load the jar at the given path. If successful,
-     * Flight will attempt to discover all cogs in the jar, under the given package name.
-     *
-     * Before registering the cogs, any existing cogs whose names match those found in the jar will
-     * automatically be unregistered and removed.
-     *
-     * @param jarPath
-     *        A string-representation of the path to the jar file.
-     *
-     * @param packageName
-     *        The package name to scan for cogs/commands in.
-     */
-    @ExperimentalStdlibApi
-    fun reload(jarPath: String, packageName: String) {
-        Indexer(packageName, jarPath).use {
-            val cogClasses = it.getCogs()
-
-            for (cls in cogClasses) {
-                val cog = cls.getDeclaredConstructor().newInstance()
-                removeByCog(cog.name())
-                registerCommands(cog, it)
-            }
-        }
-    }
-
 }
