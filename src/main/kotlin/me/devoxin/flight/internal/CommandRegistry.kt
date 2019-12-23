@@ -29,7 +29,6 @@ class CommandRegistry : HashMap<String, CommandWrapper>() {
 
         // No other commands were loaded from the jar, so it's safe to close the loader.
         if (canCloseLoader) {
-            println("Closing loader.")
             jar.close()
         }
     }
