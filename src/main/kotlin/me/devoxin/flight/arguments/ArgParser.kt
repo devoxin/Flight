@@ -104,7 +104,7 @@ class ArgParser(
             }
         }
 
-        if (!result.isPresent && !arg.optional && !arg.isNullable) {
+        if (!result.isPresent && !arg.isNullable) {
             throw BadArgument(arg, argument)
         }
 
