@@ -3,7 +3,6 @@ package me.devoxin.flight.api
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import me.devoxin.flight.arguments.ArgParser
-import me.devoxin.flight.exceptions.AwaitTimeoutException
 import me.devoxin.flight.exceptions.BadArgument
 import me.devoxin.flight.internal.CommandRegistry
 import me.devoxin.flight.internal.WaitingEvent
@@ -12,18 +11,16 @@ import me.devoxin.flight.models.CommandClientAdapter
 import me.devoxin.flight.models.PrefixProvider
 import me.devoxin.flight.parsers.Parser
 import me.devoxin.flight.utils.Indexer
-import net.dv8tion.jda.api.Permission
-import net.dv8tion.jda.api.entities.Member
-import net.dv8tion.jda.api.entities.TextChannel
 import net.dv8tion.jda.api.events.Event
 import net.dv8tion.jda.api.events.GenericEvent
 import net.dv8tion.jda.api.events.ReadyEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
-import net.dv8tion.jda.api.hooks.ListenerAdapter
+import net.dv8tion.jda.api.hooks.EventListener
 import org.slf4j.LoggerFactory
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import kotlin.reflect.KParameter
 
 class CommandClient(
@@ -32,7 +29,7 @@ class CommandClient(
         private val ignoreBots: Boolean,
         private val eventListeners: List<CommandClientAdapter>,
         customOwnerIds: MutableSet<Long>?
-) : ListenerAdapter() {
+) : EventListener {
 
     private val waiterScheduler = Executors.newSingleThreadScheduledExecutor()
     private val pendingEvents = hashMapOf<Class<*>, HashSet<WaitingEvent<*>>>()
@@ -80,20 +77,7 @@ class CommandClient(
     @ExperimentalStdlibApi
     fun registerCommands(jarPath: String, packageName: String) = commands.registerCommands(jarPath, packageName)
 
-
-    // +------------------+
-    // |  Event Handling  |
-    // +------------------+
-
-    override fun onReady(event: ReadyEvent) {
-        if (ownerIds.isEmpty()) {
-            event.jda.retrieveApplicationInfo().queue {
-                ownerIds.add(it.owner.idLong)
-            }
-        }
-    }
-
-    override fun onMessageReceived(event: MessageReceivedEvent) {
+    private fun onMessageReceived(event: MessageReceivedEvent) {
         if (ignoreBots && (event.author.isBot || event.author.isFake)) {
             return
         }
@@ -126,7 +110,7 @@ class CommandClient(
 
         if (event.channelType.isGuild) {
             if (props.userPermissions.isNotEmpty()) {
-                val userCheck = performPermCheck(event.member!!, event.textChannel, props.userPermissions)
+                val userCheck = props.userPermissions.filterNot { event.member!!.hasPermission(event.textChannel, it) }
 
                 if (userCheck.isNotEmpty()) {
                     return eventListeners.forEach { it.onUserMissingPermissions(ctx, cmd, userCheck) }
@@ -134,7 +118,7 @@ class CommandClient(
             }
 
             if (props.botPermissions.isNotEmpty()) {
-                val botCheck = performPermCheck(event.guild.selfMember, event.textChannel, props.botPermissions)
+                val botCheck = props.botPermissions.filterNot { event.guild.selfMember.hasPermission(event.textChannel, it) }
 
                 if (botCheck.isNotEmpty()) {
                     return eventListeners.forEach { it.onBotMissingPermissions(ctx, cmd, botCheck) }
@@ -188,22 +172,38 @@ class CommandClient(
     // +-------------------+
     // | Execution-Related |
     // +-------------------+
+    override fun onEvent(event: GenericEvent) {
+        onGenericEvent(event)
 
-    private fun performPermCheck(member: Member, channel: TextChannel,
-                                 permissions: Array<Permission>) = permissions.filter { !member.hasPermission(channel, it) }
+        if (event is ReadyEvent) {
+            onReady(event)
+        } else if (event is MessageReceivedEvent) {
+            onMessageReceived(event)
+        }
+    }
 
+    private fun onReady(event: ReadyEvent) {
+        if (ownerIds.isEmpty()) {
+            event.jda.retrieveApplicationInfo().queue {
+                ownerIds.add(it.owner.idLong)
+            }
+        }
+    }
 
-    override fun onGenericEvent(event: GenericEvent) {
-        val cls = event::class.java
-        val events = pendingEvents[cls] ?: return
+    private fun onGenericEvent(event: GenericEvent) {
+        val events = pendingEvents[event::class.java] ?: return
         val passed = events.filter { it.check(event) }
 
         events.removeAll(passed)
         passed.forEach { it.accept(event) }
     }
 
-    fun <T: Event> waitFor(event: Class<T>, predicate: (T) -> Boolean, timeout: Long): CompletableFuture<T?> {
-        val future = CompletableFuture<T?>()
+    inline fun <reified T: Event> waitFor(noinline predicate: (T) -> Boolean, timeout: Long): CompletableFuture<T> {
+        return waitFor(T::class.java, predicate, timeout)
+    }
+
+    fun <T: Event> waitFor(event: Class<T>, predicate: (T) -> Boolean, timeout: Long): CompletableFuture<T> {
+        val future = CompletableFuture<T>()
         val we = WaitingEvent(event, predicate, future)
 
         val set = pendingEvents.computeIfAbsent(event) { hashSetOf() }
@@ -212,7 +212,7 @@ class CommandClient(
         if (timeout > 0) {
             waiterScheduler.schedule({
                 if (!future.isDone) {
-                    future.completeExceptionally(AwaitTimeoutException())
+                    future.completeExceptionally(TimeoutException())
                     set.remove(we)
                 }
             }, timeout, TimeUnit.MILLISECONDS)
