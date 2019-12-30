@@ -50,7 +50,14 @@ def getBuildVersion() {
 }
 
 task writeVersion() {
-    file("${sourceSets.main.resources.srcDirs[0]}/version.txt").text = getBuildVersion()
+    def resourcePath = sourceSets.main.resources.srcDirs[0]
+    def resources = file(resourcePath)
+
+    if (!resources.exists()) {
+        resources.mkdirs()
+    }
+
+    file("$resourcePath/version.txt").text = getBuildVersion()
 }
 
 build {
