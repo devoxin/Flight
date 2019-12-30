@@ -39,3 +39,20 @@ dependencies {
 compileKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
+
+def getBuildVersion() {
+    def gitVersion = new ByteArrayOutputStream()
+    exec {
+        commandLine("git", "rev-parse", "--short", "HEAD")
+        standardOutput = gitVersion
+    }
+    return "$version\n${gitVersion.toString().trim()}"
+}
+
+task writeVersion() {
+    new File("src/main/resources", "version.txt").text = getBuildVersion()
+}
+
+build {
+    dependsOn writeVersion
+}

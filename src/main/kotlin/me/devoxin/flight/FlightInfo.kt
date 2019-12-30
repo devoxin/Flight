@@ -1,5 +1,17 @@
 package me.devoxin.flight
 
+import java.io.InputStreamReader
+
 object FlightInfo {
-    val VERSION = "1.5.0"
+    val VERSION: String
+    val GIT_REVISION: String
+
+    init {
+        val stream = FlightInfo::class.java.classLoader.getResourceAsStream("version.txt")!!
+        val reader = InputStreamReader(stream).readText()
+        val (buildVersion, buildRevision) = reader.split('\n')
+
+        VERSION = buildVersion
+        GIT_REVISION = buildRevision
+    }
 }
