@@ -104,7 +104,7 @@ class ArgParser(
             }
         }
 
-        if (!result.isPresent && !arg.isNullable) {
+        if (!result.isPresent && !arg.isNullable && (!arg.optional || argument.isNotEmpty())) {
             throw BadArgument(arg, argument)
         }
 
@@ -112,7 +112,6 @@ class ArgParser(
     }
 
     companion object {
-        private val logger = LoggerFactory.getLogger(ArgParser::class.java)
         val parsers = hashMapOf<Class<*>, Parser<*>>()
 
         fun parseArguments(cmd: CommandWrapper, ctx: Context, args: List<String>): HashMap<KParameter, Any?> {
