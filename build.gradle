@@ -50,7 +50,7 @@ def getBuildVersion() {
 }
 
 task writeVersion() {
-    file("$projectDir/src/main/resources/version.txt").text = getBuildVersion()
+    file("${sourceSets.main.resources.srcDirs[0]}/version.txt").text = getBuildVersion()
 }
 
 build {
