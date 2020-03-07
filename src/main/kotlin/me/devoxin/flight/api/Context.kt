@@ -1,9 +1,6 @@
 package me.devoxin.flight.api
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.future.await
-import kotlinx.coroutines.launch
 import me.devoxin.flight.models.Attachment
 import me.devoxin.flight.utils.Scheduler
 import net.dv8tion.jda.api.EmbedBuilder
@@ -11,15 +8,13 @@ import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.*
 import net.dv8tion.jda.api.events.Event
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
-import java.util.concurrent.CompletableFuture
 import java.util.regex.Pattern
 
 class Context(
     val commandClient: CommandClient,
-    private val event: MessageReceivedEvent,
+    event: MessageReceivedEvent,
     val trigger: String
 ) {
-
     val jda: JDA = event.jda
     val message: Message = event.message
 
@@ -33,29 +28,85 @@ class Context(
     val messageChannel: MessageChannel = event.channel
 
 
-    fun send(content: String): CompletableFuture<Message> {
-        return messageChannel.sendMessage(content).submit()
+    /**
+     * Sends a message embed to the channel the Context was created from.
+     *
+     * @param content
+     *        The content of the message.
+     */
+    fun send(content: String) {
+        messageChannel.sendMessage(content).submit()
     }
 
-    fun send(attachment: Attachment): CompletableFuture<Message> {
-        return messageChannel.sendFile(attachment.stream, attachment.filename).submit()
+    /**
+     * Sends a file to the channel the Context was created from.
+     *
+     * @param attachment
+     *        The attachment to send.
+     */
+    fun send(attachment: Attachment) {
+        messageChannel.sendFile(attachment.stream, attachment.filename).submit()
     }
 
-    fun send(embed: EmbedBuilder.() -> Unit): CompletableFuture<Message> {
-        return messageChannel.sendMessage(EmbedBuilder().apply(embed).build()).submit()
+    /**
+     * Sends a message embed to the channel the Context was created from.
+     *
+     * @param embed
+     *        Options to apply to the message embed.
+     */
+    fun send(embed: EmbedBuilder.() -> Unit) {
+        messageChannel.sendMessage(EmbedBuilder().apply(embed).build()).submit()
     }
 
-    fun dm(content: String) {
+    /**
+     * Sends a message embed to the channel the Context was created from.
+     *
+     * @param content
+     *        The content of the message.
+     *
+     * @return The created message.
+     */
+    suspend fun sendAsync(content: String): Message {
+        return messageChannel.sendMessage(content).submit().await()
+    }
+
+    /**
+     * Sends a file to the channel the Context was created from.
+     *
+     * @param attachment
+     *        The attachment to send.
+     *
+     * @return The created message.
+     */
+    suspend fun sendAsync(attachment: Attachment): Message {
+        return messageChannel.sendFile(attachment.stream, attachment.filename).submit().await()
+    }
+
+    /**
+     * Sends a message embed to the channel the Context was created from.
+     *
+     * @param embed
+     *        Options to apply to the message embed.
+     *
+     * @return The created message.
+     */
+    suspend fun sendAsync(embed: EmbedBuilder.() -> Unit): Message {
+        return messageChannel.sendMessage(EmbedBuilder().apply(embed).build()).submit().await()
+    }
+
+    /**
+     * Sends the message author a direct message.
+     *
+     * @param content
+     *        The content of the message.
+     */
+    fun sendPrivate(content: String) {
         author.openPrivateChannel().submit()
             .thenAccept {
                 it.sendMessage(content).submit()
                     .handle { _, _ -> it.close().submit() }
             }
     }
-
-    suspend fun sendAsync(content: String) = send(content).await()
-
-    suspend fun embedAsync(embed: EmbedBuilder.() -> Unit) = send(embed).await()
 
     /**
      * Sends a typing status within the channel until the provided function is exited.
@@ -99,8 +150,10 @@ class Context(
      *
      * @param timeout
      *        How long to wait, in milliseconds, for the given event type before expiring.
+     *
+     * @throws java.util.concurrent.TimeoutException
      */
-    suspend fun <T: Event> waitFor(event: Class<T>, predicate: (T) -> Boolean, timeout: Long): T? {
+    suspend fun <T: Event> waitFor(event: Class<T>, predicate: (T) -> Boolean, timeout: Long): T {
         val r = commandClient.waitFor(event, predicate, timeout)
         return r.await()
     }
