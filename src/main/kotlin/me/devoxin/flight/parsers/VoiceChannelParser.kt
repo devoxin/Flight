@@ -14,11 +14,7 @@ class VoiceChannelParser : Parser<VoiceChannel> {
             ctx.guild?.voiceChannels?.firstOrNull { it.name == param }
         }
 
-        if (channel != null) {
-            return Optional.of(channel)
-        }
-
-        return Optional.empty()
+        return Optional.ofNullable(channel)
     }
 
     companion object {

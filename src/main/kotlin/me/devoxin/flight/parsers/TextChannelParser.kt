@@ -14,11 +14,7 @@ class TextChannelParser : Parser<TextChannel> {
             ctx.guild?.textChannels?.firstOrNull { it.name == param }
         }
 
-        if (channel != null) {
-            return Optional.of(channel)
-        }
-
-        return Optional.empty()
+        return Optional.ofNullable(channel)
     }
 
     companion object {

@@ -21,11 +21,7 @@ class MemberParser : Parser<Member> {
             }
         }
 
-        if (member != null) {
-            return Optional.of(member)
-        }
-
-        return Optional.empty()
+        return Optional.ofNullable(member)
     }
 
     companion object {

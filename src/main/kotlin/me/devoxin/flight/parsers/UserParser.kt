@@ -8,24 +8,19 @@ class UserParser : Parser<User> {
 
     override fun parse(ctx: Context, param: String): Optional<User> {
         val snowflake = snowflakeParser.parse(ctx, param)
-        val user: User?
 
-        if (snowflake.isPresent) {
-            user = ctx.jda.getUserById(snowflake.get())
+        val user = if (snowflake.isPresent) {
+            ctx.jda.getUserById(snowflake.get())
         } else {
             if (param.length > 5 && param[param.length - 5].toString() == "#") {
                 val tag = param.split("#")
-                user = ctx.jda.userCache.find { it.name == tag[0] && it.discriminator == tag[1] }
+                ctx.jda.userCache.find { it.name == tag[0] && it.discriminator == tag[1] }
             } else {
-                user = ctx.jda.userCache.find { it.name == param }
+                ctx.jda.userCache.find { it.name == param }
             }
         }
 
-        if (user != null) {
-            return Optional.of(user)
-        }
-
-        return Optional.empty()
+        return Optional.ofNullable(user)
     }
 
     companion object {

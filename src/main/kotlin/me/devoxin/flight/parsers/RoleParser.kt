@@ -14,11 +14,7 @@ class RoleParser : Parser<Role> {
             ctx.guild?.roleCache?.firstOrNull { it.name == param }
         }
 
-        if (role != null) {
-            return Optional.of(role)
-        }
-
-        return Optional.empty()
+        return Optional.ofNullable(role)
     }
 
     companion object {
