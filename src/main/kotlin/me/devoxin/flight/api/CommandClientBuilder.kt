@@ -113,12 +113,22 @@ class CommandClientBuilder {
         return this
     }
 
+    inline fun <reified T> addCustomParser(parser: Parser<T>): CommandClientBuilder {
+        addCustomParser(T::class.java, parser)
+        return this
+    }
+
     /**
      * Registers an argument parser to the given class.
      *
      * @return The builder instance. Useful for chaining.
      */
     fun addCustomParser(klass: Class<*>, parser: Parser<*>): CommandClientBuilder {
+        // This is kinda unsafe. Would use T, but nullable/boxed types revert
+        // to their java.lang counterparts. E.g. Int? becomes java.lang.Integer,
+        // but Int remains kotlin.Int.
+        // See https://youtrack.jetbrains.com/issue/KT-35423
+
         this.parsers[klass] = parser
         return this
     }
@@ -133,6 +143,7 @@ class CommandClientBuilder {
         val booleanParser = BooleanParser()
         parsers[Boolean::class.java] = booleanParser
         parsers[java.lang.Boolean::class.java] = booleanParser
+        addCustomParser(java.lang.Boolean::class.java, booleanParser)
 
         val doubleParser = DoubleParser()
         parsers[Double::class.java] = doubleParser
