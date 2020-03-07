@@ -143,7 +143,6 @@ class CommandClientBuilder {
         val booleanParser = BooleanParser()
         parsers[Boolean::class.java] = booleanParser
         parsers[java.lang.Boolean::class.java] = booleanParser
-        addCustomParser(java.lang.Boolean::class.java, booleanParser)
 
         val doubleParser = DoubleParser()
         parsers[Double::class.java] = doubleParser
@@ -156,6 +155,10 @@ class CommandClientBuilder {
         val intParser = IntParser()
         parsers[Int::class.java] = intParser
         parsers[java.lang.Integer::class.java] = intParser
+
+        val longParser = LongParser()
+        parsers[Long::class.java] = longParser
+        parsers[java.lang.Long::class.java] = longParser
 
         // JDA entities
         val inviteParser = InviteParser()
