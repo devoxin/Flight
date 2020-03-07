@@ -79,16 +79,14 @@ class Context(
      * @param block
      *        The code that should be executed while the typing status is active.
      */
-    fun typingAsync(block: suspend CoroutineScope.() -> Unit) {
-        messageChannel.sendTyping().queue {
-            val task = Scheduler.every(5000) {
-                messageChannel.sendTyping().queue()
-            }
+    suspend fun typingAsync(block: suspend () -> Unit) {
+        messageChannel.sendTyping().submit().await()
+        val task = Scheduler.every(5000) { messageChannel.sendTyping().queue() }
 
-            GlobalScope.launch(block = block)
-                .invokeOnCompletion {
-                    task.cancel(true)
-                }
+        try {
+            block()
+        } finally {
+            task.cancel(true)
         }
     }
 
