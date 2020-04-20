@@ -1,8 +1,8 @@
 package me.devoxin.flight.api
 
 import kotlinx.coroutines.future.await
-import me.devoxin.flight.models.Attachment
-import me.devoxin.flight.utils.Scheduler
+import me.devoxin.flight.api.entities.Attachment
+import me.devoxin.flight.internal.utils.Scheduler
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.*
