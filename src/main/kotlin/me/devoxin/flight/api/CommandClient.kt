@@ -2,15 +2,15 @@ package me.devoxin.flight.api
 
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import me.devoxin.flight.arguments.ArgParser
-import me.devoxin.flight.exceptions.BadArgument
-import me.devoxin.flight.internal.CommandRegistry
-import me.devoxin.flight.internal.WaitingEvent
-import me.devoxin.flight.models.Cog
-import me.devoxin.flight.models.CommandClientAdapter
-import me.devoxin.flight.models.PrefixProvider
-import me.devoxin.flight.parsers.Parser
-import me.devoxin.flight.utils.Indexer
+import me.devoxin.flight.internal.arguments.ArgParser
+import me.devoxin.flight.api.exceptions.BadArgument
+import me.devoxin.flight.internal.entities.WaitingEvent
+import me.devoxin.flight.api.entities.Cog
+import me.devoxin.flight.api.hooks.CommandEventAdapter
+import me.devoxin.flight.api.entities.PrefixProvider
+import me.devoxin.flight.internal.entities.CommandRegistry
+import me.devoxin.flight.internal.parsers.Parser
+import me.devoxin.flight.internal.utils.Indexer
 import net.dv8tion.jda.api.events.Event
 import net.dv8tion.jda.api.events.GenericEvent
 import net.dv8tion.jda.api.events.ReadyEvent
@@ -24,11 +24,11 @@ import java.util.concurrent.TimeoutException
 import kotlin.reflect.KParameter
 
 class CommandClient(
-        parsers: HashMap<Class<*>, Parser<*>>,
-        private val prefixProvider: PrefixProvider,
-        private val ignoreBots: Boolean,
-        private val eventListeners: List<CommandClientAdapter>,
-        customOwnerIds: MutableSet<Long>?
+    parsers: HashMap<Class<*>, Parser<*>>,
+    private val prefixProvider: PrefixProvider,
+    private val ignoreBots: Boolean,
+    private val eventListeners: List<CommandEventAdapter>,
+    customOwnerIds: MutableSet<Long>?
 ) : EventListener {
 
     private val waiterScheduler = Executors.newSingleThreadScheduledExecutor()
@@ -222,6 +222,6 @@ class CommandClient(
     }
 
     companion object {
-        private val logger = LoggerFactory.getLogger(CommandClient::class.java)
+        private val log = LoggerFactory.getLogger(CommandClient::class.java)
     }
 }

@@ -1,13 +1,13 @@
 package me.devoxin.flight.api
 
-import me.devoxin.flight.arguments.Snowflake
-import me.devoxin.flight.internal.DefaultHelpCommand
-import me.devoxin.flight.internal.DefaultPrefixProvider
-import me.devoxin.flight.models.CommandClientAdapter
-import me.devoxin.flight.models.Emoji
-import me.devoxin.flight.models.Invite
-import me.devoxin.flight.models.PrefixProvider
-import me.devoxin.flight.parsers.*
+import me.devoxin.flight.internal.arguments.types.Snowflake
+import me.devoxin.flight.api.entities.DefaultHelpCommand
+import me.devoxin.flight.api.entities.DefaultPrefixProvider
+import me.devoxin.flight.api.hooks.CommandEventAdapter
+import me.devoxin.flight.api.entities.Emoji
+import me.devoxin.flight.api.entities.Invite
+import me.devoxin.flight.api.entities.PrefixProvider
+import me.devoxin.flight.internal.parsers.*
 import net.dv8tion.jda.api.entities.*
 import java.net.URL
 
@@ -19,7 +19,7 @@ class CommandClientBuilder {
     private var helpCommandConfig: DefaultHelpCommandConfig = DefaultHelpCommandConfig()
     private var ignoreBots: Boolean = true
     private var prefixProvider: PrefixProvider? = null
-    private var eventListeners: MutableList<CommandClientAdapter> = mutableListOf()
+    private var eventListeners: MutableList<CommandEventAdapter> = mutableListOf()
     private var ownerIds: MutableSet<Long>? = null
 
 
@@ -108,7 +108,7 @@ class CommandClientBuilder {
      *
      * @return The builder instance. Useful for chaining.
      */
-    fun addEventListeners(vararg listeners: CommandClientAdapter): CommandClientBuilder {
+    fun addEventListeners(vararg listeners: CommandEventAdapter): CommandClientBuilder {
         this.eventListeners.addAll(listeners)
         return this
     }
