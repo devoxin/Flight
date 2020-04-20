@@ -7,15 +7,23 @@ import net.dv8tion.jda.api.Permission
 
 abstract class DefaultCommandEventAdapter : CommandEventAdapter {
 
-    override fun onBadArgument(ctx: Context, command: CommandFunction, error: BadArgument) {}
+    override fun onBadArgument(ctx: Context, command: CommandFunction, error: BadArgument) {
+        error.printStackTrace()
+    }
 
-    override fun onCommandError(ctx: Context, command: CommandFunction, error: Throwable) {}
+    override fun onCommandError(ctx: Context, command: CommandFunction, error: Throwable) {
+        error.printStackTrace()
+    }
 
     override fun onCommandPostInvoke(ctx: Context, command: CommandFunction, failed: Boolean) {}
 
     override fun onCommandPreInvoke(ctx: Context, command: CommandFunction) = true
 
-    override fun onParseError(ctx: Context, command: CommandFunction, error: Throwable) {}
+    override fun onParseError(ctx: Context, command: CommandFunction, error: Throwable) {
+        error.printStackTrace()
+    }
+
+    override fun onCommandCooldown(ctx: Context, command: CommandFunction, cooldown: Long) {}
 
     override fun onBotMissingPermissions(ctx: Context, command: CommandFunction, permissions: List<Permission>) {}
 

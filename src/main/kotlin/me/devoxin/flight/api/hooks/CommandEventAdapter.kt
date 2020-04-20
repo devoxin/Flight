@@ -42,6 +42,18 @@ interface CommandEventAdapter {
     fun onCommandError(ctx: Context, command: CommandFunction, error: Throwable)
 
     /**
+     * Invoked when a command is executed while on cool-down.
+     *
+     * @param ctx
+     *        The command context.
+     * @param command
+     *        The command that encountered the cool-down.
+     * @param cooldown
+     *        The remaining time of the cool-down, in milliseconds.
+     */
+    fun onCommandCooldown(ctx: Context, command: CommandFunction, cooldown: Long)
+
+    /**
      * Invoked when a user lacks permissions to execute a command
      */
     fun onUserMissingPermissions(ctx: Context, command: CommandFunction, permissions: List<Permission>)

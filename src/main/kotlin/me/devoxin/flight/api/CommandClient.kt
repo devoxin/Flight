@@ -2,10 +2,13 @@ package me.devoxin.flight.api
 
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import me.devoxin.flight.api.annotations.Cooldown
+import me.devoxin.flight.api.entities.BucketType
 import me.devoxin.flight.internal.arguments.ArgParser
 import me.devoxin.flight.api.exceptions.BadArgument
 import me.devoxin.flight.internal.entities.WaitingEvent
 import me.devoxin.flight.api.entities.Cog
+import me.devoxin.flight.api.entities.CooldownProvider
 import me.devoxin.flight.api.hooks.CommandEventAdapter
 import me.devoxin.flight.api.entities.PrefixProvider
 import me.devoxin.flight.internal.entities.CommandRegistry
@@ -26,6 +29,7 @@ import kotlin.reflect.KParameter
 class CommandClient(
     parsers: HashMap<Class<*>, Parser<*>>,
     private val prefixProvider: PrefixProvider,
+    private val cooldownProvider: CooldownProvider,
     private val ignoreBots: Boolean,
     private val eventListeners: List<CommandEventAdapter>,
     customOwnerIds: MutableSet<Long>?
@@ -98,6 +102,22 @@ class CommandClient(
                 ?: return
 
         val ctx = Context(this, event, trigger)
+
+        if (cmd.cooldown != null) {
+            val entityId = when (cmd.cooldown.bucket) {
+                BucketType.USER -> ctx.author.idLong
+                BucketType.GUILD -> ctx.guild?.idLong
+                BucketType.GLOBAL -> -1
+            }
+
+            if (entityId != null) {
+                if (cooldownProvider.isOnCooldown(entityId, cmd.cooldown.bucket, cmd)) {
+                    val time = cooldownProvider.getCooldownTime(entityId, cmd.cooldown.bucket, cmd)
+                    return eventListeners.forEach { it.onCommandCooldown(ctx, cmd, time) }
+                }
+            }
+        }
+
         val props = cmd.properties
 
         if (props.developerOnly && !ownerIds.contains(event.author.idLong)) {
@@ -157,6 +177,19 @@ class CommandClient(
             }
 
             eventListeners.forEach { it.onCommandPostInvoke(ctx, cmd, !success) }
+        }
+
+        if (cmd.cooldown != null && cmd.cooldown.duration > 0) {
+            val entityId = when (cmd.cooldown.bucket) {
+                BucketType.USER -> ctx.author.idLong
+                BucketType.GUILD -> ctx.guild?.idLong
+                BucketType.GLOBAL -> -1
+            }
+
+            if (entityId != null) {
+                val time = cmd.cooldown.timeUnit.toMillis(cmd.cooldown.duration)
+                cooldownProvider.setCooldown(entityId, cmd.cooldown.bucket, time, cmd)
+            }
         }
 
         if (cmd.async) {

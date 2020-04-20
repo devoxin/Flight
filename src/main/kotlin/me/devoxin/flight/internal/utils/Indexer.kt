@@ -3,6 +3,7 @@ package me.devoxin.flight.internal.utils
 import me.devoxin.flight.api.annotations.Command
 import me.devoxin.flight.api.CommandFunction
 import me.devoxin.flight.api.Context
+import me.devoxin.flight.api.annotations.Cooldown
 import me.devoxin.flight.internal.arguments.Argument
 import me.devoxin.flight.api.annotations.Greedy
 import me.devoxin.flight.api.annotations.Name
@@ -79,6 +80,7 @@ class Indexer {
         val category = cog.name()
         val name = meth.name.toLowerCase()
         val properties = meth.findAnnotation<Command>()!!
+        val cooldown = meth.findAnnotation<Cooldown>()
         val async = meth.isSuspend
         val ctxParam = meth.valueParameters.firstOrNull { it.type.classifier?.equals(Context::class) == true }
 
@@ -99,7 +101,7 @@ class Indexer {
             arguments.add(Argument(pName, type, greedy, optional, isNullable, p))
         }
 
-        return CommandFunction(name, arguments, category, properties, async, meth, cog, jar, ctxParam)
+        return CommandFunction(name, arguments, category, properties, cooldown, async, meth, cog, jar, ctxParam)
     }
 
     companion object {
