@@ -1,6 +1,7 @@
 package me.devoxin.flight.api
 
 import me.devoxin.flight.api.annotations.Command
+import me.devoxin.flight.api.annotations.Cooldown
 import me.devoxin.flight.internal.arguments.Argument
 import me.devoxin.flight.internal.entities.Jar
 import me.devoxin.flight.api.entities.Cog
@@ -14,6 +15,7 @@ class CommandFunction(
     val arguments: List<Argument>,
     val category: String,
     val properties: Command,
+    val cooldown: Cooldown?,
     val async: Boolean,
     val method: KFunction<*>,
     val cog: Cog,

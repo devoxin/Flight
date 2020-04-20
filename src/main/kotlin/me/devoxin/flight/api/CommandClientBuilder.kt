@@ -1,12 +1,9 @@
 package me.devoxin.flight.api
 
-import me.devoxin.flight.internal.arguments.types.Snowflake
-import me.devoxin.flight.api.entities.DefaultHelpCommand
-import me.devoxin.flight.api.entities.DefaultPrefixProvider
-import me.devoxin.flight.api.hooks.CommandEventAdapter
-import me.devoxin.flight.api.entities.Emoji
+import me.devoxin.flight.api.entities.*
 import me.devoxin.flight.api.entities.Invite
-import me.devoxin.flight.api.entities.PrefixProvider
+import me.devoxin.flight.internal.arguments.types.Snowflake
+import me.devoxin.flight.api.hooks.CommandEventAdapter
 import me.devoxin.flight.internal.parsers.*
 import net.dv8tion.jda.api.entities.*
 import java.net.URL
@@ -19,6 +16,7 @@ class CommandClientBuilder {
     private var helpCommandConfig: DefaultHelpCommandConfig = DefaultHelpCommandConfig()
     private var ignoreBots: Boolean = true
     private var prefixProvider: PrefixProvider? = null
+    private var cooldownProvider: CooldownProvider? = null
     private var eventListeners: MutableList<CommandEventAdapter> = mutableListOf()
     private var ownerIds: MutableSet<Long>? = null
 
@@ -48,6 +46,14 @@ class CommandClientBuilder {
      */
     fun setPrefixProvider(provider: PrefixProvider): CommandClientBuilder {
         this.prefixProvider = provider
+        return this
+    }
+
+    /**
+     * Sets the provider used for cool-downs.
+     */
+    fun setCooldownProvider(provider: CooldownProvider): CommandClientBuilder {
+        this.cooldownProvider = provider
         return this
     }
 
@@ -188,7 +194,8 @@ class CommandClientBuilder {
     @ExperimentalStdlibApi
     fun build(): CommandClient {
         val prefixProvider = this.prefixProvider ?: DefaultPrefixProvider(prefixes, allowMentionPrefix)
-        val commandClient = CommandClient(parsers, prefixProvider, ignoreBots, eventListeners.toList(), ownerIds)
+        val cooldownProvider = this.cooldownProvider ?: DefaultCooldownProvider()
+        val commandClient = CommandClient(parsers, prefixProvider, cooldownProvider, ignoreBots, eventListeners.toList(), ownerIds)
 
         if (helpCommandConfig.enabled) {
             commandClient.registerCommands(DefaultHelpCommand(helpCommandConfig.showParameterTypes))
