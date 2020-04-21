@@ -2,6 +2,7 @@ package me.devoxin.flight.api
 
 import kotlinx.coroutines.future.await
 import me.devoxin.flight.api.entities.Attachment
+import me.devoxin.flight.internal.entities.Executable
 import me.devoxin.flight.internal.utils.Scheduler
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.JDA
@@ -13,7 +14,8 @@ import java.util.regex.Pattern
 class Context(
     val commandClient: CommandClient,
     event: MessageReceivedEvent,
-    val trigger: String
+    val trigger: String,
+    val invokedCommand: Executable
 ) {
     val jda: JDA = event.jda
     val message: Message = event.message

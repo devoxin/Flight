@@ -13,7 +13,7 @@ class Argument(
 
     fun format(withType: Boolean): String {
         return buildString {
-            if (optional) {
+            if (optional || isNullable) {
                 append('[')
             } else {
                 append('<')
@@ -26,7 +26,7 @@ class Argument(
                 append(type.simpleName)
             }
 
-            if (optional) {
+            if (optional || isNullable) {
                 append(']')
             } else {
                 append('>')
