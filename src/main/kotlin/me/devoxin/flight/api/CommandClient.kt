@@ -27,11 +27,11 @@ import java.util.concurrent.TimeoutException
 import kotlin.reflect.KParameter
 
 class CommandClient(
-    parsers: HashMap<Class<*>, Parser<*>>,
     private val prefixProvider: PrefixProvider,
     private val cooldownProvider: CooldownProvider,
     private val ignoreBots: Boolean,
     private val eventListeners: List<CommandEventAdapter>,
+    parsers: HashMap<Class<*>, Parser<*>>,
     customOwnerIds: MutableSet<Long>?
 ) : EventListener {
 
@@ -43,43 +43,6 @@ class CommandClient(
     init {
         ArgParser.parsers.putAll(parsers)
     }
-
-
-    // +------------------+
-    // | Custom Functions |
-    // +------------------+
-
-    /**
-     * Registers all commands that are discovered within the given package name.
-     *
-     * @param packageName
-     *        The package name to look for commands in.
-     */
-    @ExperimentalStdlibApi
-    fun registerCommands(packageName: String) = commands.registerCommands(packageName)
-
-    /**
-     * Registers all commands in the given cog.
-     *
-     * @param cog
-     *        The cog to load commands from.
-     * @param indexer
-     *        The indexer to use. This can be omitted, but it's better to reuse an indexer if possible.
-     */
-    @ExperimentalStdlibApi
-    fun registerCommands(cog: Cog, indexer: Indexer? = null) = commands.registerCommands(cog, indexer)
-
-    /**
-     * Registers all commands in a jar file.
-     *
-     * @param jarPath
-     *        A string-representation of the path to the jar file.
-     *
-     * @param packageName
-     *        The package name to scan for cogs/commands in.
-     */
-    @ExperimentalStdlibApi
-    fun registerCommands(jarPath: String, packageName: String) = commands.registerCommands(jarPath, packageName)
 
     private fun onMessageReceived(event: MessageReceivedEvent) {
         if (ignoreBots && (event.author.isBot || event.author.isFake)) {

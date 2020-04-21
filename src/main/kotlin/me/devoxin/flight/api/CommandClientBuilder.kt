@@ -195,10 +195,10 @@ class CommandClientBuilder {
     fun build(): CommandClient {
         val prefixProvider = this.prefixProvider ?: DefaultPrefixProvider(prefixes, allowMentionPrefix)
         val cooldownProvider = this.cooldownProvider ?: DefaultCooldownProvider()
-        val commandClient = CommandClient(parsers, prefixProvider, cooldownProvider, ignoreBots, eventListeners.toList(), ownerIds)
+        val commandClient = CommandClient(prefixProvider, cooldownProvider, ignoreBots, eventListeners.toList(), parsers, ownerIds)
 
         if (helpCommandConfig.enabled) {
-            commandClient.registerCommands(DefaultHelpCommand(helpCommandConfig.showParameterTypes))
+            commandClient.commands.register(DefaultHelpCommand(helpCommandConfig.showParameterTypes))
         }
 
         return commandClient
