@@ -2,8 +2,11 @@ package me.devoxin.flight.api.entities
 
 import me.devoxin.flight.api.CommandFunction
 import me.devoxin.flight.api.Context
+import me.devoxin.flight.internal.entities.Executable
 
 interface Cog {
+
+    fun name(): String? = null
 
     /**
      * Invoked when an error occurs during command execution.
@@ -22,12 +25,5 @@ interface Cog {
      * @return Whether the command execution should continue or not.
      */
     fun localCheck(ctx: Context, command: CommandFunction): Boolean = true
-
-    /**
-     * Used to determine the cog's name.
-     *
-     * @return The cog's name
-     */
-    fun name(): String = this::class.java.simpleName
 
 }

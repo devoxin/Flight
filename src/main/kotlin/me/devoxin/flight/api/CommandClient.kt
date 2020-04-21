@@ -64,7 +64,14 @@ class CommandClient(
                 ?: commands.values.firstOrNull { it.properties.aliases.contains(command) }
                 ?: return
 
-        val ctx = Context(this, event, trigger)
+        val subcommand = args.firstOrNull()?.let { cmd.subcommands[it.toLowerCase()] }
+        val invoked = subcommand ?: cmd
+
+        if (subcommand != null) {
+            args.removeAt(0)
+        }
+
+        val ctx = Context(this, event, trigger, invoked)
 
         if (cmd.cooldown != null) {
             val entityId = when (cmd.cooldown.bucket) {
@@ -120,10 +127,11 @@ class CommandClient(
             return
         }
 
+        val exc = subcommand ?: cmd
         val arguments: HashMap<KParameter, Any?>
 
         try {
-            arguments = ArgParser.parseArguments(cmd, ctx, args)
+            arguments = ArgParser.parseArguments(exc, ctx, args, cmd.properties.argDelimiter)
         } catch (e: BadArgument) {
             return eventListeners.forEach { it.onBadArgument(ctx, cmd, e) }
         } catch (e: Throwable) {
@@ -155,13 +163,7 @@ class CommandClient(
             }
         }
 
-        if (cmd.async) {
-            GlobalScope.launch {
-                cmd.executeAsync(ctx, arguments, complete = cb)
-            }
-        } else {
-            cmd.execute(ctx, arguments, complete = cb)
-        }
+        exc.execute(ctx, arguments, cb)
     }
 
 

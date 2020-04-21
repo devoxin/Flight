@@ -7,7 +7,7 @@ import me.devoxin.flight.internal.utils.TextSplitter
 
 open class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
 
-    override fun name(): String = "No Category"
+    override fun name() = "No Category"
 
     @Command(aliases = ["commands", "cmds"], description = "Displays bot help.")
     open suspend fun help(ctx: Context, command: String?) {
@@ -87,7 +87,7 @@ open class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
     }
 
     open fun buildCogHelp(ctx: Context, cog: Cog): List<String> {
-        val builder = StringBuilder("Commands in ${cog.name()}")
+        val builder = StringBuilder("Commands in ${cog::class.simpleName}")
         val commands = ctx.commandClient.commands.findCommandsByCog(cog)
         val padLength = ctx.commandClient.commands.values.maxBy { it.name.length }!!.name.length
 
@@ -102,6 +102,8 @@ open class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
 
         return TextSplitter.split(builder.toString(), 1990)
     }
+
+    // TODO: Subcommand help
 
     open suspend fun sendPages(ctx: Context, pages: Collection<String>) {
         for (page in pages) {

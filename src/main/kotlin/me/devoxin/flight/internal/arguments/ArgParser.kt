@@ -4,6 +4,7 @@ import me.devoxin.flight.api.CommandFunction
 import me.devoxin.flight.api.Context
 import me.devoxin.flight.api.exceptions.BadArgument
 import me.devoxin.flight.api.exceptions.ParserNotRegistered
+import me.devoxin.flight.internal.entities.Executable
 import me.devoxin.flight.internal.parsers.Parser
 import java.util.*
 import kotlin.reflect.KParameter
@@ -113,12 +114,11 @@ class ArgParser(
     companion object {
         val parsers = hashMapOf<Class<*>, Parser<*>>()
 
-        fun parseArguments(cmd: CommandFunction, ctx: Context, args: List<String>): HashMap<KParameter, Any?> {
+        fun parseArguments(cmd: Executable, ctx: Context, args: List<String>, delimiter: Char): HashMap<KParameter, Any?> {
             if (cmd.arguments.isEmpty()) {
                 return hashMapOf()
             }
 
-            val delimiter = cmd.properties.argDelimiter
             val commandArgs = if (delimiter == ' ') {
                 args
             } else {

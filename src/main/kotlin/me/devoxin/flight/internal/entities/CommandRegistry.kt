@@ -15,7 +15,7 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
     }
 
     fun findCogByName(name: String): Cog? {
-        return this.values.firstOrNull { it.cog.name() == name }?.cog
+        return this.values.firstOrNull { it.cog::class.simpleName == name }?.cog
     }
 
     fun findCommandsByCog(cog: Cog): List<CommandFunction> {
@@ -51,9 +51,8 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
     @ExperimentalStdlibApi
     fun register(packageName: String) {
         val indexer = Indexer(packageName)
-        val cogs = indexer.getCogs()
 
-        for (cog in cogs) {
+        for (cog in indexer.getCogs()) {
             register(cog, indexer)
         }
     }
@@ -61,9 +60,8 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
     @ExperimentalStdlibApi
     fun register(jarPath: String, packageName: String) {
         val indexer = Indexer(packageName, jarPath)
-        val cogs = indexer.getCogs()
 
-        for (cog in cogs) {
+        for (cog in indexer.getCogs()) {
             register(cog, indexer)
         }
     }
