@@ -45,7 +45,7 @@ class CommandClient(
     }
 
     private fun onMessageReceived(event: MessageReceivedEvent) {
-        if (ignoreBots && (event.author.isBot || event.author.isFake)) {
+        if (ignoreBots && (event.author.isBot || event.isWebhookMessage)) {
             return
         }
 
