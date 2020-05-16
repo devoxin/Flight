@@ -34,9 +34,10 @@ open class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
     open fun buildCommandList(ctx: Context): List<String> {
         val categories = hashMapOf<String, HashSet<CommandFunction>>()
         val helpMenu = StringBuilder()
+        val commands = ctx.commandClient.commands.values.filter { !it.properties.hidden }
         val padLength = ctx.commandClient.commands.values.maxBy { it.name.length }!!.name.length
 
-        for (command in ctx.commandClient.commands.values) {
+        for (command in commands) {
             val category = command.category.toLowerCase()
             val list = categories.computeIfAbsent(category) { hashSetOf() }
             list.add(command)
@@ -88,7 +89,7 @@ open class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
 
     open fun buildCogHelp(ctx: Context, cog: Cog): List<String> {
         val builder = StringBuilder("Commands in ${cog::class.simpleName}")
-        val commands = ctx.commandClient.commands.findCommandsByCog(cog)
+        val commands = ctx.commandClient.commands.findCommandsByCog(cog).filter { !it.properties.hidden }
         val padLength = ctx.commandClient.commands.values.maxBy { it.name.length }!!.name.length
 
         for (command in commands) {
