@@ -75,7 +75,7 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
             val cmd = i.loadCommand(command, cog)
 
             if (this.containsKey(cmd.name)) {
-                continue
+                throw RuntimeException("Cannot register command ${cmd.name}; the trigger has already been registered.")
             }
 
             this[cmd.name] = cmd
