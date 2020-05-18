@@ -15,7 +15,7 @@ import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.instanceParameter
 
 class CommandFunction(
-    val name: String,
+    name: String,
     val category: String,
     val properties: Command,
     val cooldown: Cooldown?,
@@ -25,9 +25,9 @@ class CommandFunction(
     // Executable properties
     method: KFunction<*>,
     cog: Cog,
-    contextParameter: KParameter,
-    arguments: List<Argument>
-) : Executable(method, cog, contextParameter, arguments) {
+    arguments: List<Argument>,
+    contextParameter: KParameter
+) : Executable(name, method, cog, arguments, contextParameter) {
 
     val subcommands = hashMapOf<String, SubCommandFunction>()
 

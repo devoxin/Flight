@@ -98,7 +98,7 @@ class Indexer {
             throw IllegalStateException("SubCommands are present within ${cog::class.simpleName} however there are multiple top-level commands!")
         }
 
-        return CommandFunction(name, category, properties, cooldown, jar, subcommands, meth, cog, ctxParam, arguments)
+        return CommandFunction(name, category, properties, cooldown, jar, subcommands, meth, cog, arguments, ctxParam)
     }
 
     @ExperimentalStdlibApi
@@ -130,7 +130,7 @@ class Indexer {
             .filterNot { it.type.classifier?.equals(Context::class) == true }
         val arguments = loadParameters(parameters)
 
-        return SubCommandFunction(name, properties, meth, cog, ctxParam, arguments)
+        return SubCommandFunction(name, properties, meth, cog, arguments, ctxParam)
     }
 
     @ExperimentalStdlibApi
@@ -140,11 +140,16 @@ class Indexer {
         for (p in parameters) {
             val pName = p.findAnnotation<Name>()?.name ?: p.name ?: p.index.toString()
             val type = p.type.jvmErasure.javaObjectType
-            val greedy = p.hasAnnotation<Greedy>()
-            val optional = p.isOptional
+            val isGreedy = p.hasAnnotation<Greedy>()
+            val isOptional = p.isOptional
             val isNullable = p.type.isMarkedNullable
+            val isTentative = p.hasAnnotation<Tentative>()
 
-            arguments.add(Argument(pName, type, greedy, optional, isNullable, p))
+            if (isTentative && !(isNullable || isOptional)) {
+                throw IllegalStateException("${p.name} is marked as tentative, but does not have a default value and is not marked nullable!")
+            }
+
+            arguments.add(Argument(pName, type, isGreedy, isOptional, isNullable, isTentative, p))
         }
 
         return arguments

@@ -11,10 +11,11 @@ import kotlin.reflect.full.callSuspendBy
 import kotlin.reflect.full.instanceParameter
 
 abstract class Executable(
+    val name: String,
     val method: KFunction<*>,
     val cog: Cog,
-    private val contextParameter: KParameter,
-    val arguments: List<Argument>
+    val arguments: List<Argument>,
+    private val contextParameter: KParameter
 ) {
 
     open fun execute(ctx: Context, args: HashMap<KParameter, Any?>, complete: (Boolean, Throwable?) -> Unit) {

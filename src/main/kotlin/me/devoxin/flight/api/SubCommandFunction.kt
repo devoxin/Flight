@@ -8,11 +8,11 @@ import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 
 class SubCommandFunction(
-    val name: String,
+    name: String,
     val properties: SubCommand,
     // Executable properties
     method: KFunction<*>,
     cog: Cog,
-    contextParameter: KParameter,
-    arguments: List<Argument>
-) : Executable(method, cog, contextParameter, arguments)
+    arguments: List<Argument>,
+    contextParameter: KParameter
+) : Executable(name, method, cog, arguments, contextParameter)
