@@ -8,6 +8,7 @@ class Argument(
     val greedy: Boolean,
     val optional: Boolean, // Denotes that a parameter has a default value.
     val isNullable: Boolean,
+    val isTentative: Boolean,
     internal val kparam: KParameter
 ) {
 
