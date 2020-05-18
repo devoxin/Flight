@@ -7,7 +7,7 @@ object FlightInfo {
     val GIT_REVISION: String
 
     init {
-        val stream = FlightInfo::class.java.classLoader.getResourceAsStream("version.txt")!!
+        val stream = FlightInfo::class.java.classLoader.getResourceAsStream("flight.txt")!!
         val reader = InputStreamReader(stream).readText()
         val (buildVersion, buildRevision) = reader.split('\n')
 
