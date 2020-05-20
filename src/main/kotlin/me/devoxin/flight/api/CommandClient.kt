@@ -1,29 +1,20 @@
 package me.devoxin.flight.api
 
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import me.devoxin.flight.api.annotations.Cooldown
 import me.devoxin.flight.api.entities.BucketType
 import me.devoxin.flight.internal.arguments.ArgParser
 import me.devoxin.flight.api.exceptions.BadArgument
 import me.devoxin.flight.internal.entities.WaitingEvent
-import me.devoxin.flight.api.entities.Cog
 import me.devoxin.flight.api.entities.CooldownProvider
 import me.devoxin.flight.api.hooks.CommandEventAdapter
 import me.devoxin.flight.api.entities.PrefixProvider
 import me.devoxin.flight.internal.entities.CommandRegistry
 import me.devoxin.flight.internal.parsers.Parser
-import me.devoxin.flight.internal.utils.Indexer
 import net.dv8tion.jda.api.events.Event
 import net.dv8tion.jda.api.events.GenericEvent
 import net.dv8tion.jda.api.events.ReadyEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.EventListener
-import org.slf4j.LoggerFactory
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
+import java.util.concurrent.*
 import kotlin.reflect.KParameter
 
 class CommandClient(
@@ -31,6 +22,7 @@ class CommandClient(
     private val cooldownProvider: CooldownProvider,
     private val ignoreBots: Boolean,
     private val eventListeners: List<CommandEventAdapter>,
+    private val commandExecutor: ExecutorService?,
     parsers: HashMap<Class<*>, Parser<*>>,
     customOwnerIds: MutableSet<Long>?
 ) : EventListener {
@@ -163,7 +155,7 @@ class CommandClient(
             }
         }
 
-        exc.execute(ctx, arguments, cb)
+        exc.execute(ctx, arguments, cb, commandExecutor)
     }
 
 
@@ -217,9 +209,5 @@ class CommandClient(
         }
 
         return future
-    }
-
-    companion object {
-        private val log = LoggerFactory.getLogger(CommandClient::class.java)
     }
 }

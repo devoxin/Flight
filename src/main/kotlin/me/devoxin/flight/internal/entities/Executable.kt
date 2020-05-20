@@ -5,6 +5,8 @@ import kotlinx.coroutines.launch
 import me.devoxin.flight.api.Context
 import me.devoxin.flight.api.entities.Cog
 import me.devoxin.flight.internal.arguments.Argument
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.ThreadPoolExecutor
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.callSuspendBy
@@ -18,7 +20,7 @@ abstract class Executable(
     private val contextParameter: KParameter
 ) {
 
-    open fun execute(ctx: Context, args: HashMap<KParameter, Any?>, complete: (Boolean, Throwable?) -> Unit) {
+    open fun execute(ctx: Context, args: HashMap<KParameter, Any?>, complete: (Boolean, Throwable?) -> Unit, executor: ExecutorService?) {
         method.instanceParameter?.let { args[it] = cog }
         args[contextParameter] = ctx
 
@@ -27,7 +29,13 @@ abstract class Executable(
                 executeAsync(args, complete)
             }
         } else {
-            executeSync(args, complete)
+            if (executor != null) {
+                executor.execute {
+                    executeSync(args, complete)
+                }
+            } else {
+                executeSync(args, complete)
+            }
         }
     }
 
@@ -46,7 +54,7 @@ abstract class Executable(
     /**
      * Calls the related method with the given args, except in an async manner.
      */
-    private  suspend fun executeAsync(args: HashMap<KParameter, Any?>, complete: (Boolean, Throwable?) -> Unit) {
+    private suspend fun executeAsync(args: HashMap<KParameter, Any?>, complete: (Boolean, Throwable?) -> Unit) {
         try {
             method.callSuspendBy(args)
             complete(true, null)

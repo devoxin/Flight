@@ -7,9 +7,9 @@ import me.devoxin.flight.api.hooks.CommandEventAdapter
 import me.devoxin.flight.internal.parsers.*
 import net.dv8tion.jda.api.entities.*
 import java.net.URL
+import java.util.concurrent.ExecutorService
 
 class CommandClientBuilder {
-
     private var parsers = hashMapOf<Class<*>, Parser<*>>()
     private var prefixes: List<String> = emptyList()
     private var allowMentionPrefix: Boolean = true
@@ -19,6 +19,7 @@ class CommandClientBuilder {
     private var cooldownProvider: CooldownProvider? = null
     private var eventListeners: MutableList<CommandEventAdapter> = mutableListOf()
     private var ownerIds: MutableSet<Long>? = null
+    private var commandExecutor: ExecutorService? = null
 
 
     /**
@@ -119,11 +120,6 @@ class CommandClientBuilder {
         return this
     }
 
-    inline fun <reified T> addCustomParser(parser: Parser<T>): CommandClientBuilder {
-        addCustomParser(T::class.java, parser)
-        return this
-    }
-
     /**
      * Registers an argument parser to the given class.
      *
@@ -138,6 +134,8 @@ class CommandClientBuilder {
         this.parsers[klass] = parser
         return this
     }
+
+    inline fun <reified T> addCustomParser(parser: Parser<T>) = addCustomParser(T::class.java, parser)
 
     /**
      * Registers all default argument parsers.
@@ -187,6 +185,19 @@ class CommandClientBuilder {
     }
 
     /**
+     * Sets the thread pool used for executing commands.
+     *
+     * @param executorPool
+     *        The pool to use. If null is given, commands will be executed on the WebSocket thread.
+     *
+     * @return The builder instance, useful for chaining.
+     */
+    fun setExecutionThreadPool(executorPool: ExecutorService?): CommandClientBuilder {
+        this.commandExecutor = executorPool
+        return this
+    }
+
+    /**
      * Builds a new CommandClient instance
      *
      * @return a CommandClient instance
@@ -195,7 +206,8 @@ class CommandClientBuilder {
     fun build(): CommandClient {
         val prefixProvider = this.prefixProvider ?: DefaultPrefixProvider(prefixes, allowMentionPrefix)
         val cooldownProvider = this.cooldownProvider ?: DefaultCooldownProvider()
-        val commandClient = CommandClient(prefixProvider, cooldownProvider, ignoreBots, eventListeners.toList(), parsers, ownerIds)
+        val commandClient = CommandClient(prefixProvider, cooldownProvider, ignoreBots, eventListeners.toList(),
+            commandExecutor, parsers, ownerIds)
 
         if (helpCommandConfig.enabled) {
             commandClient.commands.register(DefaultHelpCommand(helpCommandConfig.showParameterTypes))
@@ -203,5 +215,4 @@ class CommandClientBuilder {
 
         return commandClient
     }
-
 }
