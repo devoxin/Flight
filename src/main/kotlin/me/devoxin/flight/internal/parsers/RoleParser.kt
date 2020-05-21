@@ -9,7 +9,7 @@ class RoleParser : Parser<Role> {
     override fun parse(ctx: Context, param: String): Optional<Role> {
         val snowflake = snowflakeParser.parse(ctx, param)
         val role: Role? = if (snowflake.isPresent) {
-            ctx.guild?.getRoleById(snowflake.get())
+            ctx.guild?.getRoleById(snowflake.get().resolved)
         } else {
             ctx.guild?.roleCache?.firstOrNull { it.name == param }
         }
