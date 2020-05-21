@@ -9,7 +9,7 @@ class TextChannelParser : Parser<TextChannel> {
     override fun parse(ctx: Context, param: String): Optional<TextChannel> {
         val snowflake = snowflakeParser.parse(ctx, param)
         val channel: TextChannel? = if (snowflake.isPresent) {
-            ctx.guild?.getTextChannelById(snowflake.get())
+            ctx.guild?.getTextChannelById(snowflake.get().resolved)
         } else {
             ctx.guild?.textChannels?.firstOrNull { it.name == param }
         }

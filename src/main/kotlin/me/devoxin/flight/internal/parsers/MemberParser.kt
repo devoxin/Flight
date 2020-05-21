@@ -11,7 +11,7 @@ class MemberParser : Parser<Member> {
         val member: Member?
 
         member = if (snowflake.isPresent) {
-            ctx.guild?.getMemberById(snowflake.get())
+            ctx.guild?.getMemberById(snowflake.get().resolved)
         } else {
             if (param.length > 5 && param[param.length - 5].toString() == "#") {
                 val tag = param.split("#")
