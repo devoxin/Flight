@@ -1,4 +1,7 @@
 # Flight
+[![Release](https://jitpack.io/v/devoxin/flight.svg)](https://jitpack.io/#devoxin/flight)
+[![](https://jitci.com/gh/devoxin/flight/svg)](https://jitci.com/gh/devoxin/flight)
+
 Flight is a lightweight yet powerful command handler and arg parser for JDA, in Kotlin. It offers numerous utilities and functions for assisting, and speeding up Discord Bot development, allowing you to spend less time on the boring bits, and more on the important bits.
 
 ## Quick Start
