@@ -50,7 +50,7 @@ class CommandClient(
         }
 
         val args = event.message.contentRaw.substring(trigger.length).split(" +".toRegex()).toMutableList()
-        val command = args.removeAt(0)
+        val command = args.removeAt(0).toLowerCase()
 
         val cmd = commands[command]
                 ?: commands.values.firstOrNull { it.properties.aliases.contains(command) }
