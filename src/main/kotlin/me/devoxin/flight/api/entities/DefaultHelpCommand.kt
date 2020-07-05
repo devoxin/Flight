@@ -88,7 +88,7 @@ open class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
     }
 
     open fun buildCogHelp(ctx: Context, cog: Cog): List<String> {
-        val builder = StringBuilder("Commands in ${cog::class.simpleName}")
+        val builder = StringBuilder("Commands in ${cog::class.simpleName}\n")
         val commands = ctx.commandClient.commands.findCommandsByCog(cog).filter { !it.properties.hidden }
         val padLength = ctx.commandClient.commands.values.maxBy { it.name.length }!!.name.length
 
