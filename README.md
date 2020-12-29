@@ -17,6 +17,7 @@ dependencies {
 ```
 Make sure to replace `VERSION` with the latest Flight version. You can find a list of versions in the releases tab.
 
+### Command Client
 Now that importing Flight is out of the way, we can begin constructing our command client.
 ```kotlin
 val commandClient = CommandClientBuilder()
@@ -34,6 +35,7 @@ val jda = JDABuilder(yourBotToken)
   .build()
 ```
 
+### Commands
 Now for the part you've been waiting for -- commands!
 Commands need to be contained inside a `Cog`. The cog serves not only as the container, but the category too -- so you can group commands based on what they do, for example; moderation. However we'll just be sticking with the basic `ping` command for now.
 ```kotlin
@@ -49,9 +51,44 @@ class YourCog : Cog { // "YourCog" will be used as the category name for command
 }
 ```
 
+#### Subcommands
+Flight supports subcommands out-of-the-box, which can simplify command structure and parsing. Subcommands are functionally similar to commands, however there are a few restrictions. A subcommand's parent Cog **must** contain exactly **1** top-level command. Subcommands also inherit the permission requirements of their parent command. Subcommands **cannot** be attached to other subcommands.
+Top-level commands support an infinite number of subcommands.
+```kotlin
+package my.bot.commands
+
+class SubcommandDemo : Cog {
+
+  // The permission requirement seen below is enforced for the top-level command, and any subcommands it may have.
+  @Command(description = "Configure bot settings", userPermissions = [Permission.MANAGE_SERVER])
+  fun settings(ctx: Context) {
+    // This is the top-level command. It will only be invoked when a user does not specify a (valid) subcommand.
+    ctx.send("Hey! You must specify a subcommand.\nAvailable subcommands:\n`prefix` `locale`")
+  }
+  
+  @Subcommand(description = "Set the server prefix")
+  fun prefix(ctx: Context, newPrefix: String) {
+    Database.updatePrefix(ctx.guild!!.idLong, newPrefix)
+    ctx.send("The prefix was changed to `$newPrefix`.")
+  }
+  
+  @Subcommand(description = "Set the language of the bot for the server.")
+  fun locale(ctx: Context, newLocale: String) {
+    val selectedLocale = validateLocale(newLocale)
+        ?: return ctx.send("That doesn't appear to be a valid locale.")
+    Database.updateLocale(ctx.guild!!.idLong, selectedLocale)
+    ctx.send("The locale was changed to ${selectedLocale.flag} `${selectedLocale.asIso}`.")
+  }
+
+}
+```
+To execute our new subcommand, we would need to type `!settings prefix`. To pass a prefix, we just need to provide a second argument: `!settings prefix ?`.
+Change the `!` as necessary to match your bot's prefix.
+
+#### Registering
 You now have your first cog and command, all that's left to do is register it! This is as easy as the following:
 ```kotlin
 commandClient.registerCommands("my.bot.commands")
 ```
 
-You will need to change `my.bot.commands` to reflect the actual package name of where your commands are stored, but if done correctly, all cogs and commands contained within the `my.bot.commands` package will be scanned and registered ready for use.
+You will need to change `my.bot.commands` to reflect the actual package name of where your commands are stored. If done correctly, all cogs and commands contained within the `my.bot.commands` package will be scanned and registered ready for use.
