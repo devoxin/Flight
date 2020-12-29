@@ -6,6 +6,7 @@ import java.util.*
 
 class MemberParser : Parser<Member> {
 
+    // TODO: Check ctx.message.mentionedMembers
     override fun parse(ctx: Context, param: String): Optional<Member> {
         val snowflake = snowflakeParser.parse(ctx, param)
         val member: Member?

@@ -8,12 +8,12 @@ import me.devoxin.flight.api.entities.CooldownProvider
 import me.devoxin.flight.api.hooks.CommandEventAdapter
 import me.devoxin.flight.api.entities.PrefixProvider
 import me.devoxin.flight.internal.entities.CommandRegistry
-import me.devoxin.flight.internal.parsers.Parser
 import net.dv8tion.jda.api.events.Event
 import net.dv8tion.jda.api.events.GenericEvent
 import net.dv8tion.jda.api.events.ReadyEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.EventListener
+import org.slf4j.LoggerFactory
 import java.util.concurrent.*
 import kotlin.reflect.KParameter
 
@@ -23,18 +23,12 @@ class CommandClient(
     private val ignoreBots: Boolean,
     private val eventListeners: List<CommandEventAdapter>,
     private val commandExecutor: ExecutorService?,
-    parsers: HashMap<Class<*>, Parser<*>>,
     customOwnerIds: MutableSet<Long>?
 ) : EventListener {
-
     private val waiterScheduler = Executors.newSingleThreadScheduledExecutor()
     private val pendingEvents = hashMapOf<Class<*>, HashSet<WaitingEvent<*>>>()
     val commands = CommandRegistry()
     val ownerIds = customOwnerIds ?: mutableSetOf()
-
-    init {
-        ArgParser.parsers.putAll(parsers)
-    }
 
     private fun onMessageReceived(event: MessageReceivedEvent) {
         if (ignoreBots && (event.author.isBot || event.isWebhookMessage)) {
@@ -54,7 +48,7 @@ class CommandClient(
 
         val cmd = commands[command]
                 ?: commands.values.firstOrNull { it.properties.aliases.contains(command) }
-                ?: return
+                ?: return dispatchSafely { it.onUnknownCommand(event, command, args) }
 
         val subcommand = args.firstOrNull()?.let { cmd.subcommands[it.toLowerCase()] }
         val invoked = subcommand ?: cmd
@@ -75,7 +69,7 @@ class CommandClient(
             if (entityId != null) {
                 if (cooldownProvider.isOnCooldown(entityId, cmd.cooldown.bucket, cmd)) {
                     val time = cooldownProvider.getCooldownTime(entityId, cmd.cooldown.bucket, cmd)
-                    return eventListeners.forEach { it.onCommandCooldown(ctx, cmd, time) }
+                    return dispatchSafely { it.onCommandCooldown(ctx, cmd, time) }
                 }
             }
         }
@@ -89,13 +83,14 @@ class CommandClient(
         if (!event.channelType.isGuild && props.guildOnly) {
             return
         }
+        // TODO: More events for failed checks
 
         if (event.channelType.isGuild) {
             if (props.userPermissions.isNotEmpty()) {
                 val userCheck = props.userPermissions.filterNot { event.member!!.hasPermission(event.textChannel, it) }
 
                 if (userCheck.isNotEmpty()) {
-                    return eventListeners.forEach { it.onUserMissingPermissions(ctx, cmd, userCheck) }
+                    return dispatchSafely { it.onUserMissingPermissions(ctx, cmd, userCheck) }
                 }
             }
 
@@ -103,7 +98,7 @@ class CommandClient(
                 val botCheck = props.botPermissions.filterNot { event.guild.selfMember.hasPermission(event.textChannel, it) }
 
                 if (botCheck.isNotEmpty()) {
-                    return eventListeners.forEach { it.onBotMissingPermissions(ctx, cmd, botCheck) }
+                    return dispatchSafely { it.onBotMissingPermissions(ctx, cmd, botCheck) }
                 }
             }
 
@@ -125,9 +120,9 @@ class CommandClient(
         try {
             arguments = ArgParser.parseArguments(exc, ctx, args, cmd.properties.argDelimiter)
         } catch (e: BadArgument) {
-            return eventListeners.forEach { it.onBadArgument(ctx, cmd, e) }
+            return dispatchSafely { it.onBadArgument(ctx, cmd, e) }
         } catch (e: Throwable) {
-            return eventListeners.forEach { it.onParseError(ctx, cmd, e) }
+            return dispatchSafely { it.onParseError(ctx, cmd, e) }
         }
 
         val cb = { success: Boolean, err: Throwable? ->
@@ -135,11 +130,11 @@ class CommandClient(
                 val handled = cmd.cog.onCommandError(ctx, cmd, err)
 
                 if (!handled) {
-                    eventListeners.forEach { it.onCommandError(ctx, cmd, err) }
+                    dispatchSafely { it.onCommandError(ctx, cmd, err) }
                 }
             }
 
-            eventListeners.forEach { it.onCommandPostInvoke(ctx, cmd, !success) }
+            dispatchSafely { it.onCommandPostInvoke(ctx, cmd, !success) }
         }
 
         if (cmd.cooldown != null && cmd.cooldown.duration > 0) {
@@ -165,10 +160,13 @@ class CommandClient(
     override fun onEvent(event: GenericEvent) {
         onGenericEvent(event)
 
-        if (event is ReadyEvent) {
-            onReady(event)
-        } else if (event is MessageReceivedEvent) {
-            onMessageReceived(event)
+        try {
+            when (event) {
+                is ReadyEvent -> onReady(event)
+                is MessageReceivedEvent -> onMessageReceived(event)
+            }
+        } catch (e: Throwable) {
+            dispatchSafely { it.onInternalError(e) }
         }
     }
 
@@ -209,5 +207,21 @@ class CommandClient(
         }
 
         return future
+    }
+
+    private fun dispatchSafely(invoker: (CommandEventAdapter) -> Unit) {
+        try {
+            eventListeners.forEach(invoker)
+        } catch (e: Throwable) {
+            try {
+                eventListeners.forEach { it.onInternalError(e) }
+            } catch (inner: Throwable) {
+                log.error("An uncaught exception occurred during event dispatch!", inner)
+            }
+        }
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(CommandClient::class.java)
     }
 }

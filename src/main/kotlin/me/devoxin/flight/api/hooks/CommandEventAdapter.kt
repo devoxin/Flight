@@ -4,9 +4,9 @@ import me.devoxin.flight.api.CommandFunction
 import me.devoxin.flight.api.Context
 import me.devoxin.flight.api.exceptions.BadArgument
 import net.dv8tion.jda.api.Permission
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 
 interface CommandEventAdapter {
-
     /**
      * Invoked when an invalid argument is passed.
      */
@@ -16,6 +16,24 @@ interface CommandEventAdapter {
      * Invoked when the parser encounters an internal error.
      */
     fun onParseError(ctx: Context, command: CommandFunction, error: Throwable)
+
+    /**
+     * Invoked when an internal error occurs within Flight
+     */
+    fun onInternalError(error: Throwable)
+
+    /**
+     * Invoked when a command was not found for the input provided by the user.
+     * This will only be triggered upon successful prefix match, but unsuccessful command label match.
+     *
+     * @param ctx
+     *        The command context.
+     * @param command
+     *        The command label that the user provided.
+     * @param args
+     *        Any additional arguments provided by the user.
+     */
+    fun onUnknownCommand(event: MessageReceivedEvent, command: String, args: List<String>)
 
     /**
      * Invoked before a command is executed. Useful for logging command usage etc.
@@ -62,5 +80,4 @@ interface CommandEventAdapter {
      * Invoked when the bot lacks permissions to execute a command
      */
     fun onBotMissingPermissions(ctx: Context, command: CommandFunction, permissions: List<Permission>)
-
 }

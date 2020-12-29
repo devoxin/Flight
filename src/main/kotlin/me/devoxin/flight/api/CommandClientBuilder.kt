@@ -4,13 +4,13 @@ import me.devoxin.flight.api.entities.*
 import me.devoxin.flight.api.entities.Invite
 import me.devoxin.flight.internal.arguments.types.Snowflake
 import me.devoxin.flight.api.hooks.CommandEventAdapter
+import me.devoxin.flight.internal.arguments.ArgParser
 import me.devoxin.flight.internal.parsers.*
 import net.dv8tion.jda.api.entities.*
 import java.net.URL
 import java.util.concurrent.ExecutorService
 
 class CommandClientBuilder {
-    private var parsers = hashMapOf<Class<*>, Parser<*>>()
     private var prefixes: List<String> = emptyList()
     private var allowMentionPrefix: Boolean = true
     private var helpCommandConfig: DefaultHelpCommandConfig = DefaultHelpCommandConfig()
@@ -18,8 +18,8 @@ class CommandClientBuilder {
     private var prefixProvider: PrefixProvider? = null
     private var cooldownProvider: CooldownProvider? = null
     private var eventListeners: MutableList<CommandEventAdapter> = mutableListOf()
-    private var ownerIds: MutableSet<Long>? = null
     private var commandExecutor: ExecutorService? = null
+    private val ownerIds: MutableSet<Long> = mutableSetOf()
 
 
     /**
@@ -95,7 +95,7 @@ class CommandClientBuilder {
      * @return The builder instance. Useful for chaining.
      */
     fun setOwnerIds(vararg ids: Long): CommandClientBuilder {
-        this.ownerIds = mutableSetOf(*ids.toTypedArray())
+        this.ownerIds.addAll(ids.toTypedArray())
         return this
     }
 
@@ -106,7 +106,7 @@ class CommandClientBuilder {
      * @return The builder instance. Useful for chaining.
      */
     fun setOwnerIds(vararg ids: String): CommandClientBuilder {
-        this.ownerIds = mutableSetOf(*ids.map { it.toLong() }.toTypedArray())
+        this.ownerIds.addAll(ids.map(String::toLong))
         return this
     }
 
@@ -131,7 +131,7 @@ class CommandClientBuilder {
         // but Int remains kotlin.Int.
         // See https://youtrack.jetbrains.com/issue/KT-35423
 
-        this.parsers[klass] = parser
+        ArgParser.parsers[klass] = parser
         return this
     }
 
@@ -145,41 +145,41 @@ class CommandClientBuilder {
     fun registerDefaultParsers(): CommandClientBuilder {
         // Kotlin types and primitives
         val booleanParser = BooleanParser()
-        parsers[Boolean::class.java] = booleanParser
-        parsers[java.lang.Boolean::class.java] = booleanParser
+        ArgParser.parsers[Boolean::class.java] = booleanParser
+        ArgParser.parsers[java.lang.Boolean::class.java] = booleanParser
 
         val doubleParser = DoubleParser()
-        parsers[Double::class.java] = doubleParser
-        parsers[java.lang.Double::class.java] = doubleParser
+        ArgParser.parsers[Double::class.java] = doubleParser
+        ArgParser.parsers[java.lang.Double::class.java] = doubleParser
 
         val floatParser = FloatParser()
-        parsers[Float::class.java] = floatParser
-        parsers[java.lang.Float::class.java] = floatParser
+        ArgParser.parsers[Float::class.java] = floatParser
+        ArgParser.parsers[java.lang.Float::class.java] = floatParser
 
         val intParser = IntParser()
-        parsers[Int::class.java] = intParser
-        parsers[java.lang.Integer::class.java] = intParser
+        ArgParser.parsers[Int::class.java] = intParser
+        ArgParser.parsers[java.lang.Integer::class.java] = intParser
 
         val longParser = LongParser()
-        parsers[Long::class.java] = longParser
-        parsers[java.lang.Long::class.java] = longParser
+        ArgParser.parsers[Long::class.java] = longParser
+        ArgParser.parsers[java.lang.Long::class.java] = longParser
 
         // JDA entities
         val inviteParser = InviteParser()
-        parsers[Invite::class.java] = inviteParser
-        parsers[net.dv8tion.jda.api.entities.Invite::class.java] = inviteParser
+        ArgParser.parsers[Invite::class.java] = inviteParser
+        ArgParser.parsers[net.dv8tion.jda.api.entities.Invite::class.java] = inviteParser
 
-        parsers[Member::class.java] = MemberParser()
-        parsers[Role::class.java] = RoleParser()
-        parsers[TextChannel::class.java] = TextChannelParser()
-        parsers[User::class.java] = UserParser()
-        parsers[VoiceChannel::class.java] = VoiceChannelParser()
+        ArgParser.parsers[Member::class.java] = MemberParser()
+        ArgParser.parsers[Role::class.java] = RoleParser()
+        ArgParser.parsers[TextChannel::class.java] = TextChannelParser()
+        ArgParser.parsers[User::class.java] = UserParser()
+        ArgParser.parsers[VoiceChannel::class.java] = VoiceChannelParser()
 
         // Custom entities
-        parsers[Emoji::class.java] = EmojiParser()
-        parsers[String::class.java] = StringParser()
-        parsers[Snowflake::class.java] = SnowflakeParser()
-        parsers[URL::class.java] = UrlParser()
+        ArgParser.parsers[Emoji::class.java] = EmojiParser()
+        ArgParser.parsers[String::class.java] = StringParser()
+        ArgParser.parsers[Snowflake::class.java] = SnowflakeParser()
+        ArgParser.parsers[URL::class.java] = UrlParser()
 
         return this
     }
@@ -207,7 +207,7 @@ class CommandClientBuilder {
         val prefixProvider = this.prefixProvider ?: DefaultPrefixProvider(prefixes, allowMentionPrefix)
         val cooldownProvider = this.cooldownProvider ?: DefaultCooldownProvider()
         val commandClient = CommandClient(prefixProvider, cooldownProvider, ignoreBots, eventListeners.toList(),
-            commandExecutor, parsers, ownerIds)
+            commandExecutor, ownerIds)
 
         if (helpCommandConfig.enabled) {
             commandClient.commands.register(DefaultHelpCommand(helpCommandConfig.showParameterTypes))
