@@ -95,6 +95,7 @@ class CommandClientBuilder {
      * @return The builder instance. Useful for chaining.
      */
     fun setOwnerIds(vararg ids: Long): CommandClientBuilder {
+        this.ownerIds.clear()
         this.ownerIds.addAll(ids.toTypedArray())
         return this
     }
@@ -106,6 +107,7 @@ class CommandClientBuilder {
      * @return The builder instance. Useful for chaining.
      */
     fun setOwnerIds(vararg ids: String): CommandClientBuilder {
+        this.ownerIds.clear()
         this.ownerIds.addAll(ids.map(String::toLong))
         return this
     }
