@@ -23,12 +23,12 @@ class CommandClient(
     private val ignoreBots: Boolean,
     private val eventListeners: List<CommandEventAdapter>,
     private val commandExecutor: ExecutorService?,
-    customOwnerIds: MutableSet<Long>?
+    customOwnerIds: MutableSet<Long>
 ) : EventListener {
     private val waiterScheduler = Executors.newSingleThreadScheduledExecutor()
     private val pendingEvents = hashMapOf<Class<*>, HashSet<WaitingEvent<*>>>()
     val commands = CommandRegistry()
-    val ownerIds = customOwnerIds ?: mutableSetOf()
+    val ownerIds = customOwnerIds
 
     private fun onMessageReceived(event: MessageReceivedEvent) {
         if (ignoreBots && (event.author.isBot || event.isWebhookMessage)) {
