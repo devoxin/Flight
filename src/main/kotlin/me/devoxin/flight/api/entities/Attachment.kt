@@ -1,11 +1,16 @@
 package me.devoxin.flight.api.entities
 
+import net.dv8tion.jda.api.utils.AttachmentOption
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
 
-class Attachment(val stream: InputStream, val filename: String) {
+class Attachment(val stream: InputStream, val filename: String, vararg val attachmentOptions: AttachmentOption) {
+    fun withAttachmentOptions(vararg options: AttachmentOption): Attachment {
+        return Attachment(stream, filename, *options, *attachmentOptions)
+    }
+
     companion object {
         fun from(inputStream: InputStream, filename: String): Attachment {
             return Attachment(inputStream, filename)

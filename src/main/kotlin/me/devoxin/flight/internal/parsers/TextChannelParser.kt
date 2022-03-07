@@ -1,12 +1,12 @@
 package me.devoxin.flight.internal.parsers
 
-import me.devoxin.flight.api.Context
+import me.devoxin.flight.api.MessageContext
 import net.dv8tion.jda.api.entities.TextChannel
 import java.util.*
 
 class TextChannelParser : Parser<TextChannel> {
 
-    override fun parse(ctx: Context, param: String): Optional<TextChannel> {
+    override fun parse(ctx: MessageContext, param: String): Optional<TextChannel> {
         val snowflake = snowflakeParser.parse(ctx, param)
         val channel: TextChannel? = if (snowflake.isPresent) {
             ctx.guild?.getTextChannelById(snowflake.get().resolved)

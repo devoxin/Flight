@@ -1,7 +1,7 @@
 package me.devoxin.flight.internal.utils
 
 import me.devoxin.flight.api.CommandFunction
-import me.devoxin.flight.api.Context
+import me.devoxin.flight.api.MessageContext
 import me.devoxin.flight.api.SubCommandFunction
 import me.devoxin.flight.api.annotations.*
 import me.devoxin.flight.internal.arguments.Argument
@@ -83,12 +83,12 @@ class Indexer {
         val name = meth.name.toLowerCase()
         val properties = meth.findAnnotation<Command>()!!
         val cooldown = meth.findAnnotation<Cooldown>()
-        val ctxParam = meth.valueParameters.firstOrNull { it.type.classifier?.equals(Context::class) == true }
+        val ctxParam = meth.valueParameters.firstOrNull { it.type.classifier?.equals(MessageContext::class) == true }
 
         require(ctxParam != null) { "${meth.name} is missing the Context parameter!" }
 
         val parameters = meth.valueParameters
-            .filterNot { it.type.classifier?.equals(Context::class) == true }
+            .filterNot { it.type.classifier?.equals(MessageContext::class) == true }
         val arguments = loadParameters(parameters)
         val subcommands = getSubCommands(cog)
 
@@ -122,12 +122,12 @@ class Indexer {
 
         val name = meth.name.toLowerCase()
         val properties = meth.findAnnotation<SubCommand>()!!
-        val ctxParam = meth.valueParameters.firstOrNull { it.type.classifier?.equals(Context::class) == true }
+        val ctxParam = meth.valueParameters.firstOrNull { it.type.classifier?.equals(MessageContext::class) == true }
 
         require(ctxParam != null) { "${meth.name} is missing the Context parameter!" }
 
         val parameters = meth.valueParameters
-            .filterNot { it.type.classifier?.equals(Context::class) == true }
+            .filterNot { it.type.classifier?.equals(MessageContext::class) == true }
         val arguments = loadParameters(parameters)
 
         return SubCommandFunction(name, properties, meth, cog, arguments, ctxParam)

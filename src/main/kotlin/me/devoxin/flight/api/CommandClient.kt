@@ -11,10 +11,13 @@ import me.devoxin.flight.internal.entities.CommandRegistry
 import net.dv8tion.jda.api.events.Event
 import net.dv8tion.jda.api.events.GenericEvent
 import net.dv8tion.jda.api.events.ReadyEvent
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.EventListener
 import org.slf4j.LoggerFactory
 import java.util.concurrent.*
+import kotlin.collections.HashMap
+import kotlin.collections.HashSet
 import kotlin.reflect.KParameter
 
 class CommandClient(
@@ -44,20 +47,20 @@ class CommandClient(
         }
 
         val args = event.message.contentRaw.substring(trigger.length).split(" +".toRegex()).toMutableList()
-        val command = args.removeAt(0).toLowerCase()
+        val command = args.removeAt(0).lowercase()
 
         val cmd = commands[command]
                 ?: commands.values.firstOrNull { it.properties.aliases.contains(command) }
                 ?: return dispatchSafely { it.onUnknownCommand(event, command, args) }
 
-        val subcommand = args.firstOrNull()?.let { cmd.subcommands[it.toLowerCase()] }
+        val subcommand = args.firstOrNull()?.let { cmd.subcommands[it.lowercase()] }
         val invoked = subcommand ?: cmd
 
         if (subcommand != null) {
             args.removeAt(0)
         }
 
-        val ctx = Context(this, event, trigger, invoked)
+        val ctx = MessageContext(this, event, trigger, invoked)
 
         if (cmd.cooldown != null) {
             val entityId = when (cmd.cooldown.bucket) {
@@ -153,6 +156,10 @@ class CommandClient(
         exc.execute(ctx, arguments, cb, commandExecutor)
     }
 
+    private fun onSlashCommand(event: SlashCommandInteractionEvent) {
+
+    }
+
 
     // +-------------------+
     // | Execution-Related |
@@ -164,6 +171,7 @@ class CommandClient(
             when (event) {
                 is ReadyEvent -> onReady(event)
                 is MessageReceivedEvent -> onMessageReceived(event)
+                is SlashCommandInteractionEvent -> onSlashCommand(event)
             }
         } catch (e: Throwable) {
             dispatchSafely { it.onInternalError(e) }

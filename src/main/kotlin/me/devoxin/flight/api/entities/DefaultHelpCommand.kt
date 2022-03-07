@@ -2,7 +2,7 @@ package me.devoxin.flight.api.entities
 
 import me.devoxin.flight.api.annotations.Command
 import me.devoxin.flight.api.CommandFunction
-import me.devoxin.flight.api.Context
+import me.devoxin.flight.api.MessageContext
 import me.devoxin.flight.internal.utils.TextSplitter
 
 open class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
@@ -10,7 +10,7 @@ open class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
     override fun name() = "No Category"
 
     @Command(aliases = ["commands", "cmds"], description = "Displays bot help.")
-    open suspend fun help(ctx: Context, command: String?) {
+    open suspend fun help(ctx: MessageContext, command: String?) {
         val pages = if (command == null) {
             buildCommandList(ctx)
         } else {
@@ -31,7 +31,7 @@ open class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
         sendPages(ctx, pages)
     }
 
-    open fun buildCommandList(ctx: Context): List<String> {
+    open fun buildCommandList(ctx: MessageContext): List<String> {
         val categories = hashMapOf<String, HashSet<CommandFunction>>()
         val helpMenu = StringBuilder()
         val commands = ctx.commandClient.commands.values.filter { !it.properties.hidden }
@@ -62,7 +62,7 @@ open class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
         return TextSplitter.split(helpMenu.toString().trim(), 1990)
     }
 
-    open fun buildCommandHelp(ctx: Context, command: CommandFunction): List<String> {
+    open fun buildCommandHelp(ctx: MessageContext, command: CommandFunction): List<String> {
         val builder = StringBuilder()
 
         val trigger = if (ctx.trigger.matches("<@!?${ctx.jda.selfUser.id}> ".toRegex())) "@${ctx.jda.selfUser.name} " else ctx.trigger
@@ -87,7 +87,7 @@ open class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
         return listOf(builder.toString())
     }
 
-    open fun buildCogHelp(ctx: Context, cog: Cog): List<String> {
+    open fun buildCogHelp(ctx: MessageContext, cog: Cog): List<String> {
         val builder = StringBuilder("Commands in ${cog::class.simpleName}\n")
         val commands = ctx.commandClient.commands.findCommandsByCog(cog).filter { !it.properties.hidden }
         val padLength = ctx.commandClient.commands.values.maxBy { it.name.length }!!.name.length
@@ -106,7 +106,7 @@ open class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
 
     // TODO: Subcommand help
 
-    open suspend fun sendPages(ctx: Context, pages: Collection<String>) {
+    open suspend fun sendPages(ctx: MessageContext, pages: Collection<String>) {
         for (page in pages) {
             ctx.sendAsync("```\n$page```")
         }

@@ -1,12 +1,12 @@
 package me.devoxin.flight.internal.parsers
 
-import me.devoxin.flight.api.Context
+import me.devoxin.flight.api.MessageContext
 import net.dv8tion.jda.api.entities.VoiceChannel
 import java.util.*
 
 class VoiceChannelParser : Parser<VoiceChannel> {
 
-    override fun parse(ctx: Context, param: String): Optional<VoiceChannel> {
+    override fun parse(ctx: MessageContext, param: String): Optional<VoiceChannel> {
         val snowflake = snowflakeParser.parse(ctx, param)
         val channel: VoiceChannel? = if (snowflake.isPresent) {
             ctx.guild?.getVoiceChannelById(snowflake.get().resolved)

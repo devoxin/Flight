@@ -1,7 +1,7 @@
 package me.devoxin.flight.api.hooks
 
 import me.devoxin.flight.api.CommandFunction
-import me.devoxin.flight.api.Context
+import me.devoxin.flight.api.MessageContext
 import me.devoxin.flight.api.exceptions.BadArgument
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
@@ -10,12 +10,12 @@ interface CommandEventAdapter {
     /**
      * Invoked when an invalid argument is passed.
      */
-    fun onBadArgument(ctx: Context, command: CommandFunction, error: BadArgument)
+    fun onBadArgument(ctx: MessageContext, command: CommandFunction, error: BadArgument)
 
     /**
      * Invoked when the parser encounters an internal error.
      */
-    fun onParseError(ctx: Context, command: CommandFunction, error: Throwable)
+    fun onParseError(ctx: MessageContext, command: CommandFunction, error: Throwable)
 
     /**
      * Invoked when an internal error occurs within Flight
@@ -40,7 +40,7 @@ interface CommandEventAdapter {
      *
      * @return True, if the command should still be executed
      */
-    fun onCommandPreInvoke(ctx: Context, command: CommandFunction): Boolean
+    fun onCommandPreInvoke(ctx: MessageContext, command: CommandFunction): Boolean
 
     /**
      * Invoked after a command has executed, regardless of whether the command execution encountered an error
@@ -52,12 +52,12 @@ interface CommandEventAdapter {
      * @param failed
      *        Whether the command encountered an error or not. You can use `onCommandError` to retrieve the error.
      */
-    fun onCommandPostInvoke(ctx: Context, command: CommandFunction, failed: Boolean)
+    fun onCommandPostInvoke(ctx: MessageContext, command: CommandFunction, failed: Boolean)
 
     /**
      * Invoked when a command encounters an error during execution.
      */
-    fun onCommandError(ctx: Context, command: CommandFunction, error: Throwable)
+    fun onCommandError(ctx: MessageContext, command: CommandFunction, error: Throwable)
 
     /**
      * Invoked when a command is executed while on cool-down.
@@ -69,15 +69,15 @@ interface CommandEventAdapter {
      * @param cooldown
      *        The remaining time of the cool-down, in milliseconds.
      */
-    fun onCommandCooldown(ctx: Context, command: CommandFunction, cooldown: Long)
+    fun onCommandCooldown(ctx: MessageContext, command: CommandFunction, cooldown: Long)
 
     /**
      * Invoked when a user lacks permissions to execute a command
      */
-    fun onUserMissingPermissions(ctx: Context, command: CommandFunction, permissions: List<Permission>)
+    fun onUserMissingPermissions(ctx: MessageContext, command: CommandFunction, permissions: List<Permission>)
 
     /**
      * Invoked when the bot lacks permissions to execute a command
      */
-    fun onBotMissingPermissions(ctx: Context, command: CommandFunction, permissions: List<Permission>)
+    fun onBotMissingPermissions(ctx: MessageContext, command: CommandFunction, permissions: List<Permission>)
 }

@@ -1,13 +1,13 @@
 package me.devoxin.flight.internal.parsers
 
-import me.devoxin.flight.api.Context
+import me.devoxin.flight.api.MessageContext
 import net.dv8tion.jda.api.entities.Member
 import java.util.*
 
 class MemberParser : Parser<Member> {
 
     // TODO: Check ctx.message.mentionedMembers
-    override fun parse(ctx: Context, param: String): Optional<Member> {
+    override fun parse(ctx: MessageContext, param: String): Optional<Member> {
         val snowflake = snowflakeParser.parse(ctx, param)
         val member: Member?
 

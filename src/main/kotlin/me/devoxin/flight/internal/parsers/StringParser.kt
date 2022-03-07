@@ -1,11 +1,11 @@
 package me.devoxin.flight.internal.parsers
 
-import me.devoxin.flight.api.Context
+import me.devoxin.flight.api.MessageContext
 import java.util.*
 
 class StringParser : Parser<String> {
 
-    override fun parse(ctx: Context, param: String): Optional<String> {
+    override fun parse(ctx: MessageContext, param: String): Optional<String> {
         if (param.isEmpty() || param.isBlank()) {
             return Optional.empty()
         }

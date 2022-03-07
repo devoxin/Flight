@@ -7,6 +7,7 @@ import me.devoxin.flight.api.hooks.CommandEventAdapter
 import me.devoxin.flight.internal.arguments.ArgParser
 import me.devoxin.flight.internal.parsers.*
 import net.dv8tion.jda.api.entities.*
+import net.dv8tion.jda.api.entities.Emoji
 import java.net.URL
 import java.util.concurrent.ExecutorService
 
