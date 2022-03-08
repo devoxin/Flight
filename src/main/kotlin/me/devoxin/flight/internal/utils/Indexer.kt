@@ -82,15 +82,11 @@ class Indexer {
         val name = meth.name.lowercase()
         val properties = meth.findAnnotation<Command>()!!
         val cooldown = meth.findAnnotation<Cooldown>()
-        val ctxParam = meth.valueParameters.firstOrNull {
-            //it.type.classifier?.equals(MessageContext::class) == true
-            it.type.isSubtypeOf(Context::class.starProjectedType)
-        }
+        val ctxParam = meth.valueParameters.firstOrNull { it.type.isSubtypeOf(Context::class.starProjectedType) }
 
         require(ctxParam != null) { "${meth.name} is missing the Context parameter!" }
 
-        val parameters = meth.valueParameters
-            .filterNot { it != ctxParam }
+        val parameters = meth.valueParameters.filter { it != ctxParam }
         val arguments = loadParameters(parameters)
         val subcommands = getSubCommands(cog)
 
@@ -124,12 +120,11 @@ class Indexer {
 
         val name = meth.name.lowercase()
         val properties = meth.findAnnotation<SubCommand>()!!
-        val ctxParam = meth.valueParameters.firstOrNull { it.type.isSubtypeOf(Context::class.starProjectedType) }//it.type.classifier?.equals(MessageContext::class) == true }
+        val ctxParam = meth.valueParameters.firstOrNull { it.type.isSubtypeOf(Context::class.starProjectedType) }
 
         require(ctxParam != null) { "${meth.name} is missing the Context parameter!" }
 
-        val parameters = meth.valueParameters
-            .filterNot { it != ctxParam }
+        val parameters = meth.valueParameters.filter { it != ctxParam }
         val arguments = loadParameters(parameters)
 
         return SubCommandFunction(name, properties, meth, cog, arguments, ctxParam)

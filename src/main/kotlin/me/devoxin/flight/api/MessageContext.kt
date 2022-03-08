@@ -19,6 +19,8 @@ class MessageContext(
     val trigger: String,
     val invokedCommand: Executable
 ) : Context {
+    override val contextType = Context.ContextType.MESSAGE
+
     val jda: JDA = event.jda
     val message: Message = event.message
 
