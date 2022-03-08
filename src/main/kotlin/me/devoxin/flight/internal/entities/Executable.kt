@@ -26,7 +26,7 @@ abstract class Executable(
             val option = options.firstOrNull { it.name == argument.name }
 
             if (option == null) {
-                if (argument.isNullable) {
+                if (argument.isNullable && !argument.optional) {
                     mapping += argument.kparam to null
                     continue
                 }

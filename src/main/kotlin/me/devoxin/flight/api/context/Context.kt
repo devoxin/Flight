@@ -3,6 +3,7 @@ package me.devoxin.flight.api.context
 import kotlinx.coroutines.future.await
 import me.devoxin.flight.api.CommandClient
 import net.dv8tion.jda.api.entities.Guild
+import net.dv8tion.jda.api.entities.User
 import java.util.concurrent.CompletableFuture
 
 interface Context {
@@ -23,6 +24,7 @@ interface Context {
 
     val commandClient: CommandClient
     val guild: Guild?
+    val author: User
 
     fun respond(content: String): CompletableFuture<*> {
         val sendable = asMessageContext?.messageChannel?.sendMessage(content)

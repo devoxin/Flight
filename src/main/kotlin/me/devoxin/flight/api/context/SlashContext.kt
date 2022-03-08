@@ -9,4 +9,5 @@ class SlashContext(
 ) : Context {
     override val contextType = ContextType.SLASH
     override val guild = event.guild
+    override val author = event.user
 }

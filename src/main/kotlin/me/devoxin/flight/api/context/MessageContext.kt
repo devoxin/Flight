@@ -22,12 +22,10 @@ class MessageContext(
 ) : Context {
     override val contextType = ContextType.MESSAGE
     override val guild = if (event.isFromGuild) event.guild else null
+    override val author = event.author
 
     val jda: JDA = event.jda
     val message: Message = event.message
-
-    val author: User = event.author
-
     val member: Member? = event.member
 
     val textChannel: TextChannel? = if (event.isFromType(ChannelType.TEXT)) event.textChannel else null
