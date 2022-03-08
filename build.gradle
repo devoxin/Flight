@@ -30,6 +30,8 @@ repositories {
 }
 
 dependencies {
+    testImplementation 'net.dv8tion:JDA:5.0.0-alpha.9'
+
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_stdlib"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_stdlib"
     compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutines"

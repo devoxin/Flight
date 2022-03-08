@@ -18,7 +18,7 @@ class MessageContext(
     event: MessageReceivedEvent,
     val trigger: String,
     val invokedCommand: Executable
-) {
+) : Context {
     val jda: JDA = event.jda
     val message: Message = event.message
 

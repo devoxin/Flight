@@ -2,6 +2,7 @@ package me.devoxin.flight.internal.entities
 
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import me.devoxin.flight.api.Context
 import me.devoxin.flight.api.MessageContext
 import me.devoxin.flight.api.entities.Cog
 import me.devoxin.flight.internal.arguments.Argument
@@ -19,7 +20,7 @@ abstract class Executable(
     private val contextParameter: KParameter
 ) {
 
-    open fun execute(ctx: MessageContext, args: HashMap<KParameter, Any?>, complete: (Boolean, Throwable?) -> Unit, executor: ExecutorService?) {
+    open fun execute(ctx: Context, args: HashMap<KParameter, Any?>, complete: (Boolean, Throwable?) -> Unit, executor: ExecutorService?) {
         method.instanceParameter?.let { args[it] = cog }
         args[contextParameter] = ctx
 

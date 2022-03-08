@@ -33,6 +33,10 @@ class CommandClient(
     val commands = CommandRegistry()
     val ownerIds = customOwnerIds
 
+    fun synchroniseSlashCommands() {
+
+    }
+
     private fun onMessageReceived(event: MessageReceivedEvent) {
         if (ignoreBots && (event.author.isBot || event.isWebhookMessage)) {
             return
@@ -157,7 +161,13 @@ class CommandClient(
     }
 
     private fun onSlashCommand(event: SlashCommandInteractionEvent) {
-
+        println("event name ${event.name}")
+        commands[event.name]?.execute(
+            SlashContext(event),
+            hashMapOf(),
+            { success, err -> println(success); err?.printStackTrace() },
+            null
+        )
     }
 
 

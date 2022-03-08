@@ -1,6 +1,7 @@
 package me.devoxin.flight.internal.utils
 
 import me.devoxin.flight.api.CommandFunction
+import me.devoxin.flight.api.Context
 import me.devoxin.flight.api.MessageContext
 import me.devoxin.flight.api.SubCommandFunction
 import me.devoxin.flight.api.annotations.*
@@ -9,6 +10,7 @@ import me.devoxin.flight.internal.entities.Jar
 import me.devoxin.flight.api.entities.Cog
 import org.reflections.Reflections
 import org.reflections.scanners.MethodParameterNamesScanner
+import org.reflections.scanners.Scanners
 import org.reflections.scanners.SubTypesScanner
 import org.slf4j.LoggerFactory
 import java.io.File
@@ -17,10 +19,7 @@ import java.net.URL
 import java.net.URLClassLoader
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
-import kotlin.reflect.full.findAnnotation
-import kotlin.reflect.full.functions
-import kotlin.reflect.full.hasAnnotation
-import kotlin.reflect.full.valueParameters
+import kotlin.reflect.full.*
 import kotlin.reflect.jvm.javaMethod
 import kotlin.reflect.jvm.jvmErasure
 
@@ -48,7 +47,7 @@ class Indexer {
         val path = URL("jar:file:${commandJar.absolutePath}!/")
         this.classLoader = URLClassLoader.newInstance(arrayOf(path))
         this.jar = Jar(commandJar.nameWithoutExtension, commandJar.absolutePath, packageName, classLoader)
-        reflections = Reflections(packageName, this.classLoader, MethodParameterNamesScanner(), SubTypesScanner())
+        reflections = Reflections(packageName, this.classLoader, MethodParameterNamesScanner(), Scanners.SubTypes)
     }
 
     fun getCogs(): List<Cog> {
@@ -80,15 +79,18 @@ class Indexer {
 
         val category = cog.name()
             ?: cog::class.java.`package`.name.split('.').last().replace('_', ' ').toLowerCase().capitalize()
-        val name = meth.name.toLowerCase()
+        val name = meth.name.lowercase()
         val properties = meth.findAnnotation<Command>()!!
         val cooldown = meth.findAnnotation<Cooldown>()
-        val ctxParam = meth.valueParameters.firstOrNull { it.type.classifier?.equals(MessageContext::class) == true }
+        val ctxParam = meth.valueParameters.firstOrNull {
+            //it.type.classifier?.equals(MessageContext::class) == true
+            it.type.isSubtypeOf(Context::class.starProjectedType)
+        }
 
         require(ctxParam != null) { "${meth.name} is missing the Context parameter!" }
 
         val parameters = meth.valueParameters
-            .filterNot { it.type.classifier?.equals(MessageContext::class) == true }
+            .filterNot { it != ctxParam }
         val arguments = loadParameters(parameters)
         val subcommands = getSubCommands(cog)
 
@@ -120,14 +122,14 @@ class Indexer {
         require(meth.javaMethod!!.declaringClass == cog::class.java) { "${meth.name} is not from ${cog::class.simpleName}" }
         require(meth.hasAnnotation<SubCommand>()) { "${meth.name} is not annotated with SubCommand!" }
 
-        val name = meth.name.toLowerCase()
+        val name = meth.name.lowercase()
         val properties = meth.findAnnotation<SubCommand>()!!
-        val ctxParam = meth.valueParameters.firstOrNull { it.type.classifier?.equals(MessageContext::class) == true }
+        val ctxParam = meth.valueParameters.firstOrNull { it.type.isSubtypeOf(Context::class.starProjectedType) }//it.type.classifier?.equals(MessageContext::class) == true }
 
         require(ctxParam != null) { "${meth.name} is missing the Context parameter!" }
 
         val parameters = meth.valueParameters
-            .filterNot { it.type.classifier?.equals(MessageContext::class) == true }
+            .filterNot { it != ctxParam }
         val arguments = loadParameters(parameters)
 
         return SubCommandFunction(name, properties, meth, cog, arguments, ctxParam)
