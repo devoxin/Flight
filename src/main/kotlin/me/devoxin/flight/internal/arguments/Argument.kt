@@ -24,7 +24,7 @@ class Argument(
         val optionType = OPTION_TYPE_MAPPING[type]
             ?: throw IllegalStateException("Unable to find OptionType for type ${type.simpleName}")
 
-        return Pair(optionType, !isNullable)
+        return Pair(optionType, !isNullable && !optional)
     }
 
     fun getEntityFromOptionMapping(mapping: OptionMapping): Pair<KParameter, Any?> {

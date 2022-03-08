@@ -31,6 +31,10 @@ abstract class Executable(
                     continue
                 }
 
+                if (argument.optional) {
+                    continue
+                }
+
                 throw IllegalStateException("Missing option for argument ${argument.name}")
             }
 
