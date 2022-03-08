@@ -1,5 +1,7 @@
 package me.devoxin.flight.api
 
+import me.devoxin.flight.api.context.MessageContext
+import me.devoxin.flight.api.context.SlashContext
 import me.devoxin.flight.api.entities.BucketType
 import me.devoxin.flight.internal.arguments.ArgParser
 import me.devoxin.flight.api.exceptions.BadArgument
@@ -162,9 +164,14 @@ class CommandClient(
 
     private fun onSlashCommand(event: SlashCommandInteractionEvent) {
         println("event name ${event.name}")
-        commands[event.name]?.execute(
-            SlashContext(event),
-            hashMapOf(),
+        val command = commands[event.name]
+            ?: return
+
+        val arguments = command.resolveArguments(event.options)
+
+        command.execute(
+            SlashContext(this, event),
+            arguments,
             { success, err -> println(success); err?.printStackTrace() },
             null
         )

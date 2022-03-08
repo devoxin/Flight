@@ -2,7 +2,7 @@ package me.devoxin.flight.api.entities
 
 import me.devoxin.flight.api.annotations.Command
 import me.devoxin.flight.api.CommandFunction
-import me.devoxin.flight.api.MessageContext
+import me.devoxin.flight.api.context.MessageContext
 import me.devoxin.flight.internal.utils.TextSplitter
 
 open class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {

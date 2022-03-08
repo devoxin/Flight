@@ -1,6 +1,6 @@
 package me.devoxin.flight.internal.parsers
 
-import me.devoxin.flight.api.MessageContext
+import me.devoxin.flight.api.context.MessageContext
 import net.dv8tion.jda.api.entities.Member
 import java.util.*
 

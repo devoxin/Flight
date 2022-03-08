@@ -1,8 +1,7 @@
 package me.devoxin.flight.internal.utils
 
 import me.devoxin.flight.api.CommandFunction
-import me.devoxin.flight.api.Context
-import me.devoxin.flight.api.MessageContext
+import me.devoxin.flight.api.context.Context
 import me.devoxin.flight.api.SubCommandFunction
 import me.devoxin.flight.api.annotations.*
 import me.devoxin.flight.internal.arguments.Argument

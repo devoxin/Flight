@@ -2,10 +2,10 @@ package me.devoxin.flight.internal.entities
 
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import me.devoxin.flight.api.Context
-import me.devoxin.flight.api.MessageContext
+import me.devoxin.flight.api.context.Context
 import me.devoxin.flight.api.entities.Cog
 import me.devoxin.flight.internal.arguments.Argument
+import net.dv8tion.jda.api.interactions.commands.OptionMapping
 import java.util.concurrent.ExecutorService
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
@@ -19,6 +19,26 @@ abstract class Executable(
     val arguments: List<Argument>,
     private val contextParameter: KParameter
 ) {
+    fun resolveArguments(options: List<OptionMapping>): HashMap<KParameter, Any?> {
+        val mapping = hashMapOf<KParameter, Any?>()
+
+        for (argument in arguments) {
+            val option = options.firstOrNull { it.name == argument.name }
+
+            if (option == null) {
+                if (argument.isNullable) {
+                    mapping += argument.kparam to null
+                    continue
+                }
+
+                throw IllegalStateException("Missing option for argument ${argument.name}")
+            }
+
+            mapping += argument.getEntityFromOptionMapping(option)
+        }
+
+        return mapping
+    }
 
     open fun execute(ctx: Context, args: HashMap<KParameter, Any?>, complete: (Boolean, Throwable?) -> Unit, executor: ExecutorService?) {
         method.instanceParameter?.let { args[it] = cog }
@@ -62,5 +82,4 @@ abstract class Executable(
             complete(false, e.cause ?: e)
         }
     }
-
 }

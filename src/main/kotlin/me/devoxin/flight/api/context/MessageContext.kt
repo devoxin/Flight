@@ -1,6 +1,7 @@
-package me.devoxin.flight.api
+package me.devoxin.flight.api.context
 
 import kotlinx.coroutines.future.await
+import me.devoxin.flight.api.CommandClient
 import me.devoxin.flight.api.entities.Attachment
 import me.devoxin.flight.internal.entities.Executable
 import me.devoxin.flight.internal.utils.Scheduler
@@ -14,19 +15,19 @@ import net.dv8tion.jda.api.requests.RestAction
 import java.util.regex.Pattern
 
 class MessageContext(
-    val commandClient: CommandClient,
+    override val commandClient: CommandClient,
     event: MessageReceivedEvent,
     val trigger: String,
     val invokedCommand: Executable
 ) : Context {
-    override val contextType = Context.ContextType.MESSAGE
+    override val contextType = ContextType.MESSAGE
+    override val guild = if (event.isFromGuild) event.guild else null
 
     val jda: JDA = event.jda
     val message: Message = event.message
 
     val author: User = event.author
 
-    val guild: Guild? = if (event.isFromGuild) event.guild else null
     val member: Member? = event.member
 
     val textChannel: TextChannel? = if (event.isFromType(ChannelType.TEXT)) event.textChannel else null
