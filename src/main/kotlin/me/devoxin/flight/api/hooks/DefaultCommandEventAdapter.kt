@@ -1,25 +1,30 @@
 package me.devoxin.flight.api.hooks
 
 import me.devoxin.flight.api.CommandFunction
+import me.devoxin.flight.api.context.Context
 import me.devoxin.flight.api.context.MessageContext
+import me.devoxin.flight.api.entities.CheckType
 import me.devoxin.flight.api.exceptions.BadArgument
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 
 abstract class DefaultCommandEventAdapter : CommandEventAdapter {
-    override fun onBadArgument(ctx: MessageContext, command: CommandFunction, error: BadArgument) {
+    override fun onCheckFailed(ctx: Context, checkType: CheckType) {
+    }
+
+    override fun onBadArgument(ctx: Context, command: CommandFunction, error: BadArgument) {
         error.printStackTrace()
     }
 
-    override fun onCommandError(ctx: MessageContext, command: CommandFunction, error: Throwable) {
+    override fun onCommandError(ctx: Context, command: CommandFunction, error: Throwable) {
         error.printStackTrace()
     }
 
-    override fun onCommandPostInvoke(ctx: MessageContext, command: CommandFunction, failed: Boolean) {}
+    override fun onCommandPostInvoke(ctx: Context, command: CommandFunction, failed: Boolean) {}
 
-    override fun onCommandPreInvoke(ctx: MessageContext, command: CommandFunction) = true
+    override fun onCommandPreInvoke(ctx: Context, command: CommandFunction) = true
 
-    override fun onParseError(ctx: MessageContext, command: CommandFunction, error: Throwable) {
+    override fun onParseError(ctx: Context, command: CommandFunction, error: Throwable) {
         error.printStackTrace()
     }
 

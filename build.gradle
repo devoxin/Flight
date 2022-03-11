@@ -27,10 +27,12 @@ repositories {
     }
     mavenCentral()
     jcenter()
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
-    testImplementation 'net.dv8tion:JDA:5.0.0-alpha.9'
+    //testImplementation 'net.dv8tion:JDA:5.0.0-alpha.9'
+    testImplementation 'com.github.xirado:JDA:36eea2a'
 
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_stdlib"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_stdlib"
@@ -38,7 +40,8 @@ dependencies {
     compile "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$kotlin_coroutines"
 
     compile 'org.reflections:reflections:0.10.2'
-    compileOnly 'net.dv8tion:JDA:5.0.0-alpha.9'
+    //compileOnly 'net.dv8tion:JDA:5.0.0-alpha.9'
+    compileOnly 'com.github.xirado:JDA:36eea2a'
     api 'org.slf4j:slf4j-api:1.7.36'
 }
 

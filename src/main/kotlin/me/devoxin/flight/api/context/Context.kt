@@ -3,6 +3,7 @@ package me.devoxin.flight.api.context
 import kotlinx.coroutines.future.await
 import me.devoxin.flight.api.CommandClient
 import net.dv8tion.jda.api.entities.Guild
+import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.entities.User
 import java.util.concurrent.CompletableFuture
 
@@ -25,20 +26,16 @@ interface Context {
     val commandClient: CommandClient
     val guild: Guild?
     val author: User
+    val messageChannel: MessageChannel
 
     fun respond(content: String): CompletableFuture<*> {
-        val sendable = asMessageContext?.messageChannel?.sendMessage(content)
-            ?: asSlashContext?.event?.reply(content)
-            ?: throw IllegalStateException("no")
+        val sendable = asSlashContext?.event?.reply(content)
+            ?: messageChannel.sendMessage(content)
 
         return sendable.submit()
     }
 
     fun defaultSend(content: String): CompletableFuture<*> {
-        val sendable = asMessageContext?.messageChannel
-            ?: asSlashContext?.event?.channel
-            ?: throw IllegalStateException("no")
-
-        return sendable.sendMessage(content).submit()
+        return messageChannel.sendMessage(content).submit()
     }
 }

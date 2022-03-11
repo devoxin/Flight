@@ -1,8 +1,10 @@
 package me.devoxin.flight.api
 
+import me.devoxin.flight.api.context.ContextType
 import me.devoxin.flight.api.context.MessageContext
 import me.devoxin.flight.api.context.SlashContext
 import me.devoxin.flight.api.entities.BucketType
+import me.devoxin.flight.api.entities.CheckType
 import me.devoxin.flight.internal.arguments.ArgParser
 import me.devoxin.flight.api.exceptions.BadArgument
 import me.devoxin.flight.internal.entities.WaitingEvent
@@ -10,12 +12,16 @@ import me.devoxin.flight.api.entities.CooldownProvider
 import me.devoxin.flight.api.hooks.CommandEventAdapter
 import me.devoxin.flight.api.entities.PrefixProvider
 import me.devoxin.flight.internal.entities.CommandRegistry
+import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.events.Event
 import net.dv8tion.jda.api.events.GenericEvent
 import net.dv8tion.jda.api.events.ReadyEvent
+import net.dv8tion.jda.api.events.interaction.command.MessageContextInteractionEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.EventListener
+import net.dv8tion.jda.api.interactions.components.ActionRow
+import net.dv8tion.jda.api.interactions.components.buttons.Button
 import org.slf4j.LoggerFactory
 import java.util.concurrent.*
 import kotlin.collections.HashMap
@@ -85,14 +91,17 @@ class CommandClient(
 
         val props = cmd.properties
 
+        if (props.executionContext == ContextType.SLASH) {
+            return dispatchSafely { it.onCheckFailed(ctx, CheckType.EXECUTION_CONTEXT) }
+        }
+
         if (props.developerOnly && !ownerIds.contains(event.author.idLong)) {
-            return
+            return dispatchSafely { it.onCheckFailed(ctx, CheckType.DEVELOPER_CHECK) }
         }
 
         if (!event.channelType.isGuild && props.guildOnly) {
-            return
+            return dispatchSafely { it.onCheckFailed(ctx, CheckType.GUILD_CHECK) }
         }
-        // TODO: More events for failed checks
 
         if (event.channelType.isGuild) {
             if (props.userPermissions.isNotEmpty()) {
@@ -112,7 +121,7 @@ class CommandClient(
             }
 
             if (props.nsfw && !event.textChannel.isNSFW) {
-                return
+                return dispatchSafely { it.onCheckFailed(ctx, CheckType.NSFW_CHECK) }
             }
         }
 
@@ -189,6 +198,7 @@ class CommandClient(
                 is ReadyEvent -> onReady(event)
                 is MessageReceivedEvent -> onMessageReceived(event)
                 is SlashCommandInteractionEvent -> onSlashCommand(event)
+                //else -> println(event)
             }
         } catch (e: Throwable) {
             dispatchSafely { it.onInternalError(e) }

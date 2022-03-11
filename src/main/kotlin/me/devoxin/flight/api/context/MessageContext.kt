@@ -23,6 +23,7 @@ class MessageContext(
     override val contextType = ContextType.MESSAGE
     override val guild = if (event.isFromGuild) event.guild else null
     override val author = event.author
+    override val messageChannel = event.channel
 
     val jda: JDA = event.jda
     val message: Message = event.message
@@ -30,8 +31,6 @@ class MessageContext(
 
     val textChannel: TextChannel? = if (event.isFromType(ChannelType.TEXT)) event.textChannel else null
     val privateChannel: PrivateChannel? = if (event.isFromType(ChannelType.PRIVATE)) event.privateChannel else null
-    val messageChannel: MessageChannel = event.channel
-
 
     /**
      * Sends a message embed to the channel the Context was created from.

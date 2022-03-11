@@ -1,21 +1,28 @@
 package me.devoxin.flight.api.hooks
 
 import me.devoxin.flight.api.CommandFunction
+import me.devoxin.flight.api.context.Context
 import me.devoxin.flight.api.context.MessageContext
+import me.devoxin.flight.api.entities.CheckType
 import me.devoxin.flight.api.exceptions.BadArgument
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 
 interface CommandEventAdapter {
     /**
+     * Invoked when a pre-execution check fails.
+     */
+    fun onCheckFailed(ctx: Context, checkType: CheckType)
+
+    /**
      * Invoked when an invalid argument is passed.
      */
-    fun onBadArgument(ctx: MessageContext, command: CommandFunction, error: BadArgument)
+    fun onBadArgument(ctx: Context, command: CommandFunction, error: BadArgument)
 
     /**
      * Invoked when the parser encounters an internal error.
      */
-    fun onParseError(ctx: MessageContext, command: CommandFunction, error: Throwable)
+    fun onParseError(ctx: Context, command: CommandFunction, error: Throwable)
 
     /**
      * Invoked when an internal error occurs within Flight
@@ -40,7 +47,7 @@ interface CommandEventAdapter {
      *
      * @return True, if the command should still be executed
      */
-    fun onCommandPreInvoke(ctx: MessageContext, command: CommandFunction): Boolean
+    fun onCommandPreInvoke(ctx: Context, command: CommandFunction): Boolean
 
     /**
      * Invoked after a command has executed, regardless of whether the command execution encountered an error
@@ -52,12 +59,12 @@ interface CommandEventAdapter {
      * @param failed
      *        Whether the command encountered an error or not. You can use `onCommandError` to retrieve the error.
      */
-    fun onCommandPostInvoke(ctx: MessageContext, command: CommandFunction, failed: Boolean)
+    fun onCommandPostInvoke(ctx: Context, command: CommandFunction, failed: Boolean)
 
     /**
      * Invoked when a command encounters an error during execution.
      */
-    fun onCommandError(ctx: MessageContext, command: CommandFunction, error: Throwable)
+    fun onCommandError(ctx: Context, command: CommandFunction, error: Throwable)
 
     /**
      * Invoked when a command is executed while on cool-down.
