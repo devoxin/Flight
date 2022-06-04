@@ -1,20 +1,10 @@
-buildscript {
-    ext.kotlin_stdlib = '1.6.10'
-    ext.kotlin_coroutines = '1.6.0'
-
-    repositories {
-        jcenter()
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.2'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_stdlib"
-    }
+plugins {
+    id "com.github.johnrengelman.shadow" version "7.1.2"
+    id 'org.jetbrains.kotlin.jvm' version "1.6.21"
 }
 
-apply plugin: 'kotlin'
-apply plugin: 'com.github.johnrengelman.shadow'
+def kotlinVersion = "1.6.21"
+def coroutinesVersion = "1.6.2"
 
 group 'me.devoxin'
 version '3.0.0'
@@ -31,17 +21,12 @@ repositories {
 }
 
 dependencies {
-    //testImplementation 'net.dv8tion:JDA:5.0.0-alpha.9'
-    testImplementation 'com.github.xirado:JDA:36eea2a'
-
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_stdlib"
-    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_stdlib"
-    compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutines"
-    compile "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$kotlin_coroutines"
-
-    compile 'org.reflections:reflections:0.10.2'
-    //compileOnly 'net.dv8tion:JDA:5.0.0-alpha.9'
-    compileOnly 'com.github.xirado:JDA:36eea2a'
+    testImplementation 'net.dv8tion:JDA:5.0.0-alpha.12'
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:${coroutinesVersion}"
+    implementation "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}"
+    implementation 'org.reflections:reflections:0.10.2'
+    compileOnly 'net.dv8tion:JDA:5.0.0-alpha.12'
     api 'org.slf4j:slf4j-api:1.7.36'
 }
 
