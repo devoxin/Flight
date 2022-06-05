@@ -221,7 +221,7 @@ class MessageContext(
             }
         }
 
-        for (emote in message.emotes) {
+        for (emote in message.mentions.emotes) {
             content = content.replace(emote.asMention, ":${emote.name}:")
         }
 
