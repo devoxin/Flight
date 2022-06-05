@@ -39,7 +39,7 @@ class MessageContext(
      *        The content of the message.
      */
     fun send(content: String) {
-        send0({ setContent(content) }).submit()
+        sendBuilder({ setContent(content) }).submit()
     }
 
     /**
@@ -48,8 +48,8 @@ class MessageContext(
      * @param attachment
      *        The attachment to send.
      */
-    fun send(attachment: Attachment) {
-        send0(null, attachment).submit()
+    fun sendByMessage(attachment: Attachment) {
+        sendBuilder(null, attachment).submit()
     }
 
     /**
@@ -58,8 +58,8 @@ class MessageContext(
      * @param embed
      *        Options to apply to the message embed.
      */
-    fun send(embed: EmbedBuilder.() -> Unit) {
-        send0({ setEmbeds(EmbedBuilder().apply(embed).build()) }).submit()
+    fun sendByMessage(embed: EmbedBuilder.() -> Unit) {
+        sendBuilder({ setEmbeds(EmbedBuilder().apply(embed).build()) }).submit()
     }
 
     /**
@@ -70,8 +70,8 @@ class MessageContext(
      *
      * @return The created message.
      */
-    suspend fun sendAsync(content: String): Message {
-        return send0({ setContent(content) }).submit().await()
+    suspend fun sendByMessageAsync(content: String): Message {
+        return sendBuilder({ setContent(content) }).submit().await()
     }
 
     /**
@@ -82,8 +82,8 @@ class MessageContext(
      *
      * @return The created message.
      */
-    suspend fun sendAsync(attachment: Attachment): Message {
-        return send0(null, attachment).submit().await()
+    suspend fun sendByMessageAsync(attachment: Attachment): Message {
+        return sendBuilder(null, attachment).submit().await()
     }
 
     /**
@@ -94,8 +94,8 @@ class MessageContext(
      *
      * @return The created message.
      */
-    suspend fun sendAsync(embed: EmbedBuilder.() -> Unit): Message {
-        return send0({ setEmbeds(EmbedBuilder().apply(embed).build()) }).submit().await()
+    suspend fun sendByMessageAsync(embed: EmbedBuilder.() -> Unit): Message {
+        return sendBuilder({ setEmbeds(EmbedBuilder().apply(embed).build()) }).submit().await()
     }
 
     /**
@@ -104,29 +104,12 @@ class MessageContext(
      * @param content
      *        The content of the message.
      */
-    fun sendPrivate(content: String) {
+    fun sendByPrivateMessage(content: String) {
         author.openPrivateChannel().submit()
             .thenAccept {
                 it.sendMessage(content).submit()
                     .handle { _, _ -> it.delete().submit() }
             }
-    }
-
-    private fun send0(messageOpts: (MessageBuilder.() -> Unit)? = null, vararg files: Attachment): RestAction<Message> {
-        if (messageOpts == null && files.isEmpty()) {
-            throw IllegalArgumentException("Cannot send a message with no options or attachments!")
-        }
-
-        val builtMessage = messageOpts?.let(MessageBuilder()::apply)?.build()
-            ?: MessageBuilder().build()
-
-        return messageChannel.sendMessage(builtMessage).also {
-            if (files.isNotEmpty()) {
-                for (file in files) {
-                    it.addFile(file.stream, file.filename, *file.attachmentOptions)
-                }
-            }
-        }
     }
 
     /**
@@ -135,7 +118,7 @@ class MessageContext(
      * @param block
      *        The code that should be executed while the typing status is active.
      */
-    fun typing(block: () -> Unit) {
+    fun sendTyping(block: () -> Unit) {
         messageChannel.sendTyping().queue {
             val task = Scheduler.every(5000) {
                 messageChannel.sendTyping().queue()
@@ -151,7 +134,7 @@ class MessageContext(
      * @param block
      *        The code that should be executed while the typing status is active.
      */
-    suspend fun typingAsync(block: suspend () -> Unit) {
+    suspend fun sendTypingAsync(block: suspend () -> Unit) {
         messageChannel.sendTyping().submit().await()
         val task = Scheduler.every(5000) { messageChannel.sendTyping().queue() }
 
