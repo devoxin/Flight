@@ -38,7 +38,7 @@ class MessageContext(
      * @param content
      *        The content of the message.
      */
-    fun send(content: String) {
+    override fun send(content: String) {
         send0({ setContent(content) }).submit()
     }
 

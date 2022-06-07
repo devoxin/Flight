@@ -76,7 +76,7 @@ interface CommandEventAdapter {
      * @param cooldown
      *        The remaining time of the cool-down, in milliseconds.
      */
-    fun onCommandCooldown(ctx: MessageContext, command: CommandFunction, cooldown: Long)
+    fun onCommandCooldown(ctx: Context, command: CommandFunction, cooldown: Long)
 
     /**
      * Invoked when a user lacks permissions to execute a command

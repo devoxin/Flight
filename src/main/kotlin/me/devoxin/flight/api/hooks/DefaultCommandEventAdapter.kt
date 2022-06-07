@@ -32,7 +32,7 @@ abstract class DefaultCommandEventAdapter : CommandEventAdapter {
         error.printStackTrace()
     }
 
-    override fun onCommandCooldown(ctx: MessageContext, command: CommandFunction, cooldown: Long) {}
+    override fun onCommandCooldown(ctx: Context, command: CommandFunction, cooldown: Long) {}
 
     override fun onBotMissingPermissions(ctx: MessageContext, command: CommandFunction, permissions: List<Permission>) {}
 

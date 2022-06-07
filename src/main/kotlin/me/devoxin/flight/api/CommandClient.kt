@@ -1,5 +1,6 @@
 package me.devoxin.flight.api
 
+import me.devoxin.flight.api.context.Context
 import me.devoxin.flight.api.context.ContextType
 import me.devoxin.flight.api.context.MessageContext
 import me.devoxin.flight.api.context.SlashContext
@@ -73,23 +74,11 @@ class CommandClient(
         }
 
         val ctx = MessageContext(this, event, trigger, invoked)
-
-        if (cmd.cooldown != null) {
-            val entityId = when (cmd.cooldown.bucket) {
-                BucketType.USER -> ctx.author.idLong
-                BucketType.GUILD -> ctx.guild?.idLong
-                BucketType.GLOBAL -> -1
-            }
-
-            if (entityId != null) {
-                if (cooldownProvider.isOnCooldown(entityId, cmd.cooldown.bucket, cmd)) {
-                    val time = cooldownProvider.getCooldownTime(entityId, cmd.cooldown.bucket, cmd)
-                    return dispatchSafely { it.onCommandCooldown(ctx, cmd, time) }
-                }
-            }
-        }
-
         val props = cmd.properties
+
+        if (isOnCooldown(cmd, ctx)) { // This function dispatches the event.
+            return
+        }
 
         if (props.executionContext == ContextType.SLASH) {
             return dispatchSafely { it.onCheckFailed(ctx, CheckType.EXECUTION_CONTEXT) }
@@ -155,30 +144,25 @@ class CommandClient(
             dispatchSafely { it.onCommandPostInvoke(ctx, cmd, !success) }
         }
 
-        if (cmd.cooldown != null && cmd.cooldown.duration > 0) {
-            val entityId = when (cmd.cooldown.bucket) {
-                BucketType.USER -> ctx.author.idLong
-                BucketType.GUILD -> ctx.guild?.idLong
-                BucketType.GLOBAL -> -1
-            }
-
-            if (entityId != null) {
-                val time = cmd.cooldown.timeUnit.toMillis(cmd.cooldown.duration)
-                cooldownProvider.setCooldown(entityId, cmd.cooldown.bucket, time, cmd)
-            }
-        }
-
+        setCooldown(cmd, ctx)
         exc.execute(ctx, arguments, cb, commandExecutor)
     }
 
     private fun onSlashCommand(event: SlashCommandInteractionEvent) {
         println("event name ${event.name}")
-        val command = commands[event.name]
+
+        val cmd = commands[event.name]
             ?: return
+        val ctx = SlashContext(this, event)
 
-        val arguments = command.resolveArguments(event.options)
+        if (isOnCooldown(cmd, ctx)) {
+            return
+        }
 
-        command.execute(
+        val arguments = cmd.resolveArguments(event.options)
+
+        setCooldown(cmd, ctx)
+        cmd.execute(
             SlashContext(this, event),
             arguments,
             { success, err -> println(success); err?.printStackTrace() },
@@ -252,6 +236,42 @@ class CommandClient(
                 eventListeners.forEach { it.onInternalError(e) }
             } catch (inner: Throwable) {
                 log.error("An uncaught exception occurred during event dispatch!", inner)
+            }
+        }
+    }
+
+    private fun isOnCooldown(cmd: CommandFunction, ctx: Context): Boolean {
+        if (cmd.cooldown != null) {
+            val entityId = when (cmd.cooldown.bucket) {
+                BucketType.USER -> ctx.author.idLong
+                BucketType.GUILD -> ctx.guild?.idLong //?: ctx.messageChannel.idLong
+                BucketType.GLOBAL -> -1
+            }
+
+            if (entityId != null) {
+                if (cooldownProvider.isOnCooldown(entityId, cmd.cooldown.bucket, cmd)) {
+                    val time = cooldownProvider.getCooldownTime(entityId, cmd.cooldown.bucket, cmd)
+                    dispatchSafely { it.onCommandCooldown(ctx, cmd, time) }
+
+                    return true
+                }
+            }
+        }
+
+        return false
+    }
+
+    private fun setCooldown(cmd: CommandFunction, ctx: Context) {
+        if (cmd.cooldown != null && cmd.cooldown.duration > 0) {
+            val entityId = when (cmd.cooldown.bucket) {
+                BucketType.USER -> ctx.author.idLong
+                BucketType.GUILD -> ctx.guild?.idLong
+                BucketType.GLOBAL -> -1
+            }
+
+            if (entityId != null) {
+                val time = cmd.cooldown.timeUnit.toMillis(cmd.cooldown.duration)
+                cooldownProvider.setCooldown(entityId, cmd.cooldown.bucket, time, cmd)
             }
         }
     }

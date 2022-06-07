@@ -35,7 +35,7 @@ interface Context {
         return sendable.submit()
     }
 
-    fun defaultSend(content: String): CompletableFuture<*> {
-        return messageChannel.sendMessage(content).submit()
+    fun send(content: String) {
+        messageChannel.sendMessage(content).submit()
     }
 }
