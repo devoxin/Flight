@@ -3,6 +3,7 @@ package me.devoxin.flight.api.context
 import me.devoxin.flight.api.CommandClient
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.Guild
+import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.entities.User
 import java.util.concurrent.CompletableFuture
@@ -25,8 +26,9 @@ interface Context {
 
     val commandClient: CommandClient
     val jda: JDA
-    val guild: Guild?
     val author: User
+    val guild: Guild?
+    val member: Member?
     val messageChannel: MessageChannel
 
     fun respond(content: String): CompletableFuture<*> {
