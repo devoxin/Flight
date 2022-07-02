@@ -1,7 +1,7 @@
 package me.devoxin.flight.api.context
 
-import kotlinx.coroutines.future.await
 import me.devoxin.flight.api.CommandClient
+import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.entities.User
@@ -24,6 +24,7 @@ interface Context {
         get() = this as? SlashContext
 
     val commandClient: CommandClient
+    val jda: JDA
     val guild: Guild?
     val author: User
     val messageChannel: MessageChannel

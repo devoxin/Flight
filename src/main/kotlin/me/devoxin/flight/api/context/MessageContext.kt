@@ -21,11 +21,11 @@ class MessageContext(
     val invokedCommand: Executable
 ) : Context {
     override val contextType = ContextType.MESSAGE
+    override val jda: JDA = event.jda
     override val guild = if (event.isFromGuild) event.guild else null
     override val author = event.author
     override val messageChannel = event.channel
 
-    val jda: JDA = event.jda
     val message: Message = event.message
     val member: Member? = event.member
 
