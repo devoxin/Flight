@@ -76,3 +76,8 @@ build {
     dependsOn writeVersion
     finalizedBy(mavenPublishTask)
 }
+
+shadowJar {
+    dependsOn writeVersion
+    finalizedBy(mavenPublishTask)
+}
