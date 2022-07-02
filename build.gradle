@@ -1,8 +1,9 @@
 plugins {
     id 'com.github.johnrengelman.shadow' version '7.1.2'
     id 'org.jetbrains.kotlin.jvm' version '1.6.21'
-    id 'maven-publish'
 }
+
+apply plugin: 'maven-publish'
 
 group 'me.devoxin'
 version '3.0.0'
