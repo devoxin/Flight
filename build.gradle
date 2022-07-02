@@ -1,14 +1,11 @@
 plugins {
-    id "com.github.johnrengelman.shadow" version "7.1.2"
-    id 'org.jetbrains.kotlin.jvm' version "1.6.21"
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id 'org.jetbrains.kotlin.jvm' version '1.6.21'
+    id 'maven-publish'
 }
-
-def kotlinVersion = "1.6.21"
-def coroutinesVersion = "1.6.2"
 
 group 'me.devoxin'
 version '3.0.0'
-sourceCompatibility = 1.8
 
 repositories {
     maven {
@@ -21,23 +18,27 @@ repositories {
 }
 
 dependencies {
-    testImplementation 'net.dv8tion:JDA:5.0.0-alpha.12'
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:${coroutinesVersion}"
-    implementation "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}"
+    def kotlinVersion = '1.6.21'
+    def coroutinesVersion = '1.6.2'
+
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$coroutinesVersion"
+    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
     implementation 'org.reflections:reflections:0.10.2'
     compileOnly 'net.dv8tion:JDA:5.0.0-alpha.12'
     api 'org.slf4j:slf4j-api:1.7.36'
+
+    testImplementation 'net.dv8tion:JDA:5.0.0-alpha.12'
 }
 
 compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = '1.8'
 }
 
 String getBuildVersion() {
     def gitVersion = new ByteArrayOutputStream()
     exec {
-        commandLine("git", "rev-parse", "--short", "HEAD")
+        commandLine('git', 'rev-parse', '--short', 'HEAD')
         standardOutput = gitVersion
     }
     return "$version\n${gitVersion.toString().trim()}"

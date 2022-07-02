@@ -10,7 +10,6 @@ import me.devoxin.flight.api.entities.Cog
 import org.reflections.Reflections
 import org.reflections.scanners.MethodParameterNamesScanner
 import org.reflections.scanners.Scanners
-import org.reflections.scanners.SubTypesScanner
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.lang.reflect.Modifier
@@ -33,7 +32,7 @@ class Indexer {
         this.packageName = packageName
         this.classLoader = null
         this.jar = null
-        reflections = Reflections(packageName, MethodParameterNamesScanner(), SubTypesScanner())
+        reflections = Reflections(packageName, MethodParameterNamesScanner(), Scanners.SubTypes)
     }
 
     constructor(packageName: String, jarPath: String) {

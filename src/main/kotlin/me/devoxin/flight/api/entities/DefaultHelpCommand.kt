@@ -112,7 +112,7 @@ open class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
         }
     }
 
-    private fun toTitleCase(s: String) = s.split(" +".toRegex()).joinToString(" ") { it.toLowerCase().capitalize() }
+    private fun toTitleCase(s: String) = s.split(" +".toRegex()).joinToString(" ") { it.lowercase().capitalize() }
 
     private fun truncate(s: String, maxLength: Int): String {
         if (s.length > maxLength) {

@@ -27,6 +27,7 @@ class Argument(
         return Pair(optionType, !isNullable && !optional)
     }
 
+    @Suppress("IMPLICIT_CAST_TO_ANY")
     fun getEntityFromOptionMapping(mapping: OptionMapping): Pair<KParameter, Any?> {
         val mappingType = when (mapping.type) {
             OptionType.STRING -> mapping.asString

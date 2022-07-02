@@ -195,7 +195,7 @@ class MessageContext(
      */
     fun cleanContent(str: String): String {
         var content = str.replace("e", "е")
-        // We use a russian "e" instead of \u200b as it keeps character count the same.
+        // We use a Cyrillic "e" instead of \u200b as it keeps character count the same.
         val matcher = mentionPattern.matcher(str)
 
         while (matcher.find()) {
