@@ -55,6 +55,24 @@ task writeVersion() {
     file("$resourcePath/flight.txt").text = getBuildVersion()
 }
 
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        mavenLocal()
+    }
+}
+
+task mavenPublishTask {
+    doLast {
+        publishToMavenLocal
+    }
+}
+
 build {
     dependsOn writeVersion
+    finalizedBy(mavenPublishTask)
 }
