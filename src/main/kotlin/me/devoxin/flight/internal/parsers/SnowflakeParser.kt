@@ -7,7 +7,7 @@ import java.util.regex.Pattern
 
 class SnowflakeParser : Parser<Snowflake> {
     override fun parse(ctx: MessageContext, param: String): Optional<Snowflake> {
-        val match = snowflakeMatch.matcher(param)
+        val match = SNOWFLAKE_PATTERN.matcher(param)
 
         if (match.matches()) {
             val id = match.group("sid") ?: match.group("id")
@@ -18,6 +18,6 @@ class SnowflakeParser : Parser<Snowflake> {
     }
 
     companion object {
-        val snowflakeMatch = "^(?:<(?:@!?|@&|#)(?<sid>\\d{17,21})>|(?<id>\\d{17,21}))$".toPattern()
+        val SNOWFLAKE_PATTERN = "^(?:<(?:@!?|@&|#)(?<sid>\\d{17,21})>|(?<id>\\d{17,21}))$".toPattern()
     }
 }
