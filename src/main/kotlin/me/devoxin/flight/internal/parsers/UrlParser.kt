@@ -5,7 +5,6 @@ import java.net.URL
 import java.util.*
 
 class UrlParser : Parser<URL> {
-
     override fun parse(ctx: MessageContext, param: String): Optional<URL> {
         return try {
             Optional.of(URL(param))
@@ -13,5 +12,4 @@ class UrlParser : Parser<URL> {
             Optional.empty()
         }
     }
-
 }

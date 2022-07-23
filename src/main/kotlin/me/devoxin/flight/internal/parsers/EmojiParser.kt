@@ -6,7 +6,6 @@ import java.util.*
 import java.util.regex.Pattern
 
 class EmojiParser : Parser<Emoji> {
-
     // TODO: Support unicode emoji?
     override fun parse(ctx: MessageContext, param: String): Optional<Emoji> {
         val match = EMOJI_REGEX.matcher(param)
@@ -23,7 +22,6 @@ class EmojiParser : Parser<Emoji> {
     }
 
     companion object {
-        val EMOJI_REGEX = Pattern.compile("<(a)?:(\\w+):(\\d{17,21})")!!
+        val EMOJI_REGEX = "<(a)?:(\\w+):(\\d{17,21})".toPattern()
     }
-
 }

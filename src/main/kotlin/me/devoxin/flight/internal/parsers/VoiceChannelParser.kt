@@ -5,20 +5,16 @@ import net.dv8tion.jda.api.entities.VoiceChannel
 import java.util.*
 
 class VoiceChannelParser : Parser<VoiceChannel> {
-
     override fun parse(ctx: MessageContext, param: String): Optional<VoiceChannel> {
-        val snowflake = snowflakeParser.parse(ctx, param)
-        val channel: VoiceChannel? = if (snowflake.isPresent) {
-            ctx.guild?.getVoiceChannelById(snowflake.get().resolved)
-        } else {
-            ctx.guild?.voiceChannels?.firstOrNull { it.name == param }
-        }
+        val snowflake = snowflakeParser.parse(ctx, param).takeIf { it.isPresent }?.get()?.resolved
 
-        return Optional.ofNullable(channel)
+        return when {
+            snowflake != null -> Optional.ofNullable(ctx.guild?.getVoiceChannelById(snowflake))
+            else -> Optional.ofNullable(ctx.guild?.voiceChannels?.firstOrNull { it.name == param })
+        }
     }
 
     companion object {
-        val snowflakeParser = SnowflakeParser() // We can reuse this
+        private val snowflakeParser = SnowflakeParser() // We can reuse this
     }
-
 }
