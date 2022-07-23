@@ -11,7 +11,7 @@ class MemberParser : Parser<Member> {
         val member = when {
             snowflake != null -> ctx.message.mentions.members.firstOrNull { it.user.idLong == snowflake } ?: ctx.guild?.getMemberById(snowflake)
             else -> {
-                if (param.length > 5 && param[param.length - 5].toString() == "#") {
+                if (param.length > 5 && param[param.length - 5] == '#') {
                     val tag = param.split("#")
                     ctx.guild?.memberCache?.find { it.user.name == tag[0] && it.user.discriminator == tag[1] }
                 } else {
