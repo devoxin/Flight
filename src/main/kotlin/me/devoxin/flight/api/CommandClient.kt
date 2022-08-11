@@ -150,8 +150,6 @@ class CommandClient(
     }
 
     private fun onSlashCommand(event: SlashCommandInteractionEvent) {
-        println("event name ${event.name}")
-
         val cmd = commands[event.name]
             ?: return
         val ctx = SlashContext(this, event)
@@ -161,12 +159,23 @@ class CommandClient(
         }
 
         val arguments = cmd.resolveArguments(event.options)
+        val cb = { success: Boolean, err: Throwable? ->
+            if (err != null) {
+                val handled = cmd.cog.onCommandError(ctx, cmd, err)
+
+                if (!handled) {
+                    dispatchSafely { it.onCommandError(ctx, cmd, err) }
+                }
+            }
+
+            dispatchSafely { it.onCommandPostInvoke(ctx, cmd, !success) }
+        }
 
         setCooldown(cmd, ctx)
         cmd.execute(
             SlashContext(this, event),
             arguments,
-            { success, err -> println(success); err?.printStackTrace() },
+            cb,
             null
         )
     }

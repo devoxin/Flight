@@ -1,6 +1,7 @@
 package me.devoxin.flight.api.entities
 
 import me.devoxin.flight.api.CommandFunction
+import me.devoxin.flight.api.context.Context
 import me.devoxin.flight.api.context.MessageContext
 
 interface Cog {
@@ -15,7 +16,7 @@ interface Cog {
      *         the error will be passed back to the registered
      *         CommandClientAdapter for handling.
      */
-    fun onCommandError(ctx: MessageContext, command: CommandFunction, error: Throwable): Boolean = false
+    fun onCommandError(ctx: Context, command: CommandFunction, error: Throwable): Boolean = false
 
     /**
      * Invoked before a command is executed. This check is local to
@@ -23,6 +24,6 @@ interface Cog {
      *
      * @return Whether the command execution should continue or not.
      */
-    fun localCheck(ctx: MessageContext, command: CommandFunction): Boolean = true
+    fun localCheck(ctx: Context, command: CommandFunction): Boolean = true
 
 }
