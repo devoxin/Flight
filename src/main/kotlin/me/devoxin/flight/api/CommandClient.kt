@@ -14,6 +14,7 @@ import me.devoxin.flight.api.hooks.CommandEventAdapter
 import me.devoxin.flight.api.entities.PrefixProvider
 import me.devoxin.flight.internal.entities.CommandRegistry
 import net.dv8tion.jda.api.MessageBuilder
+import net.dv8tion.jda.api.entities.StandardGuildMessageChannel
 import net.dv8tion.jda.api.events.Event
 import net.dv8tion.jda.api.events.GenericEvent
 import net.dv8tion.jda.api.events.ReadyEvent
@@ -94,7 +95,7 @@ class CommandClient(
 
         if (event.channelType.isGuild) {
             if (props.userPermissions.isNotEmpty()) {
-                val userCheck = props.userPermissions.filterNot { event.member!!.hasPermission(event.textChannel, it) }
+                val userCheck = props.userPermissions.filterNot { event.member!!.hasPermission(event.guildChannel, it) }
 
                 if (userCheck.isNotEmpty()) {
                     return dispatchSafely { it.onUserMissingPermissions(ctx, cmd, userCheck) }
@@ -102,14 +103,14 @@ class CommandClient(
             }
 
             if (props.botPermissions.isNotEmpty()) {
-                val botCheck = props.botPermissions.filterNot { event.guild.selfMember.hasPermission(event.textChannel, it) }
+                val botCheck = props.botPermissions.filterNot { event.guild.selfMember.hasPermission(event.guildChannel, it) }
 
                 if (botCheck.isNotEmpty()) {
                     return dispatchSafely { it.onBotMissingPermissions(ctx, cmd, botCheck) }
                 }
             }
 
-            if (props.nsfw && !event.textChannel.isNSFW) {
+            if (props.nsfw && (event.guildChannel as? StandardGuildMessageChannel)?.isNSFW != true) {
                 return dispatchSafely { it.onCheckFailed(ctx, CheckType.NSFW_CHECK) }
             }
         }

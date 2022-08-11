@@ -29,8 +29,8 @@ class MessageContext(
 
     val message: Message = event.message
 
-    val textChannel: TextChannel? = if (event.isFromType(ChannelType.TEXT)) event.textChannel else null
-    val privateChannel: PrivateChannel? = if (event.isFromType(ChannelType.PRIVATE)) event.privateChannel else null
+    val textChannel: TextChannel? = messageChannel as? TextChannel
+    val privateChannel: PrivateChannel? = messageChannel as? PrivateChannel
 
     /**
      * Sends a message embed to the channel the Context was created from.
@@ -221,7 +221,7 @@ class MessageContext(
             }
         }
 
-        for (emote in message.mentions.emotes) {
+        for (emote in message.mentions.customEmojis) {
             content = content.replace(emote.asMention, ":${emote.name}:")
         }
 

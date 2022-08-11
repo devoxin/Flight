@@ -75,8 +75,9 @@ class Indexer {
         require(meth.javaMethod!!.declaringClass == cog::class.java) { "${meth.name} is not from ${cog::class.simpleName}" }
         require(meth.hasAnnotation<Command>()) { "${meth.name} is not annotated with Command!" }
 
-        val category = cog.name()
-            ?: cog::class.java.`package`.name.split('.').last().replace('_', ' ').lowercase().capitalize()
+        val categoryOriginal = cog.name()
+            ?: cog::class.java.`package`.name.split('.').last().replace('_', ' ')
+        val category = TextUtils.capitalise(categoryOriginal)
         val name = meth.name.lowercase()
         val properties = meth.findAnnotation<Command>()!!
         val cooldown = meth.findAnnotation<Cooldown>()

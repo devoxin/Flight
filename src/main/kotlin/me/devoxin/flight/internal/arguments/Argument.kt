@@ -40,7 +40,7 @@ class Argument(
                     else -> throw IllegalStateException("OptionType is user but argument type is ${type.simpleName}")
                 }
             }
-            OptionType.CHANNEL -> mapping.asGuildChannel
+            OptionType.CHANNEL -> mapping.asChannel
             OptionType.ROLE -> mapping.asRole
             OptionType.NUMBER -> mapping.asDouble
             OptionType.ATTACHMENT -> mapping.asAttachment

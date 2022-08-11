@@ -25,10 +25,10 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$coroutinesVersion"
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
     implementation 'org.reflections:reflections:0.10.2'
-    compileOnly 'net.dv8tion:JDA:5.0.0-alpha.12'
+    compileOnly 'net.dv8tion:JDA:5.0.0-alpha.17'
     api 'org.slf4j:slf4j-api:1.7.36'
 
-    testImplementation 'net.dv8tion:JDA:5.0.0-alpha.12'
+    testImplementation 'net.dv8tion:JDA:5.0.0-alpha.17'
 }
 
 compileKotlin {

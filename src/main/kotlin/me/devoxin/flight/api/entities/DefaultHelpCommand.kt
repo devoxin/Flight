@@ -3,7 +3,7 @@ package me.devoxin.flight.api.entities
 import me.devoxin.flight.api.annotations.Command
 import me.devoxin.flight.api.CommandFunction
 import me.devoxin.flight.api.context.MessageContext
-import me.devoxin.flight.internal.utils.TextSplitter
+import me.devoxin.flight.internal.utils.TextUtils
 
 open class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
 
@@ -59,7 +59,7 @@ open class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
             }
         }
 
-        return TextSplitter.split(helpMenu.toString().trim(), 1990)
+        return TextUtils.split(helpMenu.toString().trim(), 1990)
     }
 
     open fun buildCommandHelp(ctx: MessageContext, command: CommandFunction): List<String> {
@@ -101,7 +101,7 @@ open class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
             }
         }
 
-        return TextSplitter.split(builder.toString(), 1990)
+        return TextUtils.split(builder.toString(), 1990)
     }
 
     // TODO: Subcommand help
@@ -112,14 +112,10 @@ open class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
         }
     }
 
-    private fun toTitleCase(s: String) = s.split(" +".toRegex()).joinToString(" ") { it.lowercase().capitalize() }
+    private fun toTitleCase(s: String) = s.split(" +".toRegex()).joinToString(" ", transform = TextUtils::capitalise)
 
     private fun truncate(s: String, maxLength: Int): String {
-        if (s.length > maxLength) {
-            return s.substring(0, maxLength - 3) + "..."
-        }
-
-        return s
+        return s.takeUnless { it.length > maxLength } ?: (s.take(maxLength - 3) + "...")
     }
 
 }
