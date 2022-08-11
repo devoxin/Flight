@@ -2,6 +2,7 @@ package me.devoxin.flight.api.context
 
 import me.devoxin.flight.api.CommandClient
 import net.dv8tion.jda.api.JDA
+import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.MessageChannel
@@ -13,13 +14,13 @@ interface Context {
 
     /**
      * The current Context instance as a MessageContext instance,
-     * if contextType is ContextType.MESSAGE, otherwise null.
+     * if contextType is [ContextType.MESSAGE], otherwise null.
      */
     val asMessageContext: MessageContext?
         get() = this as? MessageContext
     /**
      * The current Context instance as a SlashContext instance,
-     * if contextType is ContextType.SLASH, otherwise null.
+     * if contextType is [ContextType.SLASH], otherwise null.
      */
     val asSlashContext: SlashContext?
         get() = this as? SlashContext
@@ -32,10 +33,8 @@ interface Context {
     val messageChannel: MessageChannel
 
     fun respond(content: String): CompletableFuture<*> {
-        val sendable = asSlashContext?.event?.reply(content)
-            ?: messageChannel.sendMessage(content)
-
-        return sendable.submit()
+        return asSlashContext?.respond0(MessageBuilder(content).build())
+            ?: messageChannel.sendMessage(content).submit()
     }
 
     fun send(content: String) {
