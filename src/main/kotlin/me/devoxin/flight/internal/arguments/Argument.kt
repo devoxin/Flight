@@ -21,6 +21,12 @@ class Argument(
     val isTentative: Boolean,
     internal val kparam: KParameter
 ) {
+    val slashFriendlyName: String
+        get() {
+            val match = SLASH_NAME_REGEX.matcher(name)
+            return if (match.matches()) "${match.group(1)}_${match.group(2).lowercase()}" else name.lowercase()
+        }
+
     /**
      * Returns this argument as a [Pair]<[OptionType], [Boolean]>.
      * The [OptionType] represents the type of this argument.
@@ -80,6 +86,8 @@ class Argument(
     }
 
     companion object {
+        val SLASH_NAME_REGEX = "([a-z]+)([A-Za-z]?[a-z]+)".toPattern()
+
         val OPTION_TYPE_MAPPING = mapOf(
             String::class.java to OptionType.STRING,
             Integer::class.java to OptionType.INTEGER,
