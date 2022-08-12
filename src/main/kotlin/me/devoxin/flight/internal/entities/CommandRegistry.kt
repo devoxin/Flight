@@ -17,7 +17,7 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
 
             for (argument in command.arguments) {
                 val (type, required) = argument.asSlashCommandType()
-                data.addOption(type, argument.name, argument.description, required)
+                data.addOption(type, argument.slashFriendlyName, argument.description, required)
             }
 
             // TODO: subcommands
