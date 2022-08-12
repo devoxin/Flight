@@ -134,7 +134,7 @@ class Indexer {
 
         for (p in parameters) {
             val name = p.findAnnotation<Name>()?.name ?: p.name ?: p.index.toString()
-            val description = p.findAnnotation<Describe>()?.value ?: ""
+            val description = p.findAnnotation<Describe>()?.value ?: "No description available."
             val type = p.type.jvmErasure.javaObjectType
             val isGreedy = p.hasAnnotation<Greedy>()
             val isOptional = p.isOptional
