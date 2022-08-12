@@ -23,7 +23,7 @@ abstract class Executable(
         val mapping = hashMapOf<KParameter, Any?>()
 
         for (argument in arguments) {
-            val option = options.firstOrNull { it.name == argument.name }
+            val option = options.firstOrNull { it.name == argument.slashFriendlyName }
 
             if (option == null) {
                 if (argument.isNullable && !argument.optional) {
@@ -53,13 +53,8 @@ abstract class Executable(
                 executeAsync(args, complete)
             }
         } else {
-            if (executor != null) {
-                executor.execute {
-                    executeSync(args, complete)
-                }
-            } else {
-                executeSync(args, complete)
-            }
+            executor?.execute { executeSync(args, complete) }
+                ?: executeSync(args, complete)
         }
     }
 

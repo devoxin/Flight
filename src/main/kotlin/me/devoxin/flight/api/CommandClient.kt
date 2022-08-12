@@ -168,12 +168,7 @@ class CommandClient(
         }
 
         setCooldown(cmd, ctx)
-        cmd.execute(
-            SlashContext(this, event),
-            arguments,
-            cb,
-            null
-        )
+        cmd.execute(SlashContext(this, event), arguments, cb, null)
     }
 
 
