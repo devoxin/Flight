@@ -6,6 +6,7 @@ import me.devoxin.flight.api.context.Context
 import me.devoxin.flight.api.entities.Cog
 import me.devoxin.flight.internal.arguments.Argument
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
+import net.dv8tion.jda.api.interactions.commands.OptionType
 import java.util.concurrent.ExecutorService
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
@@ -38,7 +39,13 @@ abstract class Executable(
                 throw IllegalStateException("Missing option for argument ${argument.name}")
             }
 
-            mapping += argument.getEntityFromOptionMapping(option)
+            mapping += if (option.type == OptionType.INTEGER && (argument.type == Integer::class.java || argument.type == java.lang.Integer::class.java)) {
+                val (param, value) = argument.getEntityFromOptionMapping(option)
+                @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
+                param to (value as java.lang.Long).toInt()
+            } else {
+                argument.getEntityFromOptionMapping(option)
+            }
         }
 
         return mapping
