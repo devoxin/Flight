@@ -90,16 +90,25 @@ class Argument(
 
         val OPTION_TYPE_MAPPING = mapOf(
             String::class.java to OptionType.STRING,
+
             Integer::class.java to OptionType.INTEGER,
+            java.lang.Integer::class.java to OptionType.INTEGER,
+
             Long::class.java to OptionType.INTEGER,
+            java.lang.Long::class.java to OptionType.INTEGER,
+
+            Double::class.java to OptionType.NUMBER,
+            java.lang.Double::class.java to OptionType.NUMBER,
+
             Boolean::class.java to OptionType.BOOLEAN,
+            java.lang.Boolean::class.java to OptionType.BOOLEAN,
+
             Member::class.java to OptionType.USER,
             User::class.java to OptionType.USER,
             GuildChannel::class.java to OptionType.CHANNEL,
             TextChannel::class.java to OptionType.CHANNEL,
             VoiceChannel::class.java to OptionType.CHANNEL,
             Role::class.java to OptionType.ROLE,
-            Double::class.java to OptionType.NUMBER,
             Attachment::class.java to OptionType.ATTACHMENT
         )
     }
