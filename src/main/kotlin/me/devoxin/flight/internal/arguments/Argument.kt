@@ -86,7 +86,7 @@ class Argument(
     }
 
     companion object {
-        val SLASH_NAME_REGEX = "([a-z]+)([A-Za-z]?[a-z]+)".toPattern()
+        val SLASH_NAME_REGEX = "([a-z]+)([A-Z][a-z]+)".toPattern()
 
         val OPTION_TYPE_MAPPING = mapOf(
             String::class.java to OptionType.STRING,
