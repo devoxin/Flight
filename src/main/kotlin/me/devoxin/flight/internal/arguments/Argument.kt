@@ -13,6 +13,7 @@ import kotlin.reflect.KParameter
 
 class Argument(
     val name: String,
+    val description: String,
     val type: Class<*>,
     val greedy: Boolean,
     val optional: Boolean, // Denotes that a parameter has a default value.
@@ -20,6 +21,11 @@ class Argument(
     val isTentative: Boolean,
     internal val kparam: KParameter
 ) {
+    /**
+     * Returns this argument as a [Pair]<[OptionType], [Boolean]>.
+     * The [OptionType] represents the type of this argument.
+     * The [Boolean] represents whether the argument is required. True if it is, false otherwise.
+     */
     fun asSlashCommandType(): Pair<OptionType, Boolean> {
         val optionType = OPTION_TYPE_MAPPING[type]
             ?: throw IllegalStateException("Unable to find OptionType for type ${type.simpleName}")

@@ -43,10 +43,6 @@ class CommandClient(
     val commands = CommandRegistry()
     val ownerIds = customOwnerIds
 
-    fun synchroniseSlashCommands() {
-
-    }
-
     private fun onMessageReceived(event: MessageReceivedEvent) {
         if (ignoreBots && (event.author.isBot || event.isWebhookMessage)) {
             return

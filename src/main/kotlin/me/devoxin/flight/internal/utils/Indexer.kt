@@ -22,7 +22,6 @@ import kotlin.reflect.jvm.javaMethod
 import kotlin.reflect.jvm.jvmErasure
 
 class Indexer {
-
     private val jar: Jar?
     private val packageName: String
     private val reflections: Reflections
@@ -134,7 +133,8 @@ class Indexer {
         val arguments = mutableListOf<Argument>()
 
         for (p in parameters) {
-            val pName = p.findAnnotation<Name>()?.name ?: p.name ?: p.index.toString()
+            val name = p.findAnnotation<Name>()?.name ?: p.name ?: p.index.toString()
+            val description = p.findAnnotation<Describe>()?.value ?: ""
             val type = p.type.jvmErasure.javaObjectType
             val isGreedy = p.hasAnnotation<Greedy>()
             val isOptional = p.isOptional
@@ -145,7 +145,7 @@ class Indexer {
                 throw IllegalStateException("${p.name} is marked as tentative, but does not have a default value and is not marked nullable!")
             }
 
-            arguments.add(Argument(pName, type, isGreedy, isOptional, isNullable, isTentative, p))
+            arguments.add(Argument(name, description, type, isGreedy, isOptional, isNullable, isTentative, p))
         }
 
         return arguments
@@ -154,5 +154,4 @@ class Indexer {
     companion object {
         private val log = LoggerFactory.getLogger(Indexer::class.java)
     }
-
 }
