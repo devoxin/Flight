@@ -22,8 +22,7 @@ class Argument(
     internal val kparam: KParameter
 ) {
     val slashFriendlyName: String by lazy {
-        val match = SLASH_NAME_REGEX.matcher(name)
-        return@lazy if (match.matches()) "${match.group(1)}_${match.group(2).lowercase()}" else name.lowercase()
+        return@lazy name.replace(SLASH_NAME_REGEX, "_$1").lowercase()
     }
 
     /**
@@ -85,7 +84,7 @@ class Argument(
     }
 
     companion object {
-        val SLASH_NAME_REGEX = "([a-z]+)([A-Z][a-z]+)".toPattern()
+        val SLASH_NAME_REGEX = "((?<=[a-z])[A-Z]|[A-Z](?=[a-z]))".toRegex()
 
         val OPTION_TYPE_MAPPING = mapOf(
             String::class.java to OptionType.STRING,
