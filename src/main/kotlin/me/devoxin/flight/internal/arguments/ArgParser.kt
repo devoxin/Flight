@@ -91,28 +91,58 @@ class ArgParser(
         } else {
             try {
                 parser.parse(ctx, argument)
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 throw BadArgument(arg, argument, e)
             }
         }
 
         val canSubstitute = arg.isTentative || arg.isNullable || (arg.optional && argument.isEmpty())
+        val (rangeCheck, rangeMessage) = checkRange(arg, result)
 
-        if (!result.isPresent && !canSubstitute) { // canSubstitute -> Whether we can pass null or the default value.
-            // This should throw if the result is not present, and one of the following is not true:
-            // - The arg is marked tentative (isTentative)
-            // - The arg can use null (isNullable)
-            // - The arg has a default (isOptional) and no value was specified for it (argument.isEmpty())
+        if (!result.isPresent || !rangeCheck) {
+            if (!canSubstitute) { // canSubstitute -> Whether we can pass null or the default value.
+                val cause = if (result.isPresent && rangeCheck) null else IllegalArgumentException(rangeMessage)
+                // This should throw if the result is not present, and one of the following is not true:
+                // - The arg is marked tentative (isTentative)
+                // - The arg can use null (isNullable)
+                // - The arg has a default (isOptional) and no value was specified for it (argument.isEmpty())
 
-            //!arg.isNullable && (!arg.optional || argument.isNotEmpty())) {
-            throw BadArgument(arg, argument)
+                //!arg.isNullable && (!arg.optional || argument.isNotEmpty())) {
+                throw BadArgument(arg, argument, cause)
+            }
+
+            if (arg.isTentative) {
+                restore(original)
+            }
         }
 
-        if (!result.isPresent && arg.isTentative) {
-            restore(original)
+        return result.takeIf { rangeCheck }?.orElse(null)
+    }
+
+    private fun checkRange(arg: Argument, parsed: Optional<out Any?>): Pair<Boolean, String?> {
+        arg.range ?: return true to null
+        val num = parsed.orElse(null) as? Number ?: return false to null
+
+        val double = arg.range.double
+        val long = arg.range.long
+
+        if (double.isNotEmpty()) {
+            val dbl = num.toDouble()
+            return when (double.size) {
+                1 -> (dbl >= double[0]) to "`${arg.name}` must be at least ${double[0]} or bigger"
+                2 -> (dbl >= double[0] && dbl <= double[1]) to "`${arg.name}` be within range ${double.joinToString("-")}"
+                else -> false to "<Invalid range for `${arg.name}:double`>"
+            }
+        } else if (long.isNotEmpty()) {
+            val lng = num.toLong()
+            return when (long.size) {
+                1 -> (lng >= long[0]) to "`${arg.name}` must be at least ${long[0]} or bigger"
+                2 -> (lng >= long[0] && lng <= long[1]) to "`${arg.name}` be within range ${long.joinToString("-")}"
+                else -> false to "<Invalid range for `${arg.name}:long`>"
+            }
         }
 
-        return result.orElse(null)
+        return true to null
     }
 
     companion object {
@@ -134,7 +164,7 @@ class ArgParser(
                 if (useValue) {
                     //This will only place the argument into the map if the value is null,
                     // or if the parameter requires a value (i.e. marked nullable).
-                    //Commands marked optional already have a parameter so they don't need user-provided values
+                    //Commands marked optional already have a parameter, so they don't need user-provided values
                     // unless the argument was successfully resolved for that parameter.
                     resolvedArgs[arg.kparam] = res
                 }

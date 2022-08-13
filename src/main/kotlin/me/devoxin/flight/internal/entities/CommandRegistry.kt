@@ -6,6 +6,7 @@ import me.devoxin.flight.api.entities.Cog
 import me.devoxin.flight.internal.utils.Indexer
 import net.dv8tion.jda.api.interactions.commands.build.CommandData
 import net.dv8tion.jda.api.interactions.commands.build.Commands
+import net.dv8tion.jda.api.interactions.commands.build.OptionData
 
 class CommandRegistry : HashMap<String, CommandFunction>() {
     fun toDiscordCommands(): List<CommandData> {
@@ -17,7 +18,22 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
 
             for (argument in command.arguments) {
                 val (type, required) = argument.asSlashCommandType()
-                data.addOption(type, argument.slashFriendlyName, argument.description, required)
+
+                val option = OptionData(type, argument.slashFriendlyName, argument.description, required)
+
+                argument.range?.let {
+                    it.double.takeIf { r -> r.isNotEmpty() }?.let { range ->
+                        option.setMinValue(range[0])
+                        range.elementAtOrNull(1)?.let(option::setMaxValue)
+                    }
+
+                    it.long.takeIf { r -> r.isNotEmpty() }?.let { range ->
+                        option.setMinValue(range[0])
+                        range.elementAtOrNull(1)?.let(option::setMaxValue)
+                    }
+                }
+
+                data.addOptions(option)
             }
 
             // TODO: subcommands

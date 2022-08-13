@@ -1,5 +1,6 @@
 package me.devoxin.flight.internal.arguments
 
+import me.devoxin.flight.api.annotations.Range
 import me.devoxin.flight.api.entities.Attachment
 import net.dv8tion.jda.api.entities.GuildChannel
 import net.dv8tion.jda.api.entities.Member
@@ -14,6 +15,7 @@ import kotlin.reflect.KParameter
 class Argument(
     val name: String,
     val description: String,
+    val range: Range?,
     val type: Class<*>,
     val greedy: Boolean,
     val optional: Boolean, // Denotes that a parameter has a default value.

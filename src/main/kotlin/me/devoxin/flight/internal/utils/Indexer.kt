@@ -135,6 +135,7 @@ class Indexer {
         for (p in parameters) {
             val name = p.findAnnotation<Name>()?.name ?: p.name ?: p.index.toString()
             val description = p.findAnnotation<Describe>()?.value ?: "No description available."
+            val range = p.findAnnotation<Range>()
             val type = p.type.jvmErasure.javaObjectType
             val isGreedy = p.hasAnnotation<Greedy>()
             val isOptional = p.isOptional
@@ -145,7 +146,7 @@ class Indexer {
                 throw IllegalStateException("${p.name} is marked as tentative, but does not have a default value and is not marked nullable!")
             }
 
-            arguments.add(Argument(name, description, type, isGreedy, isOptional, isNullable, isTentative, p))
+            arguments.add(Argument(name, description, range, type, isGreedy, isOptional, isNullable, isTentative, p))
         }
 
         return arguments
