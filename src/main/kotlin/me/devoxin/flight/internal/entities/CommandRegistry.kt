@@ -3,10 +3,12 @@ package me.devoxin.flight.internal.entities
 import me.devoxin.flight.api.CommandFunction
 import me.devoxin.flight.api.context.ContextType.SLASH
 import me.devoxin.flight.api.entities.Cog
+import me.devoxin.flight.internal.arguments.Argument
 import me.devoxin.flight.internal.utils.Indexer
 import net.dv8tion.jda.api.interactions.commands.build.CommandData
 import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData
 
 class CommandRegistry : HashMap<String, CommandFunction>() {
     fun toDiscordCommands(): List<CommandData> {
@@ -16,31 +18,48 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
             val data = Commands.slash(command.name, command.properties.description)
             data.isGuildOnly = command.properties.guildOnly
 
-            for (argument in command.arguments) {
-                val (type, required) = argument.asSlashCommandType()
+            if (command.subcommands.isNotEmpty()) {
+                for (sc in command.subcommands.values) {
+                    val scData = SubcommandData(sc.name, sc.properties.description)
 
-                val option = OptionData(type, argument.slashFriendlyName, argument.description, required)
-
-                argument.range?.let {
-                    it.double.takeIf { r -> r.isNotEmpty() }?.let { range ->
-                        option.setMinValue(range[0])
-                        range.elementAtOrNull(1)?.let(option::setMaxValue)
+                    if (sc.arguments.isNotEmpty()) {
+                        val options = getArgumentsAsOptions(sc.arguments)
+                        scData.addOptions(options)
                     }
 
-                    it.long.takeIf { r -> r.isNotEmpty() }?.let { range ->
-                        option.setMinValue(range[0])
-                        range.elementAtOrNull(1)?.let(option::setMaxValue)
-                    }
+                    data.addSubcommands(scData)
                 }
-
-                data.addOptions(option)
+            } else if (command.arguments.isNotEmpty()) {
+                val options = getArgumentsAsOptions(command.arguments)
+                data.addOptions(options)
             }
 
-            // TODO: subcommands
             commands.add(data)
         }
 
         return commands
+    }
+
+    private fun getArgumentsAsOptions(arguments: List<Argument>): List<OptionData> {
+        return arguments.map {
+            val (type, required) = it.asSlashCommandType()
+
+            val option = OptionData(type, it.slashFriendlyName, it.description, required)
+
+            it.range?.let { r ->
+                r.double.takeIf { r -> r.isNotEmpty() }?.let { range ->
+                    option.setMinValue(range[0])
+                    range.elementAtOrNull(1)?.let(option::setMaxValue)
+                }
+
+                r.long.takeIf { r -> r.isNotEmpty() }?.let { range ->
+                    option.setMinValue(range[0])
+                    range.elementAtOrNull(1)?.let(option::setMaxValue)
+                }
+            }
+
+            option
+        }
     }
 
     fun findCommandByName(name: String): CommandFunction? {

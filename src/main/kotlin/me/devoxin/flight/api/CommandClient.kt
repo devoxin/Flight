@@ -118,11 +118,10 @@ class CommandClient(
             return
         }
 
-        val exc = subcommand ?: cmd
         val arguments: HashMap<KParameter, Any?>
 
         try {
-            arguments = ArgParser.parseArguments(exc, ctx, args, cmd.properties.argDelimiter)
+            arguments = ArgParser.parseArguments(invoked, ctx, args, cmd.properties.argDelimiter)
         } catch (e: BadArgument) {
             return dispatchSafely { it.onBadArgument(ctx, cmd, e) }
         } catch (e: Throwable) {
@@ -142,19 +141,20 @@ class CommandClient(
         }
 
         setCooldown(cmd, ctx)
-        exc.execute(ctx, arguments, cb, commandExecutor)
+        invoked.execute(ctx, arguments, cb, commandExecutor)
     }
 
     private fun onSlashCommand(event: SlashCommandInteractionEvent) {
-        val cmd = commands[event.name]
-            ?: return
-        val ctx = SlashContext(this, event)
+        val cmd = commands[event.name] ?: return
+        val subcommand = event.subcommandName?.let { cmd.subcommands[it] ?: return }
+        val invoked = subcommand ?: cmd
+        val ctx = SlashContext(this, event, invoked)
 
         if (isOnCooldown(cmd, ctx)) {
             return
         }
 
-        val arguments = cmd.resolveArguments(event.options)
+        val arguments = invoked.resolveArguments(event.options)
         val cb = { success: Boolean, err: Throwable? ->
             if (err != null) {
                 val handled = cmd.cog.onCommandError(ctx, cmd, err)
@@ -168,7 +168,7 @@ class CommandClient(
         }
 
         setCooldown(cmd, ctx)
-        cmd.execute(SlashContext(this, event), arguments, cb, null)
+        invoked.execute(ctx, arguments, cb, null)
     }
 
 

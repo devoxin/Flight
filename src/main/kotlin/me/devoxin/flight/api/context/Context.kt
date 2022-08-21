@@ -1,6 +1,7 @@
 package me.devoxin.flight.api.context
 
 import me.devoxin.flight.api.CommandClient
+import me.devoxin.flight.internal.entities.Executable
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.entities.Guild
@@ -10,6 +11,7 @@ import net.dv8tion.jda.api.entities.User
 import java.util.concurrent.CompletableFuture
 
 interface Context {
+    val invokedCommand: Executable
     val contextType: ContextType
 
     /**
