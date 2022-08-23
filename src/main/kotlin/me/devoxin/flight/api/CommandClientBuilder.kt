@@ -204,7 +204,6 @@ class CommandClientBuilder {
      *
      * @return a CommandClient instance
      */
-    @ExperimentalStdlibApi
     fun build(): CommandClient {
         val prefixProvider = this.prefixProvider ?: DefaultPrefixProvider(prefixes, allowMentionPrefix)
         val cooldownProvider = this.cooldownProvider ?: DefaultCooldownProvider()

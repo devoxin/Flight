@@ -1,13 +1,7 @@
 package me.devoxin.flight.internal.arguments
 
 import me.devoxin.flight.api.annotations.Range
-import me.devoxin.flight.api.entities.Attachment
-import net.dv8tion.jda.api.entities.GuildChannel
-import net.dv8tion.jda.api.entities.Member
-import net.dv8tion.jda.api.entities.Role
-import net.dv8tion.jda.api.entities.TextChannel
-import net.dv8tion.jda.api.entities.User
-import net.dv8tion.jda.api.entities.VoiceChannel
+import net.dv8tion.jda.api.entities.*
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import kotlin.reflect.KParameter
@@ -109,7 +103,7 @@ class Argument(
             TextChannel::class.java to OptionType.CHANNEL,
             VoiceChannel::class.java to OptionType.CHANNEL,
             Role::class.java to OptionType.ROLE,
-            Attachment::class.java to OptionType.ATTACHMENT
+            Message.Attachment::class.java to OptionType.ATTACHMENT
         )
     }
 }

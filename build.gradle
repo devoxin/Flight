@@ -18,17 +18,18 @@ repositories {
 }
 
 dependencies {
-    def kotlinVersion = '1.7.0'
-    def coroutinesVersion = '1.6.2'
+    def kotlinVersion = '1.7.10'
+    def coroutinesVersion = '1.6.4'
+    def jdaVersion = '5.0.0-alpha.18'
 
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$coroutinesVersion"
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
     implementation 'org.reflections:reflections:0.10.2'
-    compileOnly 'net.dv8tion:JDA:5.0.0-alpha.17'
+    compileOnly "net.dv8tion:JDA:$jdaVersion"
     api 'org.slf4j:slf4j-api:1.7.36'
 
-    testImplementation 'net.dv8tion:JDA:5.0.0-alpha.17'
+    testImplementation "net.dv8tion:JDA:$jdaVersion"
 }
 
 compileKotlin {

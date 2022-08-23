@@ -47,12 +47,12 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
             val option = OptionData(type, it.slashFriendlyName, it.description, required)
 
             it.range?.let { r ->
-                r.double.takeIf { r -> r.isNotEmpty() }?.let { range ->
+                r.double.takeIf { t -> t.isNotEmpty() }?.let { range ->
                     option.setMinValue(range[0])
                     range.elementAtOrNull(1)?.let(option::setMaxValue)
                 }
 
-                r.long.takeIf { r -> r.isNotEmpty() }?.let { range ->
+                r.long.takeIf { t -> t.isNotEmpty() }?.let { range ->
                     option.setMinValue(range[0])
                     range.elementAtOrNull(1)?.let(option::setMaxValue)
                 }
@@ -104,7 +104,6 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
         jar.close()
     }
 
-    @ExperimentalStdlibApi
     fun register(packageName: String) {
         val indexer = Indexer(packageName)
 
@@ -113,7 +112,6 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
         }
     }
 
-    @ExperimentalStdlibApi
     fun register(jarPath: String, packageName: String) {
         val indexer = Indexer(packageName, jarPath)
 
@@ -122,7 +120,6 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
         }
     }
 
-    @ExperimentalStdlibApi
     fun register(cog: Cog, indexer: Indexer? = null) {
         val i = indexer ?: Indexer(cog::class.java.`package`.name)
         val commands = i.getCommands(cog)

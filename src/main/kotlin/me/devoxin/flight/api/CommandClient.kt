@@ -13,17 +13,13 @@ import me.devoxin.flight.api.entities.CooldownProvider
 import me.devoxin.flight.api.hooks.CommandEventAdapter
 import me.devoxin.flight.api.entities.PrefixProvider
 import me.devoxin.flight.internal.entities.CommandRegistry
-import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.entities.StandardGuildMessageChannel
 import net.dv8tion.jda.api.events.Event
 import net.dv8tion.jda.api.events.GenericEvent
 import net.dv8tion.jda.api.events.ReadyEvent
-import net.dv8tion.jda.api.events.interaction.command.MessageContextInteractionEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.EventListener
-import net.dv8tion.jda.api.interactions.components.ActionRow
-import net.dv8tion.jda.api.interactions.components.buttons.Button
 import org.slf4j.LoggerFactory
 import java.util.concurrent.*
 import kotlin.collections.HashMap
@@ -36,12 +32,13 @@ class CommandClient(
     private val ignoreBots: Boolean,
     private val eventListeners: List<CommandEventAdapter>,
     private val commandExecutor: ExecutorService?,
-    customOwnerIds: MutableSet<Long>
+    val ownerIds: MutableSet<Long>
 ) : EventListener {
     private val waiterScheduler = Executors.newSingleThreadScheduledExecutor()
     private val pendingEvents = hashMapOf<Class<*>, HashSet<WaitingEvent<*>>>()
     val commands = CommandRegistry()
-    val ownerIds = customOwnerIds
+
+    // TODO: Check Context type before invoking?
 
     private fun onMessageReceived(event: MessageReceivedEvent) {
         if (ignoreBots && (event.author.isBot || event.isWebhookMessage)) {
@@ -279,5 +276,11 @@ class CommandClient(
 
     companion object {
         private val log = LoggerFactory.getLogger(CommandClient::class.java)
+
+        fun builder() = CommandClientBuilder()
+
+        fun create(config: CommandClientBuilder.() -> Unit): CommandClient {
+            return CommandClientBuilder().apply(config).build()
+        }
     }
 }

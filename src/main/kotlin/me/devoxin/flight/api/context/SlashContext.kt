@@ -4,11 +4,12 @@ import kotlinx.coroutines.future.await
 import me.devoxin.flight.api.CommandClient
 import me.devoxin.flight.internal.entities.Executable
 import net.dv8tion.jda.api.JDA
-import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.interactions.InteractionHook
 import net.dv8tion.jda.api.interactions.components.Modal
+import net.dv8tion.jda.api.utils.messages.MessageCreateData
+import net.dv8tion.jda.api.utils.messages.MessageEditData
 import java.util.concurrent.CompletableFuture
 
 class SlashContext(
@@ -45,7 +46,7 @@ class SlashContext(
     }
 
     fun reply(content: String, ephemeral: Boolean = false) {
-        respond(MessageBuilder(content).build(), ephemeral)
+        respond(MessageCreateData.fromContent(content), ephemeral)
     }
 
     fun reply(modal: Modal) {
@@ -56,7 +57,7 @@ class SlashContext(
      * This will only call [SlashCommandInteractionEvent.reply], with no
      * special handling to account for acknowledged events.
      */
-    fun reply(message: Message, ephemeral: Boolean = false) {
+    fun reply(message: MessageCreateData, ephemeral: Boolean = false) {
         event.reply(message).setEphemeral(ephemeral).queue { replied = true }
     }
 
@@ -64,21 +65,21 @@ class SlashContext(
      * This will only call [SlashCommandInteractionEvent.reply], with no
      * special handling to account for acknowledged events.
      */
-    suspend fun replyAsync(message: Message, ephemeral: Boolean = false): InteractionHook {
+    suspend fun replyAsync(message: MessageCreateData, ephemeral: Boolean = false): InteractionHook {
         return event.reply(message).setEphemeral(ephemeral).submit().thenApply { replied = true; it }.await()
     }
 
     /**
      * This will only call [InteractionHook.sendMessage] with no special handling.
      */
-    fun send(message: Message, ephemeral: Boolean = false) {
+    fun send(message: MessageCreateData, ephemeral: Boolean = false) {
         event.hook.sendMessage(message).setEphemeral(ephemeral).queue()
     }
 
     /**
      * This will only call [InteractionHook.sendMessage] with no special handling.
      */
-    suspend fun sendAsync(message: Message, ephemeral: Boolean = false): Message {
+    suspend fun sendAsync(message: MessageCreateData, ephemeral: Boolean = false): Message {
         return event.hook.sendMessage(message).setEphemeral(ephemeral).submit().await()
     }
 
@@ -88,14 +89,14 @@ class SlashContext(
      * The [ephemeral] setting is ignored if the interaction is deferred.
      * Instead, the ephemeral setting when deferring is used. This is a Discord limitation.
      */
-    fun respond(message: Message, ephemeral: Boolean = false) {
+    fun respond(message: MessageCreateData, ephemeral: Boolean = false) {
         respond0(message, ephemeral)
     }
 
-    internal fun respond0(message: Message, ephemeral: Boolean = false): CompletableFuture<*> {
+    internal fun respond0(message: MessageCreateData, ephemeral: Boolean = false): CompletableFuture<*> {
         return when {
             replied -> event.hook.sendMessage(message).setEphemeral(ephemeral).submit()
-            deferred -> event.hook.editOriginal(message).submit().thenApply { replied = true }
+            deferred -> event.hook.editOriginal(MessageEditData.fromCreateData(message)).submit().thenApply { replied = true }
             else -> event.reply(message).setEphemeral(ephemeral).submit().thenApply { replied = true }
         }
     }

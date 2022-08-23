@@ -2,16 +2,16 @@ package me.devoxin.flight.api.context
 
 import kotlinx.coroutines.future.await
 import me.devoxin.flight.api.CommandClient
-import me.devoxin.flight.api.entities.Attachment
 import me.devoxin.flight.internal.entities.Executable
 import me.devoxin.flight.internal.utils.Scheduler
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.JDA
-import net.dv8tion.jda.api.MessageBuilder
 import net.dv8tion.jda.api.entities.*
 import net.dv8tion.jda.api.events.Event
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.requests.RestAction
+import net.dv8tion.jda.api.utils.FileUpload
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 import java.util.regex.Pattern
 
 class MessageContext(
@@ -48,7 +48,7 @@ class MessageContext(
      * @param attachment
      *        The attachment to send.
      */
-    fun send(attachment: Attachment) {
+    fun send(attachment: FileUpload) {
         send0(null, attachment).submit()
     }
 
@@ -82,7 +82,7 @@ class MessageContext(
      *
      * @return The created message.
      */
-    suspend fun sendAsync(attachment: Attachment): Message {
+    suspend fun sendAsync(attachment: FileUpload): Message {
         return send0(null, attachment).submit().await()
     }
 
@@ -112,21 +112,19 @@ class MessageContext(
             }
     }
 
-    private fun send0(messageOpts: (MessageBuilder.() -> Unit)? = null, vararg files: Attachment): RestAction<Message> {
+    private fun send0(messageOpts: (MessageCreateBuilder.() -> Unit)? = null, vararg files: FileUpload): RestAction<Message> {
         if (messageOpts == null && files.isEmpty()) {
             throw IllegalArgumentException("Cannot send a message with no options or attachments!")
         }
 
-        val builtMessage = messageOpts?.let(MessageBuilder()::apply)?.build()
-            ?: MessageBuilder().build()
+        val builder = MessageCreateBuilder()
+        messageOpts?.let(builder::apply)
 
-        return messageChannel.sendMessage(builtMessage).also {
-            if (files.isNotEmpty()) {
-                for (file in files) {
-                    it.addFile(file.stream, file.filename, *file.attachmentOptions)
-                }
-            }
+        files.takeIf { it.isNotEmpty() }?.let {
+            builder.addFiles(*it)
         }
+
+        return messageChannel.sendMessage(builder.build())
     }
 
     /**
