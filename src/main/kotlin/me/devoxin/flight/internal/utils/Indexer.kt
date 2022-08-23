@@ -128,7 +128,7 @@ class Indexer {
         val arguments = mutableListOf<Argument>()
 
         for (p in parameters) {
-            val name = p.findAnnotation<Name>()?.name ?: p.name ?: p.index.toString()
+            val name = p.findAnnotation<Name>()?.value ?: p.name ?: p.index.toString()
             val description = p.findAnnotation<Describe>()?.value ?: "No description available."
             val range = p.findAnnotation<Range>()
             val type = p.type.jvmErasure.javaObjectType
