@@ -11,6 +11,7 @@ import java.util.concurrent.ExecutorService
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.callSuspendBy
+import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.instanceParameter
 
 abstract class Executable(

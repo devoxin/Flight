@@ -28,7 +28,7 @@ interface CooldownProvider {
     fun isOnCooldown(id: Long, bucket: BucketType, command: CommandFunction): Boolean
 
     /**
-     * Gets the remaining time of the cooldown in milliseconds.
+     * Gets the remaining time of the cool-down in milliseconds.
      * This may either return 0L, or throw an exception if an entry isn't present, however
      * this should not happen as `isOnCooldown` should be called prior to this.
      *
@@ -44,14 +44,14 @@ interface CooldownProvider {
     fun getCooldownTime(id: Long, bucket: BucketType, command: CommandFunction): Long
 
     /**
-     * Adds a cooldown for the given entity ID.
+     * Adds a cool-down for the given entity ID.
      * It is up to you whether this passively, or actively removes expired cool-downs.
-     * When BucketType is `GUILD` and the command was invoked in a private context, this
+     * When [bucket] is [BucketType.GUILD] and the command was invoked in a private context, this
      * method won't be called.
      *
      * @param id
      *        The ID of the entity, that the cool-down should be associated with.
-     *        This ID could belong to a user or guild. If bucket is GLOBAL, this will be -1.
+     *        This ID could belong to a user or guild. If bucket is BucketType.GLOBAL, this will be -1.
      *
      * @param bucket
      *        The type of bucket the cool-down belongs to.
@@ -63,4 +63,12 @@ interface CooldownProvider {
      *        The command to set cool-down for.
      */
     fun setCooldown(id: Long, bucket: BucketType, time: Long, command: CommandFunction)
+
+    fun removeCooldown(id: Long, bucket: BucketType, command: CommandFunction)
+
+    fun clearCooldowns(command: CommandFunction)
+
+    fun clearCooldowns(id: Long, bucket: BucketType)
+
+    fun clearCooldowns()
 }

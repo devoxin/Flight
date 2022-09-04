@@ -28,7 +28,7 @@ import kotlin.reflect.KParameter
 
 class CommandClient(
     private val prefixProvider: PrefixProvider,
-    private val cooldownProvider: CooldownProvider,
+    val cooldownProvider: CooldownProvider,
     private val ignoreBots: Boolean,
     private val eventListeners: List<CommandEventAdapter>,
     private val commandExecutor: ExecutorService?,
