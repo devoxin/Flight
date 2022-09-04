@@ -1,8 +1,9 @@
 package me.devoxin.flight.api
 
+import me.devoxin.flight.api.arguments.types.Emoji
 import me.devoxin.flight.api.entities.*
-import me.devoxin.flight.api.entities.Invite
-import me.devoxin.flight.internal.arguments.types.Snowflake
+import me.devoxin.flight.api.arguments.types.Invite
+import me.devoxin.flight.api.arguments.types.Snowflake
 import me.devoxin.flight.api.hooks.CommandEventAdapter
 import me.devoxin.flight.internal.arguments.ArgParser
 import me.devoxin.flight.internal.parsers.*

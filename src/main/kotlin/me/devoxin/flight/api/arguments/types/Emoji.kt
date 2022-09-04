@@ -1,4 +1,4 @@
-package me.devoxin.flight.api.entities
+package me.devoxin.flight.api.arguments.types
 
 class Emoji(val name: String, val id: Long, val animated: Boolean) {
     val url: String

@@ -27,7 +27,5 @@ annotation class Command(
     // Whether this command should only be executed within guilds.
     val guildOnly: Boolean = false,
     // Whether to show this command in the help menu.
-    val hidden: Boolean = false,
-    // The contexts this command can be executed in. Message, Slash or both.
-    val executionContext: ContextType = ContextType.MESSAGE
+    val hidden: Boolean = false
 )

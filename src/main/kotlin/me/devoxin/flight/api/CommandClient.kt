@@ -12,7 +12,7 @@ import me.devoxin.flight.internal.entities.WaitingEvent
 import me.devoxin.flight.api.entities.CooldownProvider
 import me.devoxin.flight.api.hooks.CommandEventAdapter
 import me.devoxin.flight.api.entities.PrefixProvider
-import me.devoxin.flight.internal.entities.CommandRegistry
+import me.devoxin.flight.api.entities.CommandRegistry
 import net.dv8tion.jda.api.entities.StandardGuildMessageChannel
 import net.dv8tion.jda.api.events.Event
 import net.dv8tion.jda.api.events.GenericEvent
@@ -208,7 +208,7 @@ class CommandClient(
         val props = cmd.properties
 
         val contextType = ctx.contextType
-        if (props.executionContext != contextType && props.executionContext != ContextType.MESSAGE_OR_SLASH) {
+        if (cmd.contextType != contextType && cmd.contextType != ContextType.MESSAGE_OR_SLASH) {
             dispatchSafely { it.onCheckFailed(ctx, cmd, CheckType.EXECUTION_CONTEXT) }
             return false
         }

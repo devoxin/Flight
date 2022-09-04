@@ -3,6 +3,9 @@ package me.devoxin.flight.internal.entities
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import me.devoxin.flight.api.context.Context
+import me.devoxin.flight.api.context.ContextType
+import me.devoxin.flight.api.context.MessageContext
+import me.devoxin.flight.api.context.SlashContext
 import me.devoxin.flight.api.entities.Cog
 import me.devoxin.flight.internal.arguments.Argument
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
@@ -10,8 +13,8 @@ import net.dv8tion.jda.api.interactions.commands.OptionType
 import java.util.concurrent.ExecutorService
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
-import kotlin.reflect.full.callSuspendBy
-import kotlin.reflect.full.instanceParameter
+import kotlin.reflect.full.*
+import kotlin.reflect.jvm.jvmErasure
 
 abstract class Executable(
     val name: String,

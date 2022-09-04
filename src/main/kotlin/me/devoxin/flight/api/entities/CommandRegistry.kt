@@ -1,9 +1,9 @@
-package me.devoxin.flight.internal.entities
+package me.devoxin.flight.api.entities
 
 import me.devoxin.flight.api.CommandFunction
 import me.devoxin.flight.api.context.ContextType.SLASH
-import me.devoxin.flight.api.entities.Cog
 import me.devoxin.flight.internal.arguments.Argument
+import me.devoxin.flight.internal.entities.Jar
 import me.devoxin.flight.internal.utils.Indexer
 import net.dv8tion.jda.api.interactions.commands.build.CommandData
 import net.dv8tion.jda.api.interactions.commands.build.Commands
@@ -14,7 +14,7 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
     fun toDiscordCommands(): List<CommandData> {
         val commands = mutableListOf<CommandData>()
 
-        for (command in this.values.filter { it.properties.executionContext >= SLASH }) {
+        for (command in this.values.filter { it.contextType >= SLASH }) {
             val data = Commands.slash(command.name, command.properties.description)
             data.isGuildOnly = command.properties.guildOnly
 
