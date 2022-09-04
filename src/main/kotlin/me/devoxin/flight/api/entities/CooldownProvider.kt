@@ -64,11 +64,43 @@ interface CooldownProvider {
      */
     fun setCooldown(id: Long, bucket: BucketType, time: Long, command: CommandFunction)
 
+    /**
+     * Remove a cool-down for a command by entity ID and bucket type, if it exists.
+     *
+     * @param id
+     *        The ID of the entity associated with the cool-down to be removed.
+     *        This ID could belong to a user or guild. If bucket is BucketType.GLOBAL, this will be -1.
+     *
+     * @param bucket
+     *        The type of bucket the cool-down belongs to.
+     *
+     * @param command
+     *        The command to remove the cool-down for.
+     */
     fun removeCooldown(id: Long, bucket: BucketType, command: CommandFunction)
 
+    /**
+     * Removes all cool-downs for a single command.
+     *
+     * @param command
+     *        The command to remove the cool-downs for.
+     */
     fun clearCooldowns(command: CommandFunction)
 
+    /**
+     * Removes all cool-downs for the given entity ID and bucket type, if there are any.
+     *
+     * @param id
+     *        The ID of the entity associated with the cool-down to be removed.
+     *        This ID could belong to a user or guild. If bucket is BucketType.GLOBAL, this will be -1.
+     *
+     * @param bucket
+     *        The type of bucket the cool-down belongs to.
+     */
     fun clearCooldowns(id: Long, bucket: BucketType)
 
+    /**
+     * Clears all cool-downs stored in this provider.
+     */
     fun clearCooldowns()
 }
