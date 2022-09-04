@@ -4,6 +4,7 @@ import me.devoxin.flight.api.CommandClient
 import me.devoxin.flight.internal.entities.Executable
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.Guild
+import net.dv8tion.jda.api.entities.GuildMessageChannel
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.MessageChannel
 import net.dv8tion.jda.api.entities.User
@@ -33,6 +34,8 @@ interface Context {
     val guild: Guild?
     val member: Member?
     val messageChannel: MessageChannel
+    val guildChannel: GuildMessageChannel?
+    val isFromGuild: Boolean
 
     fun respond(content: String): CompletableFuture<*> {
         return asSlashContext?.respond0(MessageCreateData.fromContent(content))

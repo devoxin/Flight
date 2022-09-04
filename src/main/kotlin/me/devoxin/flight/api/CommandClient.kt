@@ -68,50 +68,12 @@ class CommandClient(
         }
 
         val ctx = MessageContext(this, event, trigger, invoked)
-        val props = cmd.properties
 
         if (isOnCooldown(cmd, ctx)) { // This function dispatches the event.
             return
         }
 
-        if (props.executionContext == ContextType.SLASH) {
-            return dispatchSafely { it.onCheckFailed(ctx, CheckType.EXECUTION_CONTEXT) }
-        }
-
-        if (props.developerOnly && !ownerIds.contains(event.author.idLong)) {
-            return dispatchSafely { it.onCheckFailed(ctx, CheckType.DEVELOPER_CHECK) }
-        }
-
-        if (!event.channelType.isGuild && props.guildOnly) {
-            return dispatchSafely { it.onCheckFailed(ctx, CheckType.GUILD_CHECK) }
-        }
-
-        if (event.channelType.isGuild) {
-            if (props.userPermissions.isNotEmpty()) {
-                val userCheck = props.userPermissions.filterNot { event.member!!.hasPermission(event.guildChannel, it) }
-
-                if (userCheck.isNotEmpty()) {
-                    return dispatchSafely { it.onUserMissingPermissions(ctx, cmd, userCheck) }
-                }
-            }
-
-            if (props.botPermissions.isNotEmpty()) {
-                val botCheck = props.botPermissions.filterNot { event.guild.selfMember.hasPermission(event.guildChannel, it) }
-
-                if (botCheck.isNotEmpty()) {
-                    return dispatchSafely { it.onBotMissingPermissions(ctx, cmd, botCheck) }
-                }
-            }
-
-            if (props.nsfw && (event.guildChannel as? StandardGuildMessageChannel)?.isNSFW != true) {
-                return dispatchSafely { it.onCheckFailed(ctx, CheckType.NSFW_CHECK) }
-            }
-        }
-
-        val shouldExecute = eventListeners.all { it.onCommandPreInvoke(ctx, cmd) }
-                && cmd.cog.localCheck(ctx, cmd)
-
-        if (!shouldExecute) {
+        if (!shouldExecuteCommand(ctx, cmd)) {
             return
         }
 
@@ -148,6 +110,10 @@ class CommandClient(
         val ctx = SlashContext(this, event, invoked)
 
         if (isOnCooldown(cmd, ctx)) {
+            return
+        }
+
+        if (!shouldExecuteCommand(ctx, cmd)) {
             return
         }
 
@@ -236,6 +202,57 @@ class CommandClient(
                 log.error("An uncaught exception occurred during event dispatch!", inner)
             }
         }
+    }
+
+    private fun shouldExecuteCommand(ctx: Context, cmd: CommandFunction): Boolean {
+        val props = cmd.properties
+
+        val contextType = ctx.contextType
+        if (props.executionContext != contextType && props.executionContext != ContextType.MESSAGE_OR_SLASH) {
+            dispatchSafely { it.onCheckFailed(ctx, cmd, CheckType.EXECUTION_CONTEXT) }
+            return false
+        }
+
+        if (props.developerOnly && !ownerIds.contains(ctx.author.idLong)) {
+            dispatchSafely { it.onCheckFailed(ctx, cmd, CheckType.DEVELOPER_CHECK) }
+            return false
+        }
+
+        if (!ctx.isFromGuild && props.guildOnly) {
+            dispatchSafely { it.onCheckFailed(ctx, cmd, CheckType.GUILD_CHECK) }
+            return false
+        }
+
+        if (ctx.isFromGuild) {
+            if (ctx is MessageContext) {
+                if (props.userPermissions.isNotEmpty()) {
+                    val userCheck =
+                        props.userPermissions.filterNot { ctx.member!!.hasPermission(ctx.guildChannel!!, it) }
+
+                    if (userCheck.isNotEmpty()) {
+                        dispatchSafely { it.onUserMissingPermissions(ctx.asMessageContext!!, cmd, userCheck) }
+                        return false
+                    }
+                }
+
+                if (props.botPermissions.isNotEmpty()) {
+                    val botCheck = props.botPermissions.filterNot { ctx.guild!!.selfMember.hasPermission(ctx.guildChannel!!, it) }
+
+                    if (botCheck.isNotEmpty()) {
+                        dispatchSafely { it.onBotMissingPermissions(ctx.asMessageContext!!, cmd, botCheck) }
+                        return false
+                    }
+                }
+            }
+
+            if (props.nsfw && (ctx.guildChannel as? StandardGuildMessageChannel)?.isNSFW != true) {
+                dispatchSafely { it.onCheckFailed(ctx, cmd, CheckType.NSFW_CHECK) }
+                return false
+            }
+        }
+
+        return eventListeners.all { it.onCommandPreInvoke(ctx, cmd) }
+            && cmd.cog.localCheck(ctx, cmd)
     }
 
     private fun isOnCooldown(cmd: CommandFunction, ctx: Context): Boolean {

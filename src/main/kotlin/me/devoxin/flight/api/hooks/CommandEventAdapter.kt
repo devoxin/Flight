@@ -12,7 +12,7 @@ interface CommandEventAdapter {
     /**
      * Invoked when a pre-execution check fails.
      */
-    fun onCheckFailed(ctx: Context, checkType: CheckType)
+    fun onCheckFailed(ctx: Context, command: CommandFunction, checkType: CheckType)
 
     /**
      * Invoked when an invalid argument is passed.

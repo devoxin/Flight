@@ -23,6 +23,8 @@ class SlashContext(
     override val guild = event.guild
     override val member = event.member
     override val messageChannel = event.channel
+    override val guildChannel = event.takeIf { it.isFromGuild }?.guildChannel
+    override val isFromGuild = event.isFromGuild
 
     var replied = false
         private set

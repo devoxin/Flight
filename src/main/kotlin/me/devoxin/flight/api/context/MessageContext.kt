@@ -26,6 +26,8 @@ class MessageContext(
     override val guild = event.takeIf { it.isFromGuild }?.guild
     override val member = event.member
     override val messageChannel = event.channel
+    override val guildChannel = event.takeIf { it.isFromGuild }?.guildChannel
+    override val isFromGuild = event.isFromGuild
 
     val message: Message = event.message
 
