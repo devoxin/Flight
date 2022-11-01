@@ -20,7 +20,7 @@ repositories {
 dependencies {
     def kotlinVersion = '1.7.10'
     def coroutinesVersion = '1.6.4'
-    def jdaVersion = '5.0.0-alpha.18'
+    def jdaVersion = '5.0.0-alpha.22'
 
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$coroutinesVersion"
