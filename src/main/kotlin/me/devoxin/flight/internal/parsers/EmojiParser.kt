@@ -1,15 +1,13 @@
 package me.devoxin.flight.internal.parsers
 
-import me.devoxin.flight.api.Context
-import me.devoxin.flight.api.entities.Emoji
+import me.devoxin.flight.api.context.MessageContext
+import me.devoxin.flight.api.arguments.types.Emoji
 import java.util.*
-import java.util.regex.Pattern
 
 class EmojiParser : Parser<Emoji> {
-
     // TODO: Support unicode emoji?
-    override fun parse(ctx: Context, param: String): Optional<Emoji> {
-        val match = EMOJI_REGEX.matcher(param)
+    override fun parse(ctx: MessageContext, param: String): Optional<Emoji> {
+        val match = EMOJI_PATTERN.matcher(param)
 
         if (match.find()) {
             val isAnimated = match.group(1) != null
@@ -23,7 +21,6 @@ class EmojiParser : Parser<Emoji> {
     }
 
     companion object {
-        val EMOJI_REGEX = Pattern.compile("<(a)?:(\\w+):(\\d{17,21})")!!
+        val EMOJI_PATTERN = "<(a)?:(\\w+):(\\d{17,21})".toPattern()
     }
-
 }

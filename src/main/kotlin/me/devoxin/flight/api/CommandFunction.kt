@@ -3,16 +3,16 @@ package me.devoxin.flight.api
 import me.devoxin.flight.api.annotations.Command
 import me.devoxin.flight.api.annotations.Cooldown
 import me.devoxin.flight.api.annotations.SubCommand
+import me.devoxin.flight.api.context.ContextType
+import me.devoxin.flight.api.context.MessageContext
+import me.devoxin.flight.api.context.SlashContext
 import me.devoxin.flight.internal.arguments.Argument
 import me.devoxin.flight.internal.entities.Jar
 import me.devoxin.flight.api.entities.Cog
 import me.devoxin.flight.internal.entities.Executable
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
-import kotlin.reflect.full.callSuspendBy
-import kotlin.reflect.full.functions
-import kotlin.reflect.full.hasAnnotation
-import kotlin.reflect.full.instanceParameter
+import kotlin.reflect.full.*
 
 class CommandFunction(
     name: String,
@@ -28,10 +28,18 @@ class CommandFunction(
     arguments: List<Argument>,
     contextParameter: KParameter
 ) : Executable(name, method, cog, arguments, contextParameter) {
-
+    val contextType: ContextType
     val subcommands = hashMapOf<String, SubCommandFunction>()
 
     init {
+        val jvmCtx = contextParameter.type
+
+        contextType = when {
+            jvmCtx.isSubtypeOf(SlashContext::class.starProjectedType) -> ContextType.SLASH
+            jvmCtx.isSubtypeOf(MessageContext::class.starProjectedType) -> ContextType.MESSAGE
+            else -> ContextType.MESSAGE_OR_SLASH
+        }
+
         for (sc in subCmds) {
             val triggers = listOf(sc.name, *sc.properties.aliases)
 
@@ -44,5 +52,4 @@ class CommandFunction(
             }
         }
     }
-
 }

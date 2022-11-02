@@ -1,14 +1,12 @@
 package me.devoxin.flight.internal.parsers
 
-import me.devoxin.flight.api.Context
-import me.devoxin.flight.internal.arguments.types.Snowflake
+import me.devoxin.flight.api.context.MessageContext
+import me.devoxin.flight.api.arguments.types.Snowflake
 import java.util.*
-import java.util.regex.Pattern
 
 class SnowflakeParser : Parser<Snowflake> {
-
-    override fun parse(ctx: Context, param: String): Optional<Snowflake> {
-        val match = snowflakeMatch.matcher(param)
+    override fun parse(ctx: MessageContext, param: String): Optional<Snowflake> {
+        val match = SNOWFLAKE_PATTERN.matcher(param)
 
         if (match.matches()) {
             val id = match.group("sid") ?: match.group("id")
@@ -19,7 +17,6 @@ class SnowflakeParser : Parser<Snowflake> {
     }
 
     companion object {
-        private val snowflakeMatch = Pattern.compile("^(?:<(?:@!?|@&|#)(?<sid>[0-9]{17,21})>|(?<id>[0-9]{17,21}))$")
+        val SNOWFLAKE_PATTERN = "^(?:<(?:@!?|@&|#)(?<sid>\\d{17,21})>|(?<id>\\d{17,21}))$".toPattern()
     }
-
 }

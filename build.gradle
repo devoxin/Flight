@@ -1,49 +1,45 @@
-buildscript {
-    ext.kotlin_stdlib = '1.3.72'
-    ext.kotlin_coroutines = '1.0.1'
-
-    repositories {
-        jcenter()
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.2'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_stdlib"
-    }
+plugins {
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id 'org.jetbrains.kotlin.jvm' version '1.6.21'
+    id 'maven-publish'
 }
 
-apply plugin: 'kotlin'
-apply plugin: 'com.github.johnrengelman.shadow'
-
 group 'me.devoxin'
-version '2.1.0'
-sourceCompatibility = 1.8
+version '3.0.0'
 
 repositories {
-    jcenter()
+    maven {
+        url 'https://m2.dv8tion.net/releases'
+        name 'm2-dv8tion'
+    }
     mavenCentral()
+    jcenter()
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_stdlib"
-    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_stdlib"
-    compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutines"
-    compile "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$kotlin_coroutines"
+    def kotlinVersion = '1.7.10'
+    def coroutinesVersion = '1.6.4'
+    def jdaVersion = '5.0.0-alpha.22'
 
-    compile 'org.reflections:reflections:0.9.11'
-    compileOnly 'net.dv8tion:JDA:4.0.0_52'
-    api 'org.slf4j:slf4j-api:1.7.25'
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$coroutinesVersion"
+    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
+    implementation 'org.reflections:reflections:0.10.2'
+    compileOnly "net.dv8tion:JDA:$jdaVersion"
+    api 'org.slf4j:slf4j-api:1.7.36'
+
+    testImplementation "net.dv8tion:JDA:$jdaVersion"
 }
 
 compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = '1.8'
 }
 
-def getBuildVersion() {
+String getBuildVersion() {
     def gitVersion = new ByteArrayOutputStream()
     exec {
-        commandLine("git", "rev-parse", "--short", "HEAD")
+        commandLine('git', 'rev-parse', '--short', 'HEAD')
         standardOutput = gitVersion
     }
     return "$version\n${gitVersion.toString().trim()}"
@@ -60,6 +56,29 @@ task writeVersion() {
     file("$resourcePath/flight.txt").text = getBuildVersion()
 }
 
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        mavenLocal()
+    }
+}
+
+task mavenPublishTask {
+    doLast {
+        publishToMavenLocal
+    }
+}
+
 build {
     dependsOn writeVersion
+    finalizedBy(mavenPublishTask)
+}
+
+shadowJar {
+    dependsOn writeVersion
+    finalizedBy(mavenPublishTask)
 }

@@ -1,8 +1,8 @@
 package me.devoxin.flight.api.entities
 
 import me.devoxin.flight.api.CommandFunction
-import me.devoxin.flight.api.Context
-import me.devoxin.flight.internal.entities.Executable
+import me.devoxin.flight.api.context.Context
+import me.devoxin.flight.api.context.MessageContext
 
 interface Cog {
 

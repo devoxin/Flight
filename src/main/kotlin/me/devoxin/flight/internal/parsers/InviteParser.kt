@@ -1,14 +1,12 @@
 package me.devoxin.flight.internal.parsers
 
-import me.devoxin.flight.api.Context
-import me.devoxin.flight.api.entities.Invite
+import me.devoxin.flight.api.context.MessageContext
+import me.devoxin.flight.api.arguments.types.Invite
 import java.util.*
-import java.util.regex.Pattern
 
 class InviteParser : Parser<Invite> {
-
-    override fun parse(ctx: Context, param: String): Optional<Invite> {
-        val match = INVITE_REGEX.matcher(param)
+    override fun parse(ctx: MessageContext, param: String): Optional<Invite> {
+        val match = INVITE_PATTERN.matcher(param)
 
         if (match.find()) {
             val code = match.group(1)
@@ -19,7 +17,6 @@ class InviteParser : Parser<Invite> {
     }
 
     companion object {
-        val INVITE_REGEX = Pattern.compile("discord(?:(?:app)?\\.com/invite|\\.gg)/([a-zA-Z0-9]{1,16})")!!
+        val INVITE_PATTERN = "discord(?:(?:app)?\\.com/invite|\\.gg)/([a-zA-Z\\d]{1,16})".toPattern()
     }
-
 }

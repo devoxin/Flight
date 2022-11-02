@@ -1,6 +1,6 @@
 package me.devoxin.flight.internal.utils
 
-object TextSplitter {
+object TextUtils {
     fun split(content: String, limit: Int = 2000): List<String> {
         val pages = mutableListOf<String>()
 
@@ -32,4 +32,6 @@ object TextSplitter {
 
         return pages.toList()
     }
+
+    fun capitalise(s: String): String = s.lowercase().replaceFirstChar { it.uppercase() }
 }

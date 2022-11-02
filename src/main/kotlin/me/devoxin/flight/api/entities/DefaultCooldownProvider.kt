@@ -21,6 +21,23 @@ class DefaultCooldownProvider : CooldownProvider {
         buckets.computeIfAbsent(bucket) { Bucket() }.setCooldown(id, time, command.name)
     }
 
+    override fun removeCooldown(id: Long, bucket: BucketType, command: CommandFunction) {
+        buckets[bucket]?.removeCooldown(id, command.name)
+    }
+
+    override fun clearCooldowns(command: CommandFunction) {
+        buckets.values.forEach { it.clearCooldown(command.name) }
+    }
+
+    override fun clearCooldowns(id: Long, bucket: BucketType) {
+        buckets[bucket]?.clearCooldowns(id)
+    }
+
+    override fun clearCooldowns() {
+        buckets.values.forEach { it.empty() }
+    }
+
+
     inner class Bucket {
         private val sweeperThread = Executors.newSingleThreadScheduledExecutor()
         private val cooldowns = ConcurrentHashMap<Long, MutableSet<Cooldown>>() // EntityID => [Commands...]
@@ -42,6 +59,22 @@ class DefaultCooldownProvider : CooldownProvider {
             cds.add(cooldown)
 
             sweeperThread.schedule({ cds.remove(cooldown) }, time, TimeUnit.MILLISECONDS)
+        }
+
+        fun removeCooldown(id: Long, commandName: String) {
+            cooldowns[id]?.removeIf { it.name == commandName }
+        }
+
+        fun clearCooldown(commandName: String) {
+            cooldowns.values.forEach { it.removeIf { cd -> cd.name == commandName } }
+        }
+
+        fun clearCooldowns(id: Long) {
+            cooldowns.remove(id)
+        }
+
+        fun empty() {
+            cooldowns.clear()
         }
     }
 

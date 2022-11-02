@@ -2,46 +2,35 @@ package me.devoxin.flight.api.entities
 
 import me.devoxin.flight.api.annotations.Command
 import me.devoxin.flight.api.CommandFunction
-import me.devoxin.flight.api.Context
-import me.devoxin.flight.internal.utils.TextSplitter
+import me.devoxin.flight.api.context.MessageContext
+import me.devoxin.flight.internal.utils.TextUtils
 
 open class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
 
     override fun name() = "No Category"
 
     @Command(aliases = ["commands", "cmds"], description = "Displays bot help.")
-    open suspend fun help(ctx: Context, command: String?) {
-        val pages = if (command == null) {
-            buildCommandList(ctx)
-        } else {
+    open suspend fun help(ctx: MessageContext, command: String?) {
+        val pages = command?.let {
             val commands = ctx.commandClient.commands
-            val cmd = commands.findCommandByName(command)
-                ?: commands.findCommandByAlias(command)
+            val cmd = commands.findCommandByName(it)
+                ?: commands.findCommandByAlias(it)
 
-            if (cmd != null) {
-                buildCommandHelp(ctx, cmd)
-            } else {
-                val cog = commands.findCogByName(command)
-                    ?: return ctx.send("No commands or cogs found with that name.")
+            when {
+                cmd != null -> buildCommandHelp(ctx, cmd)
+                else -> commands.findCogByName(command)?.let { cog -> buildCogHelp(ctx, cog) }
+            } ?: return ctx.send("No commands or cogs found with that name.")
 
-                buildCogHelp(ctx, cog)
-            }
-        }
+        } ?: buildCommandList(ctx)
 
         sendPages(ctx, pages)
     }
 
-    open fun buildCommandList(ctx: Context): List<String> {
-        val categories = hashMapOf<String, HashSet<CommandFunction>>()
+    open fun buildCommandList(ctx: MessageContext): List<String> {
         val helpMenu = StringBuilder()
         val commands = ctx.commandClient.commands.values.filter { !it.properties.hidden }
-        val padLength = ctx.commandClient.commands.values.maxBy { it.name.length }!!.name.length
-
-        for (command in commands) {
-            val category = command.category.toLowerCase()
-            val list = categories.computeIfAbsent(category) { hashSetOf() }
-            list.add(command)
-        }
+        val padLength = ctx.commandClient.commands.values.maxByOrNull { it.name.length }!!.name.length
+        val categories = commands.groupBy { it.category.lowercase() }.mapValues { it.value.toSet() }
 
         for (entry in categories.entries.sortedBy { it.key }) {
             helpMenu.append(toTitleCase(entry.key)).append("\n")
@@ -59,10 +48,10 @@ open class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
             }
         }
 
-        return TextSplitter.split(helpMenu.toString().trim(), 1990)
+        return TextUtils.split(helpMenu.toString().trim(), 1990)
     }
 
-    open fun buildCommandHelp(ctx: Context, command: CommandFunction): List<String> {
+    open fun buildCommandHelp(ctx: MessageContext, command: CommandFunction): List<String> {
         val builder = StringBuilder()
 
         val trigger = if (ctx.trigger.matches("<@!?${ctx.jda.selfUser.id}> ".toRegex())) "@${ctx.jda.selfUser.name} " else ctx.trigger
@@ -87,10 +76,10 @@ open class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
         return listOf(builder.toString())
     }
 
-    open fun buildCogHelp(ctx: Context, cog: Cog): List<String> {
+    open fun buildCogHelp(ctx: MessageContext, cog: Cog): List<String> {
         val builder = StringBuilder("Commands in ${cog::class.simpleName}\n")
         val commands = ctx.commandClient.commands.findCommandsByCog(cog).filter { !it.properties.hidden }
-        val padLength = ctx.commandClient.commands.values.maxBy { it.name.length }!!.name.length
+        val padLength = ctx.commandClient.commands.values.maxByOrNull { it.name.length }!!.name.length
 
         for (command in commands) {
             builder.apply {
@@ -101,25 +90,21 @@ open class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
             }
         }
 
-        return TextSplitter.split(builder.toString(), 1990)
+        return TextUtils.split(builder.toString(), 1990)
     }
 
     // TODO: Subcommand help
 
-    open suspend fun sendPages(ctx: Context, pages: Collection<String>) {
+    open suspend fun sendPages(ctx: MessageContext, pages: Collection<String>) {
         for (page in pages) {
             ctx.sendAsync("```\n$page```")
         }
     }
 
-    private fun toTitleCase(s: String) = s.split(" +".toRegex()).joinToString(" ") { it.toLowerCase().capitalize() }
+    private fun toTitleCase(s: String) = s.split(" +".toRegex()).joinToString(" ", transform = TextUtils::capitalise)
 
     private fun truncate(s: String, maxLength: Int): String {
-        if (s.length > maxLength) {
-            return s.substring(0, maxLength - 3) + "..."
-        }
-
-        return s
+        return s.takeUnless { it.length > maxLength } ?: (s.take(maxLength - 3) + "...")
     }
 
 }
