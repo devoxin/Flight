@@ -12,6 +12,6 @@ package me.devoxin.flight.api.annotations
 @Target(AnnotationTarget.VALUE_PARAMETER)
 annotation class Range(
     val long: LongArray = [], // e.g. 0, 5
-    val double: DoubleArray = [] // e.g. 0.0, 5.0
-    //val string: IntArray = []
+    val double: DoubleArray = [], // e.g. 0.0, 5.0
+    val string: IntArray = []
 )

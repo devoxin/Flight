@@ -47,14 +47,19 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
             val option = OptionData(type, it.slashFriendlyName, it.description, required)
 
             it.range?.let { r ->
-                r.double.takeIf { t -> t.isNotEmpty() }?.let { range ->
+                r.double.takeIf(DoubleArray::isNotEmpty)?.let { range ->
                     option.setMinValue(range[0])
                     range.elementAtOrNull(1)?.let(option::setMaxValue)
                 }
 
-                r.long.takeIf { t -> t.isNotEmpty() }?.let { range ->
+                r.long.takeIf(LongArray::isNotEmpty)?.let { range ->
                     option.setMinValue(range[0])
                     range.elementAtOrNull(1)?.let(option::setMaxValue)
+                }
+
+                r.string.takeIf(IntArray::isNotEmpty)?.let { range ->
+                    option.setMinLength(range[0])
+                    range.elementAtOrNull(1)?.let(option::setMaxLength)
                 }
             }
 
