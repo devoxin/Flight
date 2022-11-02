@@ -1,10 +1,66 @@
-package me.devoxin.flight.internal.entities
+package me.devoxin.flight.api.entities
 
 import me.devoxin.flight.api.CommandFunction
-import me.devoxin.flight.api.entities.Cog
+import me.devoxin.flight.api.context.ContextType.SLASH
+import me.devoxin.flight.internal.arguments.Argument
+import me.devoxin.flight.internal.entities.Jar
 import me.devoxin.flight.internal.utils.Indexer
+import net.dv8tion.jda.api.interactions.commands.build.CommandData
+import net.dv8tion.jda.api.interactions.commands.build.Commands
+import net.dv8tion.jda.api.interactions.commands.build.OptionData
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData
 
 class CommandRegistry : HashMap<String, CommandFunction>() {
+    fun toDiscordCommands(): List<CommandData> {
+        val commands = mutableListOf<CommandData>()
+
+        for (command in this.values.filter { it.contextType >= SLASH }) {
+            val data = Commands.slash(command.name, command.properties.description)
+            data.isGuildOnly = command.properties.guildOnly
+
+            if (command.subcommands.isNotEmpty()) {
+                for (sc in command.subcommands.values) {
+                    val scData = SubcommandData(sc.name, sc.properties.description)
+
+                    if (sc.arguments.isNotEmpty()) {
+                        val options = getArgumentsAsOptions(sc.arguments)
+                        scData.addOptions(options)
+                    }
+
+                    data.addSubcommands(scData)
+                }
+            } else if (command.arguments.isNotEmpty()) {
+                val options = getArgumentsAsOptions(command.arguments)
+                data.addOptions(options)
+            }
+
+            commands.add(data)
+        }
+
+        return commands
+    }
+
+    private fun getArgumentsAsOptions(arguments: List<Argument>): List<OptionData> {
+        return arguments.map {
+            val (type, required) = it.asSlashCommandType()
+
+            val option = OptionData(type, it.slashFriendlyName, it.description, required)
+
+            it.range?.let { r ->
+                r.double.takeIf { t -> t.isNotEmpty() }?.let { range ->
+                    option.setMinValue(range[0])
+                    range.elementAtOrNull(1)?.let(option::setMaxValue)
+                }
+
+                r.long.takeIf { t -> t.isNotEmpty() }?.let { range ->
+                    option.setMinValue(range[0])
+                    range.elementAtOrNull(1)?.let(option::setMaxValue)
+                }
+            }
+
+            option
+        }
+    }
 
     fun findCommandByName(name: String): CommandFunction? {
         return this[name]
@@ -48,7 +104,6 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
         jar.close()
     }
 
-    @ExperimentalStdlibApi
     fun register(packageName: String) {
         val indexer = Indexer(packageName)
 
@@ -57,7 +112,6 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
         }
     }
 
-    @ExperimentalStdlibApi
     fun register(jarPath: String, packageName: String) {
         val indexer = Indexer(packageName, jarPath)
 
@@ -66,7 +120,6 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
         }
     }
 
-    @ExperimentalStdlibApi
     fun register(cog: Cog, indexer: Indexer? = null) {
         val i = indexer ?: Indexer(cog::class.java.`package`.name)
         val commands = i.getCommands(cog)

@@ -1,24 +1,20 @@
 package me.devoxin.flight.internal.parsers
 
-import me.devoxin.flight.api.Context
+import me.devoxin.flight.api.context.MessageContext
 import net.dv8tion.jda.api.entities.Role
 import java.util.*
 
 class RoleParser : Parser<Role> {
+    override fun parse(ctx: MessageContext, param: String): Optional<Role> {
+        val snowflake = snowflakeParser.parse(ctx, param).takeIf { it.isPresent }?.get()?.resolved
 
-    override fun parse(ctx: Context, param: String): Optional<Role> {
-        val snowflake = snowflakeParser.parse(ctx, param)
-        val role: Role? = if (snowflake.isPresent) {
-            ctx.guild?.getRoleById(snowflake.get().resolved)
-        } else {
-            ctx.guild?.roleCache?.firstOrNull { it.name == param }
+        return when {
+            snowflake != null -> Optional.ofNullable(ctx.guild?.getRoleById(snowflake))
+            else -> Optional.ofNullable(ctx.guild?.roleCache?.firstOrNull { it.name == param })
         }
-
-        return Optional.ofNullable(role)
     }
 
     companion object {
-        val snowflakeParser = SnowflakeParser() // We can reuse this
+        private val snowflakeParser = SnowflakeParser() // We can reuse this
     }
-
 }

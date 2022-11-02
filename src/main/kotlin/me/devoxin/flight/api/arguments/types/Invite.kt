@@ -1,4 +1,4 @@
-package me.devoxin.flight.api.entities
+package me.devoxin.flight.api.arguments.types
 
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.Invite

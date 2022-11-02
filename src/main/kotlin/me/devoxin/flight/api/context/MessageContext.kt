@@ -1,34 +1,40 @@
-package me.devoxin.flight.api
+package me.devoxin.flight.api.context
 
 import kotlinx.coroutines.future.await
-import me.devoxin.flight.api.entities.Attachment
+import me.devoxin.flight.api.CommandClient
 import me.devoxin.flight.internal.entities.Executable
 import me.devoxin.flight.internal.utils.Scheduler
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.*
+import net.dv8tion.jda.api.entities.channel.concrete.PrivateChannel
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.events.Event
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import net.dv8tion.jda.api.requests.RestAction
+import net.dv8tion.jda.api.utils.FileUpload
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 import java.util.regex.Pattern
 
-class Context(
-    val commandClient: CommandClient,
+class MessageContext(
+    override val commandClient: CommandClient,
     event: MessageReceivedEvent,
     val trigger: String,
-    val invokedCommand: Executable
-) {
-    val jda: JDA = event.jda
+    override val invokedCommand: Executable
+) : Context {
+    override val contextType = ContextType.MESSAGE
+    override val jda: JDA = event.jda
+    override val author = event.author
+    override val guild = event.takeIf { it.isFromGuild }?.guild
+    override val member = event.member
+    override val messageChannel = event.channel
+    override val guildChannel = event.takeIf { it.isFromGuild }?.guildChannel
+    override val isFromGuild = event.isFromGuild
+
     val message: Message = event.message
 
-    val author: User = event.author
-
-    val guild: Guild? = if (event.isFromGuild) event.guild else null
-    val member: Member? = event.member
-
-    val textChannel: TextChannel? = if (event.isFromType(ChannelType.TEXT)) event.textChannel else null
-    val privateChannel: PrivateChannel? = if (event.isFromType(ChannelType.PRIVATE)) event.privateChannel else null
-    val messageChannel: MessageChannel = event.channel
-
+    val textChannel: TextChannel? = messageChannel as? TextChannel
+    val privateChannel: PrivateChannel? = messageChannel as? PrivateChannel
 
     /**
      * Sends a message embed to the channel the Context was created from.
@@ -36,8 +42,8 @@ class Context(
      * @param content
      *        The content of the message.
      */
-    fun send(content: String) {
-        messageChannel.sendMessage(content).submit()
+    override fun send(content: String) {
+        send0({ setContent(content) }).submit()
     }
 
     /**
@@ -46,8 +52,8 @@ class Context(
      * @param attachment
      *        The attachment to send.
      */
-    fun send(attachment: Attachment) {
-        messageChannel.sendFile(attachment.stream, attachment.filename).submit()
+    fun send(attachment: FileUpload) {
+        send0(null, attachment).submit()
     }
 
     /**
@@ -57,7 +63,7 @@ class Context(
      *        Options to apply to the message embed.
      */
     fun send(embed: EmbedBuilder.() -> Unit) {
-        messageChannel.sendMessage(EmbedBuilder().apply(embed).build()).submit()
+        send0({ setEmbeds(EmbedBuilder().apply(embed).build()) }).submit()
     }
 
     /**
@@ -69,7 +75,7 @@ class Context(
      * @return The created message.
      */
     suspend fun sendAsync(content: String): Message {
-        return messageChannel.sendMessage(content).submit().await()
+        return send0({ setContent(content) }).submit().await()
     }
 
     /**
@@ -80,8 +86,8 @@ class Context(
      *
      * @return The created message.
      */
-    suspend fun sendAsync(attachment: Attachment): Message {
-        return messageChannel.sendFile(attachment.stream, attachment.filename).submit().await()
+    suspend fun sendAsync(attachment: FileUpload): Message {
+        return send0(null, attachment).submit().await()
     }
 
     /**
@@ -93,7 +99,7 @@ class Context(
      * @return The created message.
      */
     suspend fun sendAsync(embed: EmbedBuilder.() -> Unit): Message {
-        return messageChannel.sendMessage(EmbedBuilder().apply(embed).build()).submit().await()
+        return send0({ setEmbeds(EmbedBuilder().apply(embed).build()) }).submit().await()
     }
 
     /**
@@ -106,8 +112,23 @@ class Context(
         author.openPrivateChannel().submit()
             .thenAccept {
                 it.sendMessage(content).submit()
-                    .handle { _, _ -> it.close().submit() }
+                    .handle { _, _ -> it.delete().submit() }
             }
+    }
+
+    private fun send0(messageOpts: (MessageCreateBuilder.() -> Unit)? = null, vararg files: FileUpload): RestAction<Message> {
+        if (messageOpts == null && files.isEmpty()) {
+            throw IllegalArgumentException("Cannot send a message with no options or attachments!")
+        }
+
+        val builder = MessageCreateBuilder()
+        messageOpts?.let(builder::apply)
+
+        files.takeIf { it.isNotEmpty() }?.let {
+            builder.addFiles(*it)
+        }
+
+        return messageChannel.sendMessage(builder.build())
     }
 
     /**
@@ -176,7 +197,7 @@ class Context(
      */
     fun cleanContent(str: String): String {
         var content = str.replace("e", "е")
-        // We use a russian "e" instead of \u200b as it keeps character count the same.
+        // We use a Cyrillic "e" instead of \u200b as it keeps character count the same.
         val matcher = mentionPattern.matcher(str)
 
         while (matcher.find()) {
@@ -202,7 +223,7 @@ class Context(
             }
         }
 
-        for (emote in message.emotes) {
+        for (emote in message.mentions.customEmojis) {
             content = content.replace(emote.asMention, ":${emote.name}:")
         }
 

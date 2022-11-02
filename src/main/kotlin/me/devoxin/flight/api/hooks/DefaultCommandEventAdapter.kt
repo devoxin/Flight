@@ -1,12 +1,17 @@
 package me.devoxin.flight.api.hooks
 
 import me.devoxin.flight.api.CommandFunction
-import me.devoxin.flight.api.Context
+import me.devoxin.flight.api.context.Context
+import me.devoxin.flight.api.context.MessageContext
+import me.devoxin.flight.api.entities.CheckType
 import me.devoxin.flight.api.exceptions.BadArgument
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 
-abstract class DefaultCommandEventAdapter : CommandEventAdapter {
+open class DefaultCommandEventAdapter : CommandEventAdapter {
+    override fun onCheckFailed(ctx: Context, command: CommandFunction, checkType: CheckType) {
+    }
+
     override fun onBadArgument(ctx: Context, command: CommandFunction, error: BadArgument) {
         error.printStackTrace()
     }
@@ -29,9 +34,9 @@ abstract class DefaultCommandEventAdapter : CommandEventAdapter {
 
     override fun onCommandCooldown(ctx: Context, command: CommandFunction, cooldown: Long) {}
 
-    override fun onBotMissingPermissions(ctx: Context, command: CommandFunction, permissions: List<Permission>) {}
+    override fun onBotMissingPermissions(ctx: MessageContext, command: CommandFunction, permissions: List<Permission>) {}
 
-    override fun onUserMissingPermissions(ctx: Context, command: CommandFunction, permissions: List<Permission>) {}
+    override fun onUserMissingPermissions(ctx: MessageContext, command: CommandFunction, permissions: List<Permission>) {}
 
     override fun onUnknownCommand(event: MessageReceivedEvent, command: String, args: List<String>) {
     }

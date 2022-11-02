@@ -1,12 +1,19 @@
 package me.devoxin.flight.api.hooks
 
 import me.devoxin.flight.api.CommandFunction
-import me.devoxin.flight.api.Context
+import me.devoxin.flight.api.context.Context
+import me.devoxin.flight.api.context.MessageContext
+import me.devoxin.flight.api.entities.CheckType
 import me.devoxin.flight.api.exceptions.BadArgument
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 
 interface CommandEventAdapter {
+    /**
+     * Invoked when a pre-execution check fails.
+     */
+    fun onCheckFailed(ctx: Context, command: CommandFunction, checkType: CheckType)
+
     /**
      * Invoked when an invalid argument is passed.
      */
@@ -74,10 +81,10 @@ interface CommandEventAdapter {
     /**
      * Invoked when a user lacks permissions to execute a command
      */
-    fun onUserMissingPermissions(ctx: Context, command: CommandFunction, permissions: List<Permission>)
+    fun onUserMissingPermissions(ctx: MessageContext, command: CommandFunction, permissions: List<Permission>)
 
     /**
      * Invoked when the bot lacks permissions to execute a command
      */
-    fun onBotMissingPermissions(ctx: Context, command: CommandFunction, permissions: List<Permission>)
+    fun onBotMissingPermissions(ctx: MessageContext, command: CommandFunction, permissions: List<Permission>)
 }

@@ -1,12 +1,18 @@
 package me.devoxin.flight.api
 
+import me.devoxin.flight.api.arguments.types.Emoji
+import me.devoxin.flight.api.arguments.types.Invite
+import me.devoxin.flight.api.arguments.types.Snowflake
 import me.devoxin.flight.api.entities.*
-import me.devoxin.flight.api.entities.Invite
-import me.devoxin.flight.internal.arguments.types.Snowflake
 import me.devoxin.flight.api.hooks.CommandEventAdapter
+import me.devoxin.flight.api.hooks.DefaultCommandEventAdapter
 import me.devoxin.flight.internal.arguments.ArgParser
 import me.devoxin.flight.internal.parsers.*
-import net.dv8tion.jda.api.entities.*
+import net.dv8tion.jda.api.entities.Member
+import net.dv8tion.jda.api.entities.Role
+import net.dv8tion.jda.api.entities.User
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
+import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel
 import java.net.URL
 import java.util.concurrent.ExecutorService
 
@@ -204,8 +210,11 @@ class CommandClientBuilder {
      *
      * @return a CommandClient instance
      */
-    @ExperimentalStdlibApi
     fun build(): CommandClient {
+        if (eventListeners.isEmpty()) {
+            eventListeners.add(DefaultCommandEventAdapter())
+        }
+
         val prefixProvider = this.prefixProvider ?: DefaultPrefixProvider(prefixes, allowMentionPrefix)
         val cooldownProvider = this.cooldownProvider ?: DefaultCooldownProvider()
         val commandClient = CommandClient(prefixProvider, cooldownProvider, ignoreBots, eventListeners.toList(),

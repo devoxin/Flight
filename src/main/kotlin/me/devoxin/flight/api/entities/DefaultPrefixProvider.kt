@@ -8,15 +8,15 @@ class DefaultPrefixProvider(
 ) : PrefixProvider {
 
     override fun provide(message: Message): List<String> {
-        val prefixes = mutableListOf<String>()
+        val prefixes = mutableListOf<String>().apply {
+            addAll(this@DefaultPrefixProvider.prefixes)
+        }
 
         if (allowMentionPrefix) {
             val selfUserId = message.jda.selfUser.id
             prefixes.add("<@$selfUserId> ")
             prefixes.add("<@!$selfUserId> ")
         }
-
-        prefixes.addAll(this.prefixes)
 
         return prefixes.toList()
     }
