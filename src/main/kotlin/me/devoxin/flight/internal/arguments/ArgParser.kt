@@ -5,6 +5,7 @@ import me.devoxin.flight.api.exceptions.BadArgument
 import me.devoxin.flight.api.exceptions.ParserNotRegistered
 import me.devoxin.flight.internal.entities.Executable
 import me.devoxin.flight.internal.parsers.Parser
+import me.devoxin.flight.internal.utils.TextUtils
 import java.util.*
 import kotlin.reflect.KParameter
 
@@ -121,24 +122,36 @@ class ArgParser(
 
     private fun checkRange(arg: Argument, parsed: Optional<out Any?>): Pair<Boolean, String?> {
         arg.range ?: return true to null
-        val num = parsed.orElse(null) as? Number ?: return false to null
+        val res = parsed.orElse(null)
+
+        if (res !is Number && res !is String) {
+            return false to null
+        }
 
         val double = arg.range.double
         val long = arg.range.long
+        val string = arg.range.string
 
-        if (double.isNotEmpty()) {
-            val dbl = num.toDouble()
+        if (double.isNotEmpty() && res is Number) {
+            val dbl = res.toDouble()
             return when (double.size) {
-                1 -> (dbl >= double[0]) to "`${arg.name}` must be at least ${double[0]} or bigger"
-                2 -> (dbl >= double[0] && dbl <= double[1]) to "`${arg.name}` be within range ${double.joinToString("-")}"
+                1 -> (dbl >= double[0]) to "`${arg.name}` must be at least ${double[0]} or bigger."
+                2 -> (dbl >= double[0] && dbl <= double[1]) to "`${arg.name}` must be within range ${double.joinToString("-")}."
                 else -> false to "<Invalid range for `${arg.name}:double`>"
             }
-        } else if (long.isNotEmpty()) {
-            val lng = num.toLong()
+        } else if (long.isNotEmpty() && res is Number) {
+            val lng = res.toLong()
             return when (long.size) {
-                1 -> (lng >= long[0]) to "`${arg.name}` must be at least ${long[0]} or bigger"
-                2 -> (lng >= long[0] && lng <= long[1]) to "`${arg.name}` be within range ${long.joinToString("-")}"
+                1 -> (lng >= long[0]) to "`${arg.name}` must be at least ${long[0]} or bigger."
+                2 -> (lng >= long[0] && lng <= long[1]) to "`${arg.name}` must be within range ${long.joinToString("-")}."
                 else -> false to "<Invalid range for `${arg.name}:long`>"
+            }
+        } else if (string.isNotEmpty() && res is String) {
+            val lth = res.length
+            return when (string.size) {
+                1 -> (lth >= string[0]) to "`${arg.name}` must be at least ${string[0]} character${TextUtils.plural(string[0])} or longer."
+                2 -> (lth >= string[0] && lth <= string[1]) to "`${arg.name}` must be within the range of ${string.joinToString("-")} characters."
+                else -> false to "<Invalid range for `${arg.name}:string`>"
             }
         }
 
