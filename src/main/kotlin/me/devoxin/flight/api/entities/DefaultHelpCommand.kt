@@ -11,37 +11,26 @@ open class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
 
     @Command(aliases = ["commands", "cmds"], description = "Displays bot help.")
     open suspend fun help(ctx: MessageContext, command: String?) {
-        val pages = if (command == null) {
-            buildCommandList(ctx)
-        } else {
+        val pages = command?.let {
             val commands = ctx.commandClient.commands
-            val cmd = commands.findCommandByName(command)
-                ?: commands.findCommandByAlias(command)
+            val cmd = commands.findCommandByName(it)
+                ?: commands.findCommandByAlias(it)
 
-            if (cmd != null) {
-                buildCommandHelp(ctx, cmd)
-            } else {
-                val cog = commands.findCogByName(command)
-                    ?: return ctx.send("No commands or cogs found with that name.")
+            when {
+                cmd != null -> buildCommandHelp(ctx, cmd)
+                else -> commands.findCogByName(command)?.let { cog -> buildCogHelp(ctx, cog) }
+            } ?: return ctx.send("No commands or cogs found with that name.")
 
-                buildCogHelp(ctx, cog)
-            }
-        }
+        } ?: buildCommandList(ctx)
 
         sendPages(ctx, pages)
     }
 
     open fun buildCommandList(ctx: MessageContext): List<String> {
-        val categories = hashMapOf<String, HashSet<CommandFunction>>()
         val helpMenu = StringBuilder()
         val commands = ctx.commandClient.commands.values.filter { !it.properties.hidden }
         val padLength = ctx.commandClient.commands.values.maxByOrNull { it.name.length }!!.name.length
-
-        for (command in commands) {
-            val category = command.category.lowercase()
-            val list = categories.computeIfAbsent(category) { hashSetOf() }
-            list.add(command)
-        }
+        val categories = commands.groupBy { it.category.lowercase() }.mapValues { it.value.toSet() }
 
         for (entry in categories.entries.sortedBy { it.key }) {
             helpMenu.append(toTitleCase(entry.key)).append("\n")
