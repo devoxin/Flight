@@ -5,6 +5,7 @@ import me.devoxin.flight.api.arguments.types.Invite
 import me.devoxin.flight.api.arguments.types.Snowflake
 import me.devoxin.flight.api.entities.*
 import me.devoxin.flight.api.hooks.CommandEventAdapter
+import me.devoxin.flight.api.hooks.DefaultCommandEventAdapter
 import me.devoxin.flight.internal.arguments.ArgParser
 import me.devoxin.flight.internal.parsers.*
 import net.dv8tion.jda.api.entities.Member
@@ -210,6 +211,10 @@ class CommandClientBuilder {
      * @return a CommandClient instance
      */
     fun build(): CommandClient {
+        if (eventListeners.isEmpty()) {
+            eventListeners.add(DefaultCommandEventAdapter())
+        }
+
         val prefixProvider = this.prefixProvider ?: DefaultPrefixProvider(prefixes, allowMentionPrefix)
         val cooldownProvider = this.cooldownProvider ?: DefaultCooldownProvider()
         val commandClient = CommandClient(prefixProvider, cooldownProvider, ignoreBots, eventListeners.toList(),

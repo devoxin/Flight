@@ -8,7 +8,7 @@ import me.devoxin.flight.api.exceptions.BadArgument
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 
-abstract class DefaultCommandEventAdapter : CommandEventAdapter {
+open class DefaultCommandEventAdapter : CommandEventAdapter {
     override fun onCheckFailed(ctx: Context, command: CommandFunction, checkType: CheckType) {
     }
 
