@@ -5,6 +5,7 @@ import me.devoxin.flight.api.exceptions.BadArgument
 import me.devoxin.flight.api.exceptions.ParserNotRegistered
 import me.devoxin.flight.internal.entities.Executable
 import me.devoxin.flight.internal.parsers.Parser
+import me.devoxin.flight.internal.utils.TextUtils
 import java.util.*
 import kotlin.reflect.KParameter
 
@@ -148,7 +149,7 @@ class ArgParser(
         } else if (string.isNotEmpty() && res is String) {
             val lth = res.length
             return when (string.size) {
-                1 -> (lth >= string[0]) to "`${arg.name}` must be at least ${string[0]} characters or longer."
+                1 -> (lth >= string[0]) to "`${arg.name}` must be at least ${string[0]} character${TextUtils.plural(string[0])} or longer."
                 2 -> (lth >= string[0] && lth <= string[1]) to "`${arg.name}` must be within the range of ${string.joinToString("-")} characters."
                 else -> false to "<Invalid range for `${arg.name}:string`>"
             }
