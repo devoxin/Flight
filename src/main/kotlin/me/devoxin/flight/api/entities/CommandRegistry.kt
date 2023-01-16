@@ -16,7 +16,8 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
 
         for (command in this.values.filter { it.contextType >= SLASH }) {
             val data = Commands.slash(command.name, command.properties.description)
-            data.isGuildOnly = command.properties.guildOnly
+                .setGuildOnly(command.properties.guildOnly)
+                .setNSFW(command.properties.nsfw)
 
             if (command.subcommands.isNotEmpty()) {
                 for (sc in command.subcommands.values) {
