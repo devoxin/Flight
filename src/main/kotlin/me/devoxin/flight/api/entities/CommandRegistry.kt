@@ -9,8 +9,11 @@ import net.dv8tion.jda.api.interactions.commands.build.CommandData
 import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData
+import org.slf4j.LoggerFactory
 
 class CommandRegistry : HashMap<String, CommandFunction>() {
+    val objectStorage = ObjectStorage()
+
     fun toDiscordCommands(): List<CommandData> {
         val commands = mutableListOf<CommandData>()
 
@@ -77,7 +80,7 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
     }
 
     fun findCogByName(name: String): Cog? {
-        return this.values.firstOrNull { it.cog::class.simpleName == name }?.cog
+        return this.values.firstOrNull { it.cog.name() == name || it.cog::class.simpleName == name }?.cog
     }
 
     fun findCommandsByCog(cog: Cog): List<CommandFunction> {
@@ -86,11 +89,14 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
 
     fun unload(commandFunction: CommandFunction) {
         this.values.remove(commandFunction)
+        doUnload(commandFunction.cog)
     }
 
     fun unload(cog: Cog) {
         val commands = this.values.filter { it.cog == cog }
         this.values.removeAll(commands)
+
+        commands.map(CommandFunction::cog).let(::doUnload)
 
         val jar = commands.firstOrNull { it.jar != null }?.jar
             ?: return // No commands loaded from jar, thus no classloader to close.
@@ -107,13 +113,15 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
         val commands = this.values.filter { it.jar == jar }
         this.values.removeAll(commands)
 
+        commands.map(CommandFunction::cog).let(::doUnload)
+
         jar.close()
     }
 
     fun register(packageName: String) {
         val indexer = Indexer(packageName)
 
-        for (cog in indexer.getCogs()) {
+        for (cog in indexer.getCogs(objectStorage)) {
             register(cog, indexer)
         }
     }
@@ -121,7 +129,7 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
     fun register(jarPath: String, packageName: String) {
         val indexer = Indexer(packageName, jarPath)
 
-        for (cog in indexer.getCogs()) {
+        for (cog in indexer.getCogs(objectStorage)) {
             register(cog, indexer)
         }
     }
@@ -139,5 +147,25 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
 
             this[cmd.name] = cmd
         }
+    }
+
+    private fun doUnload(cogs: Iterable<Cog>) {
+        val uniqueCogs = cogs.distinctBy(Cog::name)
+
+        for (cog in uniqueCogs) {
+            doUnload(cog)
+        }
+    }
+
+    private fun doUnload(cog: Cog) {
+        try {
+            cog.unload()
+        } catch (t: Throwable) {
+            log.error("An error occurred whilst unloading cog \"{}\"", cog.name() ?: cog::class.java.simpleName, t)
+        }
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(CommandRegistry::class.java)
     }
 }
