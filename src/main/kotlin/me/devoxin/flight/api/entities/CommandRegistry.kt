@@ -71,6 +71,12 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
         }
     }
 
+    override fun clear() {
+        val cogs = this.values.map(CommandFunction::cog)
+        super.clear()
+        doUnload(cogs)
+    }
+
     fun findCommandByName(name: String): CommandFunction? {
         return this[name]
     }
