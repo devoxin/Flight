@@ -7,11 +7,13 @@ import me.devoxin.flight.api.annotations.*
 import me.devoxin.flight.internal.arguments.Argument
 import me.devoxin.flight.internal.entities.Jar
 import me.devoxin.flight.api.entities.Cog
+import me.devoxin.flight.api.entities.ObjectStorage
 import org.reflections.Reflections
 import org.reflections.scanners.MethodParameterNamesScanner
 import org.reflections.scanners.Scanners
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.lang.reflect.Constructor
 import java.lang.reflect.Modifier
 import java.net.URL
 import java.net.URLClassLoader
@@ -47,13 +49,13 @@ class Indexer {
         reflections = Reflections(packageName, this.classLoader, MethodParameterNamesScanner(), Scanners.SubTypes)
     }
 
-    fun getCogs(): List<Cog> {
+    fun getCogs(objectStorage: ObjectStorage): List<Cog> {
         val cogs = reflections.getSubTypesOf(Cog::class.java)
         log.debug("Discovered ${cogs.size} cogs in $packageName")
 
         return cogs
             .filter { !Modifier.isAbstract(it.modifiers) && !it.isInterface && Cog::class.java.isAssignableFrom(it) }
-            .map { it.getDeclaredConstructor().newInstance() }
+            .map { construct(it, objectStorage) }
     }
 
     fun getCommands(cog: Cog): List<KFunction<*>> {
@@ -145,6 +147,14 @@ class Indexer {
         }
 
         return arguments
+    }
+
+    private fun construct(cls: Class<out Cog>, objectStorage: ObjectStorage): Cog {
+        return try {
+            cls.getDeclaredConstructor(ObjectStorage::class.java).newInstance(objectStorage)
+        } catch (t: NoSuchMethodException) {
+            cls.getDeclaredConstructor().newInstance()
+        }
     }
 
     companion object {
