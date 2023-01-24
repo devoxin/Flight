@@ -42,6 +42,11 @@ interface Context {
             ?: messageChannel.sendMessage(content).submit()
     }
 
+    fun respond(message: MessageCreateData): CompletableFuture<*> {
+        return asSlashContext?.respond0(message)
+            ?: messageChannel.sendMessage(message).submit()
+    }
+
     fun send(content: String) {
         messageChannel.sendMessage(content).submit()
     }
