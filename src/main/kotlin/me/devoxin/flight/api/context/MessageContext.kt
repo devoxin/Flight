@@ -14,6 +14,7 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.requests.RestAction
 import net.dv8tion.jda.api.utils.FileUpload
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
+import net.dv8tion.jda.api.utils.messages.MessageCreateData
 import java.util.regex.Pattern
 
 class MessageContext(
@@ -67,12 +68,24 @@ class MessageContext(
     }
 
     /**
+     * Sends a message to the channel the Context was created from.
+     * This is intended as a lower level function (compared to the other send methods)
+     * to offer more functionality when needed.
+     *
+     * @param message
+     *        The message to send.
+     */
+    fun send(message: MessageCreateData) {
+        messageChannel.sendMessage(message).submit()
+    }
+
+    /**
      * Sends a message embed to the channel the Context was created from.
      *
      * @param content
      *        The content of the message.
      *
-     * @return The created message.
+     * @return The sent message.
      */
     suspend fun sendAsync(content: String): Message {
         return send0({ setContent(content) }).submit().await()
@@ -84,7 +97,7 @@ class MessageContext(
      * @param attachment
      *        The attachment to send.
      *
-     * @return The created message.
+     * @return The sent message.
      */
     suspend fun sendAsync(attachment: FileUpload): Message {
         return send0(null, attachment).submit().await()
@@ -96,10 +109,24 @@ class MessageContext(
      * @param embed
      *        Options to apply to the message embed.
      *
-     * @return The created message.
+     * @return The sent message.
      */
     suspend fun sendAsync(embed: EmbedBuilder.() -> Unit): Message {
         return send0({ setEmbeds(EmbedBuilder().apply(embed).build()) }).submit().await()
+    }
+
+    /**
+     * Sends a message to the channel the Context was created from.
+     * This is intended as a lower level function (compared to the other send methods)
+     * to offer more functionality when needed.
+     *
+     * @param message
+     *        The message to send.
+     *
+     * @return The sent message.
+     */
+    suspend fun sendAsync(message: MessageCreateData): Message {
+        return messageChannel.sendMessage(message).submit().await()
     }
 
     /**
@@ -110,10 +137,24 @@ class MessageContext(
      */
     fun sendPrivate(content: String) {
         author.openPrivateChannel().submit()
-            .thenAccept {
-                it.sendMessage(content).submit()
-                    .handle { _, _ -> it.delete().submit() }
-            }
+            .thenCompose { it.sendMessage(content).submit() }
+            .thenCompose { it.channel.asPrivateChannel().delete().submit() }
+    }
+
+    /**
+     * Sends the message author a direct message.
+     * This is intended as a lower level function (compared to the other send methods)
+     * to offer more functionality when needed.
+     *
+     * @param message
+     *        The message to send.
+     *
+     * @return The sent message.
+     */
+    fun sendPrivate(message: MessageCreateData) {
+        author.openPrivateChannel().submit()
+            .thenCompose { it.sendMessage(message).submit() }
+            .thenCompose { it.channel.asPrivateChannel().delete().submit() }
     }
 
     private fun send0(messageOpts: (MessageCreateBuilder.() -> Unit)? = null, vararg files: FileUpload): RestAction<Message> {
