@@ -9,6 +9,7 @@ import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.User
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
+import net.dv8tion.jda.api.utils.FileUpload
 import net.dv8tion.jda.api.utils.messages.MessageCreateData
 import java.util.concurrent.CompletableFuture
 
@@ -60,6 +61,11 @@ interface Context {
 
         return asSlashContext?.respond0(create)
             ?: messageChannel.sendMessage(create).submit()
+    }
+
+    fun respond(file: FileUpload): CompletableFuture<*> {
+        return asSlashContext?.respond0(MessageCreateData.fromFiles(file))
+            ?: messageChannel.sendFiles(file).submit()
     }
 
     fun respond(message: MessageCreateData): CompletableFuture<*> {
