@@ -15,6 +15,7 @@ import net.dv8tion.jda.api.requests.RestAction
 import net.dv8tion.jda.api.utils.FileUpload
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 import net.dv8tion.jda.api.utils.messages.MessageCreateData
+import java.util.concurrent.CompletableFuture
 import java.util.regex.Pattern
 
 class MessageContext(

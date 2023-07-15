@@ -32,19 +32,18 @@ class SlashContext(
         private set
 
     fun defer(ephemeral: Boolean = false) {
-        if (!deferred) { // Idempotency handling
-            event.deferReply(ephemeral).queue { deferred = true }
-        }
+        defer0(ephemeral)
     }
 
-    suspend fun deferAsync(ephemeral: Boolean): InteractionHook {
+    suspend fun deferAsync(ephemeral: Boolean = false) = defer0(ephemeral).await()
+
+    internal fun defer0(ephemeral: Boolean): CompletableFuture<InteractionHook> {
         if (!deferred) { // Idempotency handling
             return event.deferReply(ephemeral).submit()
                 .thenApply { deferred = true; it }
-                .await()
         }
 
-        return event.hook
+        return CompletableFuture.completedFuture(event.hook)
     }
 
     fun reply(content: String, ephemeral: Boolean = false) {

@@ -2,6 +2,7 @@ package me.devoxin.flight.api.context
 
 import me.devoxin.flight.api.CommandClient
 import me.devoxin.flight.internal.entities.Executable
+import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Member
@@ -37,9 +38,28 @@ interface Context {
     val guildChannel: GuildMessageChannel?
     val isFromGuild: Boolean
 
+    /**
+     * Sends "Bot is thinking..." for slash commands, or a typing indicator for message commands.
+     */
+    fun think(ephemeral: Boolean = false): CompletableFuture<*> {
+        return asSlashContext?.defer0(ephemeral)
+            ?: messageChannel.sendTyping().submit()
+    }
+
+    /**
+     * Responds to the event. This differs from [send] in that it'll fulfill the "Bot is thinking..." message
+     * for slash commands.
+     */
     fun respond(content: String): CompletableFuture<*> {
         return asSlashContext?.respond0(MessageCreateData.fromContent(content))
             ?: messageChannel.sendMessage(content).submit()
+    }
+
+    fun respond(embed: EmbedBuilder.() -> Unit): CompletableFuture<*> {
+        val create = MessageCreateData.fromEmbeds(EmbedBuilder().apply(embed).build())
+
+        return asSlashContext?.respond0(create)
+            ?: messageChannel.sendMessage(create).submit()
     }
 
     fun respond(message: MessageCreateData): CompletableFuture<*> {
