@@ -69,20 +69,6 @@ interface Context {
      * Convenience method for replying to either a slash command event, or a message event.
      * This will acknowledge, and correctly respond to slash command events, if applicable.
      *
-     * @param embed
-     *        The options to apply to the embed builder.
-     */
-    fun respond(embed: EmbedBuilder.() -> Unit): CompletableFuture<*> {
-        val create = MessageCreateData.fromEmbeds(EmbedBuilder().apply(embed).build())
-
-        return asSlashContext?.respond0(create)
-            ?: messageChannel.sendMessage(create).submit()
-    }
-
-    /**
-     * Convenience method for replying to either a slash command event, or a message event.
-     * This will acknowledge, and correctly respond to slash command events, if applicable.
-     *
      * @param file
      *        The file to send.
      */
