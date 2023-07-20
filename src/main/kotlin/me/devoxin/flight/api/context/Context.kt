@@ -60,9 +60,9 @@ interface Context {
      * @param content
      *        The response content to send.
      */
-    fun reply(content: String): CompletableFuture<*> {
+    fun respond(content: String): CompletableFuture<*> {
         return asSlashContext?.respond0(MessageCreateData.fromContent(content))
-            ?: messageChannel.sendMessage(content).setMessageReference(asMessageContext?.message).submit()
+            ?: messageChannel.sendMessage(content).submit()
     }
 
     /**
@@ -72,7 +72,7 @@ interface Context {
      * @param embed
      *        The options to apply to the embed builder.
      */
-    fun reply(embed: EmbedBuilder.() -> Unit): CompletableFuture<*> {
+    fun respond(embed: EmbedBuilder.() -> Unit): CompletableFuture<*> {
         val create = MessageCreateData.fromEmbeds(EmbedBuilder().apply(embed).build())
 
         return asSlashContext?.respond0(create)
@@ -86,7 +86,7 @@ interface Context {
      * @param file
      *        The file to send.
      */
-    fun reply(file: FileUpload): CompletableFuture<*> {
+    fun respond(file: FileUpload): CompletableFuture<*> {
         return asSlashContext?.respond0(MessageCreateData.fromFiles(file))
             ?: messageChannel.sendFiles(file).submit()
     }
@@ -98,7 +98,7 @@ interface Context {
      * @param message
      *        The message data to send.
      */
-    fun reply(message: MessageCreateData): CompletableFuture<*> {
+    fun respond(message: MessageCreateData): CompletableFuture<*> {
         return asSlashContext?.respond0(message)
             ?: messageChannel.sendMessage(message).submit()
     }
@@ -110,7 +110,7 @@ interface Context {
      * @param messageBuilder
      *        The options to apply when creating a response.
      */
-    fun reply(messageBuilder: DSLMessageCreateBuilder.() -> Unit): CompletableFuture<*> {
+    fun respond(messageBuilder: DSLMessageCreateBuilder.() -> Unit): CompletableFuture<*> {
         val built = DSLMessageCreateBuilder().apply(messageBuilder).build()
 
         return asSlashContext?.respond0(built)
