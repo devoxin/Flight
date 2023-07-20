@@ -36,8 +36,8 @@ class SlashContext(
         defer0(ephemeral)
     }
 
-    suspend fun deferAsync(ephemeral: Boolean = false) {
-        defer0(ephemeral).await()
+    suspend fun deferAsync(ephemeral: Boolean = false): InteractionHook {
+        return defer0(ephemeral).await()
     }
 
     /**
@@ -72,8 +72,8 @@ class SlashContext(
      * This will only call [SlashCommandInteractionEvent.reply] with no special handling.
      * Use [respond] or [respondAsync] to handle things such as deferral or already acknowledged events.
      */
-    suspend fun replyAsync(content: String, ephemeral: Boolean = false) {
-        event.reply(content).setEphemeral(ephemeral).submit().thenAccept { replied = true }.await()
+    suspend fun replyAsync(content: String, ephemeral: Boolean = false): InteractionHook {
+        return event.reply(content).setEphemeral(ephemeral).submit().thenApply { replied = true; it }.await()
     }
 
     /**
@@ -92,8 +92,8 @@ class SlashContext(
      * This will only call [SlashCommandInteractionEvent.reply] with no special handling.
      * Use [respond] or [respondAsync] to handle things such as deferral or already acknowledged events.
      */
-    suspend fun replyAsync(message: MessageCreateData, ephemeral: Boolean = false) {
-        event.reply(message).setEphemeral(ephemeral).submit().thenAccept { replied = true }.await()
+    suspend fun replyAsync(message: MessageCreateData, ephemeral: Boolean = false): InteractionHook {
+        return event.reply(message).setEphemeral(ephemeral).submit().thenApply { replied = true; it }.await()
     }
 
     /**
