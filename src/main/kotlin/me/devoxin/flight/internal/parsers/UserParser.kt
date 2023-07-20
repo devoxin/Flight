@@ -12,7 +12,7 @@ class UserParser : Parser<User> {
             snowflake != null -> ctx.message.mentions.users.firstOrNull { it.idLong == snowflake } ?: ctx.jda.getUserById(snowflake)
             param.length > 5 && param[param.length - 5] == '#' -> {
                 val tag = param.split("#")
-                ctx.jda.userCache.find { it.name == tag[0] && it.discriminator == tag[1] }
+                ctx.jda.userCache.find { (it.discriminator != "0000" && it.name == tag[0]) || it.asTag == param }
             }
             else -> ctx.jda.userCache.find { it.name == param }
         }

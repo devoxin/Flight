@@ -12,7 +12,7 @@ class MemberParser : Parser<Member> {
             snowflake != null -> ctx.message.mentions.members.firstOrNull { it.user.idLong == snowflake } ?: ctx.guild?.getMemberById(snowflake)
             param.length > 5 && param[param.length - 5] == '#' -> {
                 val tag = param.split("#")
-                ctx.guild?.memberCache?.find { it.user.name == tag[0] && it.user.discriminator == tag[1] }
+                ctx.guild?.memberCache?.find { (it.user.discriminator != "0000" && it.user.name == tag[0]) || it.user.asTag == param }
             }
             else -> ctx.guild?.getMembersByName(param, false)?.firstOrNull()
         }
