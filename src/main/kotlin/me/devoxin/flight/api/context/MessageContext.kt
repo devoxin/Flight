@@ -45,7 +45,7 @@ class MessageContext(
      *        The content of the message.
      */
     override fun send(content: String) {
-        send0({ setContent(content) }).submit()
+        send0({ setContent(content) }).queue()
     }
 
     /**
@@ -55,7 +55,7 @@ class MessageContext(
      *        The attachment to send.
      */
     fun send(attachment: FileUpload) {
-        send0(null, attachment).submit()
+        send0(null, attachment).queue()
     }
 
     /**
@@ -65,7 +65,7 @@ class MessageContext(
      *        Options to apply to the message embed.
      */
     fun send(embed: EmbedBuilder.() -> Unit) {
-        send0({ setEmbeds(EmbedBuilder().apply(embed).build()) }).submit()
+        send0({ setEmbeds(EmbedBuilder().apply(embed).build()) }).queue()
     }
 
     /**
@@ -77,7 +77,7 @@ class MessageContext(
      *        The message to send.
      */
     fun send(message: MessageCreateData) {
-        messageChannel.sendMessage(message).submit()
+        messageChannel.sendMessage(message).queue()
     }
 
     /**
@@ -98,7 +98,7 @@ class MessageContext(
      * @param attachment
      *        The attachment to send.
      *
-     * @return The sent message.
+     * @return The message that was sent.
      */
     suspend fun sendAsync(attachment: FileUpload): Message {
         return send0(null, attachment).submit().await()
@@ -110,7 +110,7 @@ class MessageContext(
      * @param embed
      *        Options to apply to the message embed.
      *
-     * @return The sent message.
+     * @return The message that was sent.
      */
     suspend fun sendAsync(embed: EmbedBuilder.() -> Unit): Message {
         return send0({ setEmbeds(EmbedBuilder().apply(embed).build()) }).submit().await()
@@ -124,7 +124,7 @@ class MessageContext(
      * @param message
      *        The message to send.
      *
-     * @return The sent message.
+     * @return The message that was sent.
      */
     suspend fun sendAsync(message: MessageCreateData): Message {
         return messageChannel.sendMessage(message).submit().await()
@@ -150,7 +150,7 @@ class MessageContext(
      * @param message
      *        The message to send.
      *
-     * @return The sent message.
+     * @return The message that was sent.
      */
     fun sendPrivate(message: MessageCreateData) {
         author.openPrivateChannel().submit()

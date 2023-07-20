@@ -1,5 +1,6 @@
 package me.devoxin.flight.internal.entities
 
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import me.devoxin.flight.api.context.Context
