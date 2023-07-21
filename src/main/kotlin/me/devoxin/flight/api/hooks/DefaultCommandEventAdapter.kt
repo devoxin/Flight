@@ -9,8 +9,7 @@ import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 
 open class DefaultCommandEventAdapter : CommandEventAdapter {
-    override fun onCheckFailed(ctx: Context, command: CommandFunction, checkType: CheckType) {
-    }
+    override fun onCheckFailed(ctx: Context, command: CommandFunction, checkType: CheckType) = Unit
 
     override fun onBadArgument(ctx: Context, command: CommandFunction, error: BadArgument) {
         error.printStackTrace()
@@ -20,7 +19,7 @@ open class DefaultCommandEventAdapter : CommandEventAdapter {
         error.printStackTrace()
     }
 
-    override fun onCommandPostInvoke(ctx: Context, command: CommandFunction, failed: Boolean) {}
+    override fun onCommandPostInvoke(ctx: Context, command: CommandFunction, failed: Boolean) = Unit
 
     override fun onCommandPreInvoke(ctx: Context, command: CommandFunction) = true
 
@@ -32,12 +31,11 @@ open class DefaultCommandEventAdapter : CommandEventAdapter {
         error.printStackTrace()
     }
 
-    override fun onCommandCooldown(ctx: Context, command: CommandFunction, cooldown: Long) {}
+    override fun onCommandCooldown(ctx: Context, command: CommandFunction, cooldown: Long) = Unit
 
-    override fun onBotMissingPermissions(ctx: MessageContext, command: CommandFunction, permissions: List<Permission>) {}
+    override fun onBotMissingPermissions(ctx: Context, command: CommandFunction, permissions: List<Permission>) = Unit
 
-    override fun onUserMissingPermissions(ctx: MessageContext, command: CommandFunction, permissions: List<Permission>) {}
+    override fun onUserMissingPermissions(ctx: Context, command: CommandFunction, permissions: List<Permission>) = Unit
 
-    override fun onUnknownCommand(event: MessageReceivedEvent, command: String, args: List<String>) {
-    }
+    override fun onUnknownCommand(event: MessageReceivedEvent, command: String, args: List<String>) = Unit
 }
