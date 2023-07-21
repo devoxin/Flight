@@ -224,24 +224,21 @@ class CommandClient(
         }
 
         if (ctx.isFromGuild) {
-            if (ctx is MessageContext) {
-                if (props.userPermissions.isNotEmpty()) {
-                    val userCheck =
-                        props.userPermissions.filterNot { ctx.member!!.hasPermission(ctx.guildChannel!!, it) }
+            if (props.userPermissions.isNotEmpty()) {
+                val userCheck = props.userPermissions.filterNot { ctx.member!!.hasPermission(ctx.guildChannel!!, it) }
 
-                    if (userCheck.isNotEmpty()) {
-                        dispatchSafely { it.onUserMissingPermissions(ctx.asMessageContext!!, cmd, userCheck) }
-                        return false
-                    }
+                if (userCheck.isNotEmpty()) {
+                    dispatchSafely { it.onUserMissingPermissions(ctx, cmd, userCheck) }
+                    return false
                 }
+            }
 
-                if (props.botPermissions.isNotEmpty()) {
-                    val botCheck = props.botPermissions.filterNot { ctx.guild!!.selfMember.hasPermission(ctx.guildChannel!!, it) }
+            if (props.botPermissions.isNotEmpty()) {
+                val botCheck = props.botPermissions.filterNot { ctx.guild!!.selfMember.hasPermission(ctx.guildChannel!!, it) }
 
-                    if (botCheck.isNotEmpty()) {
-                        dispatchSafely { it.onBotMissingPermissions(ctx.asMessageContext!!, cmd, botCheck) }
-                        return false
-                    }
+                if (botCheck.isNotEmpty()) {
+                    dispatchSafely { it.onBotMissingPermissions(ctx, cmd, botCheck) }
+                    return false
                 }
             }
 

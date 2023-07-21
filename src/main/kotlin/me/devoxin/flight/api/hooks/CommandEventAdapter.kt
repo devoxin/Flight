@@ -81,10 +81,10 @@ interface CommandEventAdapter {
     /**
      * Invoked when a user lacks permissions to execute a command
      */
-    fun onUserMissingPermissions(ctx: MessageContext, command: CommandFunction, permissions: List<Permission>)
+    fun onUserMissingPermissions(ctx: Context, command: CommandFunction, permissions: List<Permission>)
 
     /**
      * Invoked when the bot lacks permissions to execute a command
      */
-    fun onBotMissingPermissions(ctx: MessageContext, command: CommandFunction, permissions: List<Permission>)
+    fun onBotMissingPermissions(ctx: Context, command: CommandFunction, permissions: List<Permission>)
 }
