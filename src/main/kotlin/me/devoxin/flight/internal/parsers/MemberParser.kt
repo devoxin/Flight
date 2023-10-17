@@ -6,7 +6,7 @@ import java.util.*
 
 class MemberParser : Parser<Member> {
     override fun parse(ctx: MessageContext, param: String): Optional<Member> {
-        val snowflake = snowflakeParser.parse(ctx, param).takeIf { it.isPresent }?.get()?.resolved
+        val snowflake = SnowflakeParser.INSTANCE.parse(ctx, param).takeIf { it.isPresent }?.get()?.resolved
 
         val member = when {
             snowflake != null -> ctx.message.mentions.members.firstOrNull { it.user.idLong == snowflake } ?: ctx.guild?.getMemberById(snowflake)
@@ -14,13 +14,9 @@ class MemberParser : Parser<Member> {
                 val tag = param.split("#")
                 ctx.guild?.memberCache?.find { (it.user.discriminator != "0000" && it.user.name == tag[0]) || it.user.asTag == param }
             }
-            else -> ctx.guild?.getMembersByName(param, false)?.firstOrNull()
+            else -> ctx.guild?.memberCache?.firstOrNull { it.user.name == param }
         }
 
         return Optional.ofNullable(member)
-    }
-
-    companion object {
-        private val snowflakeParser = SnowflakeParser() // We can reuse this
     }
 }

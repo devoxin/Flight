@@ -17,6 +17,7 @@ class SnowflakeParser : Parser<Snowflake> {
     }
 
     companion object {
+        internal val INSTANCE = SnowflakeParser()
         val SNOWFLAKE_PATTERN = "^(?:<(?:@!?|@&|#)(?<sid>\\d{17,21})>|(?<id>\\d{17,21}))$".toPattern()
     }
 }

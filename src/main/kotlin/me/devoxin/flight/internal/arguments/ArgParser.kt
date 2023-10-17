@@ -27,7 +27,7 @@ class ArgParser(
         var quoting = false
         var escaping = false
 
-        loop@ while (iterator.hasNext()) {
+        while (iterator.hasNext()) {
             val char = iterator.nextChar()
             original.append(char)
 
@@ -41,8 +41,8 @@ class ArgParser(
                 !quoting && char == '"' -> quoting = true // accept other quote chars
                 !quoting && char == delimiter -> {
                     // Maybe this should throw? !test  blah -- Extraneous whitespace is ignored.
-                    if (argument.isEmpty()) continue@loop
-                    else break@loop
+                    if (argument.isEmpty()) continue
+                    else break
                 }
                 else -> argument.append(char)
             }
@@ -51,8 +51,9 @@ class ArgParser(
         argument.append('"')
 
         val remainingArgs = StringBuilder().apply {
-            iterator.forEachRemaining { this.append(it) }
+            iterator.forEachRemaining(this::append)
         }
+
         args = remainingArgs.toString().split(delimiter).toMutableList()
         return Pair(argument.toString(), original.split(delimiterStr))
     }

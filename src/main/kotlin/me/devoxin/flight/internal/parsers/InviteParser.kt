@@ -17,6 +17,6 @@ class InviteParser : Parser<Invite> {
     }
 
     companion object {
-        val INVITE_PATTERN = "discord(?:(?:app)?\\.com/invite|\\.gg)/([a-zA-Z\\d]{1,16})".toPattern()
+        val INVITE_PATTERN = "(?:https?://)?discord(?:(?:app)?\\.com/invite|\\.gg)/([a-zA-Z\\d]{1,16})".toPattern()
     }
 }

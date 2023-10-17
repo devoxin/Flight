@@ -6,15 +6,11 @@ import java.util.*
 
 class RoleParser : Parser<Role> {
     override fun parse(ctx: MessageContext, param: String): Optional<Role> {
-        val snowflake = snowflakeParser.parse(ctx, param).takeIf { it.isPresent }?.get()?.resolved
+        val snowflake = SnowflakeParser.INSTANCE.parse(ctx, param).takeIf { it.isPresent }?.get()?.resolved
 
         return when {
             snowflake != null -> Optional.ofNullable(ctx.guild?.getRoleById(snowflake))
             else -> Optional.ofNullable(ctx.guild?.roleCache?.firstOrNull { it.name == param })
         }
-    }
-
-    companion object {
-        private val snowflakeParser = SnowflakeParser() // We can reuse this
     }
 }
