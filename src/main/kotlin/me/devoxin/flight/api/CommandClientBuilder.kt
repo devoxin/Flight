@@ -8,6 +8,8 @@ import me.devoxin.flight.api.hooks.CommandEventAdapter
 import me.devoxin.flight.api.hooks.DefaultCommandEventAdapter
 import me.devoxin.flight.internal.arguments.ArgParser
 import me.devoxin.flight.internal.parsers.*
+import me.devoxin.flight.internal.parsers.TextChannelParser
+import me.devoxin.flight.internal.parsers.VoiceChannelParser
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.Role
 import net.dv8tion.jda.api.entities.User

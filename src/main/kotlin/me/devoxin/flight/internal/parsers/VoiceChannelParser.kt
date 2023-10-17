@@ -6,15 +6,11 @@ import java.util.*
 
 class VoiceChannelParser : Parser<VoiceChannel> {
     override fun parse(ctx: MessageContext, param: String): Optional<VoiceChannel> {
-        val snowflake = snowflakeParser.parse(ctx, param).takeIf { it.isPresent }?.get()?.resolved
+        val snowflake = SnowflakeParser.INSTANCE.parse(ctx, param).takeIf { it.isPresent }?.get()?.resolved
 
         return when {
             snowflake != null -> Optional.ofNullable(ctx.guild?.getVoiceChannelById(snowflake))
-            else -> Optional.ofNullable(ctx.guild?.voiceChannels?.firstOrNull { it.name == param })
+            else -> Optional.ofNullable(ctx.guild?.voiceChannelCache?.firstOrNull { it.name == param })
         }
-    }
-
-    companion object {
-        private val snowflakeParser = SnowflakeParser() // We can reuse this
     }
 }
