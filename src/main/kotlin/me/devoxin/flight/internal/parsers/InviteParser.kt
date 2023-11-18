@@ -5,18 +5,18 @@ import me.devoxin.flight.api.arguments.types.Invite
 import java.util.*
 
 class InviteParser : Parser<Invite> {
-    override fun parse(ctx: MessageContext, param: String): Optional<Invite> {
+    override fun parse(ctx: MessageContext, param: String): Invite? {
         val match = INVITE_PATTERN.matcher(param)
 
         if (match.find()) {
             val code = match.group(1)
-            return Optional.of(Invite(ctx.jda, match.group(), code))
+            return Invite(ctx.jda, match.group(), code)
         }
 
-        return Optional.empty()
+        return null
     }
 
     companion object {
-        val INVITE_PATTERN = "(?:https?://)?discord(?:(?:app)?\\.com/invite|\\.gg)/([a-zA-Z\\d]{1,16})".toPattern()
+        val INVITE_PATTERN = "discord(?:(?:app)?\\.com/invite|\\.gg)/([a-zA-Z\\d]{1,16})".toPattern()
     }
 }

@@ -5,15 +5,15 @@ import me.devoxin.flight.api.arguments.types.Snowflake
 import java.util.*
 
 class SnowflakeParser : Parser<Snowflake> {
-    override fun parse(ctx: MessageContext, param: String): Optional<Snowflake> {
+    override fun parse(ctx: MessageContext, param: String): Snowflake? {
         val match = SNOWFLAKE_PATTERN.matcher(param)
 
         if (match.matches()) {
             val id = match.group("sid") ?: match.group("id")
-            return Optional.of(Snowflake(id.toLong()))
+            return Snowflake(id.toLong())
         }
 
-        return Optional.empty()
+        return null
     }
 
     companion object {

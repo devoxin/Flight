@@ -5,12 +5,12 @@ import net.dv8tion.jda.api.entities.Role
 import java.util.*
 
 class RoleParser : Parser<Role> {
-    override fun parse(ctx: MessageContext, param: String): Optional<Role> {
-        val snowflake = SnowflakeParser.INSTANCE.parse(ctx, param).takeIf { it.isPresent }?.get()?.resolved
+    override fun parse(ctx: MessageContext, param: String): Role? {
+        val snowflake = SnowflakeParser.INSTANCE.parse(ctx, param)?.resolved
 
         return when {
-            snowflake != null -> Optional.ofNullable(ctx.guild?.getRoleById(snowflake))
-            else -> Optional.ofNullable(ctx.guild?.roleCache?.firstOrNull { it.name == param })
+            snowflake != null -> ctx.guild?.getRoleById(snowflake)
+            else -> ctx.guild?.roleCache?.firstOrNull { it.name == param }
         }
     }
 }

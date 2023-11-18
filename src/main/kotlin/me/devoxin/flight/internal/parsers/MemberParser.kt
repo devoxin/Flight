@@ -5,8 +5,8 @@ import net.dv8tion.jda.api.entities.Member
 import java.util.*
 
 class MemberParser : Parser<Member> {
-    override fun parse(ctx: MessageContext, param: String): Optional<Member> {
-        val snowflake = SnowflakeParser.INSTANCE.parse(ctx, param).takeIf { it.isPresent }?.get()?.resolved
+    override fun parse(ctx: MessageContext, param: String): Member? {
+        val snowflake = SnowflakeParser.INSTANCE.parse(ctx, param)?.resolved
 
         val member = when {
             snowflake != null -> ctx.message.mentions.members.firstOrNull { it.user.idLong == snowflake } ?: ctx.guild?.getMemberById(snowflake)
@@ -17,6 +17,6 @@ class MemberParser : Parser<Member> {
             else -> ctx.guild?.memberCache?.firstOrNull { it.user.name == param }
         }
 
-        return Optional.ofNullable(member)
+        return member
     }
 }

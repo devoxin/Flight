@@ -6,7 +6,7 @@ import java.util.*
 
 class EmojiParser : Parser<Emoji> {
     // TODO: Support unicode emoji?
-    override fun parse(ctx: MessageContext, param: String): Optional<Emoji> {
+    override fun parse(ctx: MessageContext, param: String): Emoji? {
         val match = EMOJI_PATTERN.matcher(param)
 
         if (match.find()) {
@@ -14,10 +14,10 @@ class EmojiParser : Parser<Emoji> {
             val name = match.group(2)
             val id = match.group(3).toLong()
 
-            return Optional.of(Emoji(name, id, isAnimated))
+            return Emoji(name, id, isAnimated)
         }
 
-        return Optional.empty()
+        return null
     }
 
     companion object {

@@ -5,8 +5,8 @@ import net.dv8tion.jda.api.entities.User
 import java.util.*
 
 class UserParser : Parser<User> {
-    override fun parse(ctx: MessageContext, param: String): Optional<User> {
-        val snowflake = snowflakeParser.parse(ctx, param).takeIf { it.isPresent }?.get()?.resolved
+    override fun parse(ctx: MessageContext, param: String): User? {
+        val snowflake = snowflakeParser.parse(ctx, param)?.resolved
 
         val user = when {
             snowflake != null -> ctx.message.mentions.users.firstOrNull { it.idLong == snowflake } ?: ctx.jda.getUserById(snowflake)
@@ -17,7 +17,7 @@ class UserParser : Parser<User> {
             else -> ctx.jda.userCache.find { it.name == param }
         }
 
-        return Optional.ofNullable(user)
+        return user
     }
 
     companion object {
