@@ -137,9 +137,10 @@ class MessageContext(
      *        The content of the message.
      */
     fun sendPrivate(content: String) {
-        author.openPrivateChannel().submit()
-            .thenCompose { it.sendMessage(content).submit() }
-            .thenCompose { it.channel.asPrivateChannel().delete().submit() }
+        author.openPrivateChannel()
+            .flatMap { it.sendMessage(content) }
+            .flatMap { it.channel.asPrivateChannel().delete() }
+            .queue()
     }
 
     /**
@@ -153,9 +154,10 @@ class MessageContext(
      * @return The message that was sent.
      */
     fun sendPrivate(message: MessageCreateData) {
-        author.openPrivateChannel().submit()
-            .thenCompose { it.sendMessage(message).submit() }
-            .thenCompose { it.channel.asPrivateChannel().delete().submit() }
+        author.openPrivateChannel()
+            .flatMap { it.sendMessage(message) }
+            .flatMap { it.channel.asPrivateChannel().delete() }
+            .queue()
     }
 
     private fun send0(messageOpts: (MessageCreateBuilder.() -> Unit)? = null, vararg files: FileUpload): RestAction<Message> {

@@ -5,11 +5,11 @@ import java.net.URL
 import java.util.*
 
 class UrlParser : Parser<URL> {
-    override fun parse(ctx: MessageContext, param: String): Optional<URL> {
+    override fun parse(ctx: MessageContext, param: String): URL? {
         return try {
-            Optional.of(URL(param))
+            URL(param)
         } catch (e: Throwable) {
-            Optional.empty()
+            null
         }
     }
 }

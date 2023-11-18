@@ -88,9 +88,7 @@ class ArgParser(
         val parser = parsers[arg.type]
             ?: throw ParserNotRegistered("No parsers registered for `${arg.type}`")
         val (argument, original) = getNextArgument(arg.greedy)
-        val result = if (argument.isEmpty()) {
-            Optional.empty()
-        } else {
+        val result = argument.takeIf { it.isNotEmpty() }?.let {
             try {
                 parser.parse(ctx, argument)
             } catch (e: Throwable) {
@@ -101,9 +99,9 @@ class ArgParser(
         val canSubstitute = arg.isTentative || arg.isNullable || (arg.optional && argument.isEmpty())
         val (rangeCheck, rangeMessage) = checkRange(arg, result)
 
-        if (!result.isPresent || !rangeCheck) {
+        if (result == null || !rangeCheck) {
             if (!canSubstitute) { // canSubstitute -> Whether we can pass null or the default value.
-                val cause = if (result.isPresent && rangeCheck) null else IllegalArgumentException(rangeMessage)
+                val cause = rangeMessage?.let(::IllegalArgumentException)
                 // This should throw if the result is not present, and one of the following is not true:
                 // - The arg is marked tentative (isTentative)
                 // - The arg can use null (isNullable)
@@ -118,12 +116,11 @@ class ArgParser(
             }
         }
 
-        return result.takeIf { rangeCheck }?.orElse(null)
+        return result.takeIf { rangeCheck }
     }
 
-    private fun checkRange(arg: Argument, parsed: Optional<out Any?>): Pair<Boolean, String?> {
+    private fun <T : Any?> checkRange(arg: Argument, res: T): Pair<Boolean, String?> {
         arg.range ?: return true to null
-        val res = parsed.orElse(null)
 
         if (res !is Number && res !is String) {
             return false to null
@@ -138,21 +135,21 @@ class ArgParser(
             return when (double.size) {
                 1 -> (dbl >= double[0]) to "`${arg.name}` must be at least ${double[0]} or bigger."
                 2 -> (dbl >= double[0] && dbl <= double[1]) to "`${arg.name}` must be within range ${double.joinToString("-")}."
-                else -> false to "<Invalid range for `${arg.name}:double`>"
+                else -> false to "Invalid double range for `${arg.name}`"
             }
         } else if (long.isNotEmpty() && res is Number) {
             val lng = res.toLong()
             return when (long.size) {
                 1 -> (lng >= long[0]) to "`${arg.name}` must be at least ${long[0]} or bigger."
                 2 -> (lng >= long[0] && lng <= long[1]) to "`${arg.name}` must be within range ${long.joinToString("-")}."
-                else -> false to "<Invalid range for `${arg.name}:long`>"
+                else -> false to "Invalid long range for `${arg.name}`"
             }
         } else if (string.isNotEmpty() && res is String) {
             val lth = res.length
             return when (string.size) {
                 1 -> (lth >= string[0]) to "`${arg.name}` must be at least ${string[0]} character${TextUtils.plural(string[0])} or longer."
                 2 -> (lth >= string[0] && lth <= string[1]) to "`${arg.name}` must be within the range of ${string.joinToString("-")} characters."
-                else -> false to "<Invalid range for `${arg.name}:string`>"
+                else -> false to "Invalid string range for `${arg.name}`"
             }
         }
 

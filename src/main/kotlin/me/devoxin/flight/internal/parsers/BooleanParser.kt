@@ -4,11 +4,11 @@ import me.devoxin.flight.api.context.MessageContext
 import java.util.*
 
 class BooleanParser : Parser<Boolean> {
-    override fun parse(ctx: MessageContext, param: String): Optional<Boolean> {
+    override fun parse(ctx: MessageContext, param: String): Boolean? {
         return when (param) {
-            in trueExpr -> Optional.of(true)
-            in falseExpr -> Optional.of(false)
-            else -> Optional.empty()
+            in trueExpr -> true
+            in falseExpr -> false
+            else -> null
         }
     }
 
