@@ -55,7 +55,7 @@ class ArgParser(
         }
 
         args = remainingArgs.toString().split(delimiter).toMutableList()
-        return Pair(argument.toString(), original.split(delimiterStr))
+        return argument.toString() to original.split(delimiterStr)
     }
 
     /**
@@ -63,15 +63,15 @@ class ArgParser(
      */
     private fun getNextArgument(greedy: Boolean): Pair<String, List<String>> {
         val (argument, original) = when {
-            args.isEmpty() -> Pair("", emptyList())
+            args.isEmpty() -> "" to emptyList()
             greedy -> {
                 val args = take(args.size)
-                Pair(args.joinToString(delimiterStr), args)
+                args.joinToString(delimiterStr) to args
             }
             args[0].startsWith('"') && delimiter == ' ' -> parseQuoted() // accept other quote chars
             else -> {
                 val taken = take(1)
-                Pair(taken.joinToString(delimiterStr), taken)
+                taken.joinToString(delimiterStr) to taken
             }
         }
 
@@ -81,7 +81,7 @@ class ArgParser(
             unquoted = unquoted.removeSurrounding("\"")
         }
 
-        return Pair(unquoted, original)
+        return unquoted to original
     }
 
     fun parse(arg: Argument): Any? {

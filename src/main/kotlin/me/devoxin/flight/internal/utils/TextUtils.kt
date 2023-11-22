@@ -2,15 +2,21 @@ package me.devoxin.flight.internal.utils
 
 object TextUtils {
     fun split(content: String, limit: Int = 2000): List<String> {
+        if (content.isEmpty()) {
+            return emptyList()
+        } else if (content.length < limit) {
+            return listOf(content)
+        }
+
         val pages = mutableListOf<String>()
 
         val lines = content.trim().split("\n").dropLastWhile { it.isEmpty() }
-        var chunk = StringBuilder()
+        val chunk = StringBuilder(limit)
 
         for (line in lines) {
             if (chunk.isNotEmpty() && chunk.length + line.length > limit) {
                 pages.add(chunk.toString())
-                chunk = StringBuilder()
+                chunk.setLength(0)
             }
 
             if (line.length > limit) {
