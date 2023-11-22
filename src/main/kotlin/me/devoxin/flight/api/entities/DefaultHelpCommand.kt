@@ -6,7 +6,6 @@ import me.devoxin.flight.api.context.MessageContext
 import me.devoxin.flight.internal.utils.TextUtils
 
 open class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
-
     override fun name() = "No Category"
 
     @Command(aliases = ["commands", "cmds"], description = "Displays bot help.")
@@ -29,7 +28,7 @@ open class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
     open fun buildCommandList(ctx: MessageContext): List<String> {
         val helpMenu = StringBuilder()
         val commands = ctx.commandClient.commands.values.filter { !it.properties.hidden }
-        val padLength = ctx.commandClient.commands.values.maxByOrNull { it.name.length }!!.name.length
+        val padLength = ctx.commandClient.commands.values.maxOf { it.name.length }
         val categories = commands.groupBy { it.category.lowercase() }.mapValues { it.value.toSet() }
 
         for (entry in categories.entries.sortedBy { it.key }) {
@@ -79,7 +78,7 @@ open class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
     open fun buildCogHelp(ctx: MessageContext, cog: Cog): List<String> {
         val builder = StringBuilder("Commands in ${cog::class.simpleName}\n")
         val commands = ctx.commandClient.commands.findCommandsByCog(cog).filter { !it.properties.hidden }
-        val padLength = ctx.commandClient.commands.values.maxByOrNull { it.name.length }!!.name.length
+        val padLength = ctx.commandClient.commands.values.maxOf { it.name.length }
 
         for (command in commands) {
             builder.apply {

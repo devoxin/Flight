@@ -33,7 +33,7 @@ class Argument(
         val optionType = OPTION_TYPE_MAPPING[type]
             ?: throw IllegalStateException("Unable to find OptionType for type ${type.simpleName}")
 
-        return Pair(optionType, !isNullable && !optional)
+        return optionType to (!isNullable && !optional)
     }
 
     @Suppress("IMPLICIT_CAST_TO_ANY")
