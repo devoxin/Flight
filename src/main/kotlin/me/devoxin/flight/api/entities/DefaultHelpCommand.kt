@@ -32,7 +32,7 @@ open class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
         val categories = commands.groupBy { it.category.lowercase() }.mapValues { it.value.toSet() }
 
         for (entry in categories.entries.sortedBy { it.key }) {
-            helpMenu.append(toTitleCase(entry.key)).append("\n")
+            helpMenu.append(TextUtils.toTitleCase(entry.key)).append("\n")
 
             for (cmd in entry.value.sortedBy { it.name }) {
                 val description = cmd.properties.description
@@ -41,7 +41,7 @@ open class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
                     append("  ")
                     append(cmd.name.padEnd(padLength + 1, ' '))
                     append(" ")
-                    append(truncate(description, 100))
+                    append(TextUtils.truncate(description, 100))
                     append("\n")
                 }
             }
@@ -84,7 +84,7 @@ open class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
             builder.apply {
                 append(" ")
                 append(command.name.padEnd(padLength + 1, ' '))
-                append(truncate(command.properties.description, 100))
+                append(TextUtils.truncate(command.properties.description, 100))
                 append("\n")
             }
         }
@@ -99,11 +99,4 @@ open class DefaultHelpCommand(private val showParameterTypes: Boolean) : Cog {
             ctx.sendAsync("```\n$page```")
         }
     }
-
-    private fun toTitleCase(s: String) = s.split(" +".toRegex()).joinToString(" ", transform = TextUtils::capitalise)
-
-    private fun truncate(s: String, maxLength: Int): String {
-        return s.takeUnless { it.length > maxLength } ?: (s.take(maxLength - 3) + "...")
-    }
-
 }

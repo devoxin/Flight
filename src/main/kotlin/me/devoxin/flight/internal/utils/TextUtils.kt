@@ -42,4 +42,8 @@ object TextUtils {
     fun capitalise(s: String): String = s.lowercase().replaceFirstChar { it.uppercase() }
 
     fun plural(num: Number): String = if (num == 1) "" else "s"
+
+    fun truncate(s: String, maxLength: Int) = s.takeIf { it.length <= maxLength } ?: (s.take(maxLength - 3) + "...")
+
+    fun toTitleCase(s: String) = s.split(" +".toRegex()).joinToString(" ", transform = ::capitalise)
 }
