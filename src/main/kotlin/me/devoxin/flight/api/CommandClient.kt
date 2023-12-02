@@ -13,6 +13,7 @@ import me.devoxin.flight.api.entities.CooldownProvider
 import me.devoxin.flight.api.hooks.CommandEventAdapter
 import me.devoxin.flight.api.entities.PrefixProvider
 import me.devoxin.flight.api.entities.CommandRegistry
+import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.channel.middleman.StandardGuildMessageChannel
 import net.dv8tion.jda.api.events.Event
 import net.dv8tion.jda.api.events.GenericEvent
@@ -38,6 +39,28 @@ class CommandClient(
     private val pendingEvents = hashMapOf<Class<*>, HashSet<WaitingEvent<*>>>()
     val commands = CommandRegistry()
 
+    /**
+     * Checks whether the provided [message] is a command.
+     *
+     * @param message
+     *        The message to check.
+     * @return True, if the message is a command.
+     */
+    fun isCommand(message: Message): Boolean {
+        val prefixes = prefixProvider.provide(message)
+        val trigger = prefixes.firstOrNull { message.contentRaw.startsWith(it) } // This will break for "?", "??", "???"
+            ?: return false
+
+        if (trigger.length == message.contentRaw.length) {
+            return false
+        }
+
+        val args = message.contentRaw.substring(trigger.length).split(" +".toRegex()).toMutableList()
+        val command = args.removeAt(0).lowercase()
+
+        return (commands[command] ?: commands.findCommandByAlias(command)) != null
+    }
+
     // TODO: Check Context type before invoking?
 
     private fun onMessageReceived(event: MessageReceivedEvent) {
@@ -47,7 +70,7 @@ class CommandClient(
 
         val prefixes = prefixProvider.provide(event.message)
         val trigger = prefixes.firstOrNull { event.message.contentRaw.startsWith(it) } // This will break for "?", "??", "???"
-                ?: return
+            ?: return
 
         if (trigger.length == event.message.contentRaw.length) {
             return
@@ -57,8 +80,8 @@ class CommandClient(
         val command = args.removeAt(0).lowercase()
 
         val cmd = commands[command]
-                ?: commands.values.firstOrNull { it.properties.aliases.contains(command) }
-                ?: return dispatchSafely { it.onUnknownCommand(event, command, args) }
+            ?: commands.values.firstOrNull { it.properties.aliases.contains(command) }
+            ?: return dispatchSafely { it.onUnknownCommand(event, command, args) }
 
         val subcommand = args.firstOrNull()?.let { cmd.subcommands[it.lowercase()] }
         val invoked = subcommand ?: cmd
