@@ -48,7 +48,7 @@ class CommandClient(
      */
     fun isCommand(message: Message): Boolean {
         val prefixes = prefixProvider.provide(message)
-        val trigger = prefixes.firstOrNull { message.contentRaw.startsWith(it) } // This will break for "?", "??", "???"
+        val trigger = prefixes.firstOrNull(message.contentRaw::startsWith) // This will break for repetitive prefixes
             ?: return false
 
         if (trigger.length == message.contentRaw.length) {
@@ -69,7 +69,7 @@ class CommandClient(
         }
 
         val prefixes = prefixProvider.provide(event.message)
-        val trigger = prefixes.firstOrNull { event.message.contentRaw.startsWith(it) } // This will break for "?", "??", "???"
+        val trigger = prefixes.firstOrNull(event.message.contentRaw::startsWith) // This will break for repetitive prefixes
             ?: return
 
         if (trigger.length == event.message.contentRaw.length) {
@@ -83,7 +83,7 @@ class CommandClient(
             ?: commands.values.firstOrNull { it.properties.aliases.contains(command) }
             ?: return dispatchSafely { it.onUnknownCommand(event, command, args) }
 
-        val subcommand = args.firstOrNull()?.let { cmd.subcommands[it.lowercase()] }
+        val subcommand = args.firstOrNull()?.lowercase().let { cmd.subcommands[it] }
         val invoked = subcommand ?: cmd
 
         if (subcommand != null) {
