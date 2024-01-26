@@ -130,36 +130,6 @@ class MessageContext(
         return messageChannel.sendMessage(message).submit().await()
     }
 
-    /**
-     * Sends the message author a direct message.
-     *
-     * @param content
-     *        The content of the message.
-     */
-    fun sendPrivate(content: String) {
-        author.openPrivateChannel()
-            .flatMap { it.sendMessage(content) }
-            .flatMap { it.channel.asPrivateChannel().delete() }
-            .queue()
-    }
-
-    /**
-     * Sends the message author a direct message.
-     * This is intended as a lower level function (compared to the other send methods)
-     * to offer more functionality when needed.
-     *
-     * @param message
-     *        The message to send.
-     *
-     * @return The message that was sent.
-     */
-    fun sendPrivate(message: MessageCreateData) {
-        author.openPrivateChannel()
-            .flatMap { it.sendMessage(message) }
-            .flatMap { it.channel.asPrivateChannel().delete() }
-            .queue()
-    }
-
     private fun send0(messageOpts: (MessageCreateBuilder.() -> Unit)? = null, vararg files: FileUpload): RestAction<Message> {
         if (messageOpts == null && files.isEmpty()) {
             throw IllegalArgumentException("Cannot send a message with no options or attachments!")
@@ -206,23 +176,6 @@ class MessageContext(
         } finally {
             task.cancel(true)
         }
-    }
-
-    /**
-     * Waits for the given event. Only events that pass the given predicate will be returned.
-     * If the timeout is exceeded with no results then null will be returned.
-     *
-     * @param predicate
-     *        A function that must return a boolean denoting whether the event meets the given criteria.
-     *
-     * @param timeout
-     *        How long to wait, in milliseconds, for the given event type before expiring.
-     *
-     * @throws java.util.concurrent.TimeoutException
-     */
-    suspend fun <T: Event> waitFor(event: Class<T>, predicate: (T) -> Boolean, timeout: Long): T {
-        val r = commandClient.waitFor(event, predicate, timeout)
-        return r.await()
     }
 
     /**
