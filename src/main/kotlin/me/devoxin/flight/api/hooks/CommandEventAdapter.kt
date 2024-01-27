@@ -6,6 +6,7 @@ import me.devoxin.flight.api.context.MessageContext
 import me.devoxin.flight.api.entities.CheckType
 import me.devoxin.flight.api.exceptions.BadArgument
 import net.dv8tion.jda.api.Permission
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 
 interface CommandEventAdapter {
@@ -77,6 +78,11 @@ interface CommandEventAdapter {
      *        The remaining time of the cool-down, in milliseconds.
      */
     fun onCommandCooldown(ctx: Context, command: CommandFunction, cooldown: Long)
+
+    /**
+     * Invoked when an autocomplete handler encounters an error during execution.
+     */
+    fun onAutocompleteError(event: CommandAutoCompleteInteractionEvent, error: Throwable)
 
     /**
      * Invoked when a user lacks permissions to execute a command

@@ -85,13 +85,13 @@ class Indexer {
         require(ctxParam != null) { "${meth.name} is missing the Context parameter!" }
 
         val parameters = meth.valueParameters.filter { it != ctxParam }
-        val arguments = loadParameters(parameters)
+        val arguments = loadParameters(cog, parameters)
         val subcommands = getSubCommands(cog)
 
         val cogParentCommands = cog::class.functions.filter { m -> m.annotations.any { it is Command } }
 
         if (subcommands.isNotEmpty() && cogParentCommands.size > 1) {
-            throw IllegalStateException("SubCommands are present within ${cog::class.simpleName} however there are multiple top-level commands!")
+            throw IllegalStateException("Sub-commands are present within ${cog::class.simpleName} however there are multiple top-level commands!")
         }
 
         return CommandFunction(name, category, properties, cooldown, jar, subcommands, meth, cog, arguments, ctxParam)
@@ -121,12 +121,12 @@ class Indexer {
         require(ctxParam != null) { "${meth.name} is missing the Context parameter!" }
 
         val parameters = meth.valueParameters.filter { it != ctxParam }
-        val arguments = loadParameters(parameters)
+        val arguments = loadParameters(cog, parameters)
 
         return SubCommandFunction(name, properties, meth, cog, arguments, ctxParam)
     }
 
-    private fun loadParameters(parameters: List<KParameter>): List<Argument> {
+    private fun loadParameters(cog: Cog, parameters: List<KParameter>): List<Argument> {
         val arguments = mutableListOf<Argument>()
 
         for (p in parameters) {
@@ -138,12 +138,18 @@ class Indexer {
             val isOptional = p.isOptional
             val isNullable = p.type.isMarkedNullable
             val isTentative = p.hasAnnotation<Tentative>()
+            val autocomplete = p.findAnnotation<Autocomplete>()
+            val autocompleteMethod = autocomplete?.method?.let { cog::class.functions.find { f -> f.name == it } }
 
             if (isTentative && !(isNullable || isOptional)) {
                 throw IllegalStateException("${p.name} is marked as tentative, but does not have a default value and is not marked nullable!")
             }
 
-            arguments.add(Argument(name, description, range, type, isGreedy, isOptional, isNullable, isTentative, p))
+            if (autocomplete != null && autocompleteMethod == null) {
+                throw IllegalStateException("Couldn't find autocompleteMethod with name ${autocomplete.method} for parameter ${p.name}")
+            }
+
+            arguments.add(Argument(name, description, range, type, isGreedy, isOptional, isNullable, isTentative, autocompleteMethod, cog, p))
         }
 
         return arguments

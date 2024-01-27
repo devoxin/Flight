@@ -1,12 +1,9 @@
 package me.devoxin.flight.internal.entities
 
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import me.devoxin.flight.api.context.Context
-import me.devoxin.flight.api.context.ContextType
-import me.devoxin.flight.api.context.MessageContext
-import me.devoxin.flight.api.context.SlashContext
 import me.devoxin.flight.api.entities.Cog
 import me.devoxin.flight.internal.arguments.Argument
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
@@ -15,14 +12,13 @@ import java.util.concurrent.ExecutorService
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.*
-import kotlin.reflect.jvm.jvmErasure
 
 abstract class Executable(
     val name: String,
     val method: KFunction<*>,
     val cog: Cog,
     val arguments: List<Argument>,
-    private val contextParameter: KParameter
+    val contextParameter: KParameter
 ) {
     fun resolveArguments(options: List<OptionMapping>): HashMap<KParameter, Any?> {
         val mapping = hashMapOf<KParameter, Any?>()
@@ -60,7 +56,7 @@ abstract class Executable(
         args[contextParameter] = ctx
 
         if (method.isSuspend) {
-            GlobalScope.launch {
+            DEFAULT_DISPATCHER.launch {
                 executeAsync(args, complete)
             }
         } else {
@@ -91,5 +87,9 @@ abstract class Executable(
         } catch (e: Throwable) {
             complete(false, e.cause ?: e)
         }
+    }
+
+    companion object {
+        private val DEFAULT_DISPATCHER = CoroutineScope(Dispatchers.Default)
     }
 }
