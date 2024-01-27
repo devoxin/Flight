@@ -1,13 +1,23 @@
 package me.devoxin.flight.internal.arguments
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import me.devoxin.flight.api.annotations.Range
+import me.devoxin.flight.api.entities.Cog
+import me.devoxin.flight.internal.entities.Executable
+import me.devoxin.flight.internal.entities.Executable.Companion
 import net.dv8tion.jda.api.entities.*
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
 import net.dv8tion.jda.api.interactions.commands.OptionType
+import java.util.concurrent.ExecutorService
+import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
+import kotlin.reflect.full.callSuspend
 
 class Argument(
     val name: String,
@@ -18,11 +28,15 @@ class Argument(
     val optional: Boolean, // Denotes that a parameter has a default value.
     val isNullable: Boolean,
     val isTentative: Boolean,
+    val autocompleteHandler: KFunction<*>?,
+    internal val cog: Cog,
     internal val kparam: KParameter
 ) {
     val slashFriendlyName: String by lazy {
         return@lazy name.replace(SLASH_NAME_REGEX, "_$1").lowercase()
     }
+
+    val autocompleteSupported = autocompleteHandler != null
 
     /**
      * Returns this argument as a [Pair]<[OptionType], [Boolean]>.
@@ -82,7 +96,42 @@ class Argument(
         }
     }
 
+    fun executeAutocomplete(event: CommandAutoCompleteInteractionEvent, callback: (Throwable?) -> Unit, executor: ExecutorService?) {
+        if (autocompleteHandler == null) {
+            return callback(IllegalStateException("Cannot process autocomplete event as $name does not have a registered handler!"))
+        }
+
+        if (autocompleteHandler.isSuspend) {
+            DEFAULT_DISPATCHER.launch {
+                executeAutocompleteAsync(event, callback)
+            }
+        } else {
+            executor?.execute { executeAutocompleteSync(event, callback) }
+                ?: executeAutocompleteSync(event, callback)
+        }
+    }
+
+    private fun executeAutocompleteSync(event: CommandAutoCompleteInteractionEvent, callback: (Throwable?) -> Unit) {
+        try {
+            autocompleteHandler?.call(cog, event)
+            callback(null)
+        } catch (e: Throwable) {
+            callback(e)
+        }
+    }
+
+    private suspend fun executeAutocompleteAsync(event: CommandAutoCompleteInteractionEvent, callback: (Throwable?) -> Unit) {
+        try {
+            autocompleteHandler?.callSuspend(cog, event)
+            callback(null)
+        } catch (e: Throwable) {
+            callback(e)
+        }
+    }
+
     companion object {
+        private val DEFAULT_DISPATCHER = CoroutineScope(Dispatchers.Default)
+
         val SLASH_NAME_REGEX = "((?<=[a-z])[A-Z]|[A-Z](?=[a-z]))".toRegex()
 
         val OPTION_TYPE_MAPPING = mapOf(

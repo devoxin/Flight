@@ -2,7 +2,6 @@ package me.devoxin.flight.api
 
 import me.devoxin.flight.api.annotations.Command
 import me.devoxin.flight.api.annotations.Cooldown
-import me.devoxin.flight.api.annotations.SubCommand
 import me.devoxin.flight.api.context.ContextType
 import me.devoxin.flight.api.context.MessageContext
 import me.devoxin.flight.api.context.SlashContext

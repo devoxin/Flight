@@ -6,6 +6,7 @@ import me.devoxin.flight.api.context.MessageContext
 import me.devoxin.flight.api.entities.CheckType
 import me.devoxin.flight.api.exceptions.BadArgument
 import net.dv8tion.jda.api.Permission
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 
 open class DefaultCommandEventAdapter : CommandEventAdapter {
@@ -32,6 +33,10 @@ open class DefaultCommandEventAdapter : CommandEventAdapter {
     }
 
     override fun onCommandCooldown(ctx: Context, command: CommandFunction, cooldown: Long) = Unit
+
+    override fun onAutocompleteError(event: CommandAutoCompleteInteractionEvent, error: Throwable) {
+        error.printStackTrace()
+    }
 
     override fun onBotMissingPermissions(ctx: Context, command: CommandFunction, permissions: List<Permission>) = Unit
 

@@ -17,7 +17,7 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
     fun toDiscordCommands(): List<CommandData> {
         val commands = mutableListOf<CommandData>()
 
-        for (command in this.values.filter { it.contextType >= SLASH }) {
+        for (command in values.filter { it.contextType >= SLASH }) {
             val data = Commands.slash(command.name, command.properties.description)
                 .setGuildOnly(command.properties.guildOnly)
                 .setNSFW(command.properties.nsfw)
@@ -49,6 +49,7 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
             val (type, required) = it.asSlashCommandType()
 
             val option = OptionData(type, it.slashFriendlyName, it.description, required)
+                .setAutoComplete(it.autocompleteSupported)
 
             it.range?.let { r ->
                 r.double.takeIf(DoubleArray::isNotEmpty)?.let { range ->
@@ -72,7 +73,7 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
     }
 
     override fun clear() {
-        val cogs = this.values.map(CommandFunction::cog)
+        val cogs = values.map(CommandFunction::cog)
         super.clear()
         doUnload(cogs)
     }
@@ -82,32 +83,32 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
     }
 
     fun findCommandByAlias(alias: String): CommandFunction? {
-        return this.values.firstOrNull { alias in it.properties.aliases }
+        return values.firstOrNull { alias in it.properties.aliases }
     }
 
     fun findCogByName(name: String): Cog? {
-        return this.values.firstOrNull { it.cog.name() == name || it.cog::class.simpleName == name }?.cog
+        return values.firstOrNull { it.cog.name() == name || it.cog::class.simpleName == name }?.cog
     }
 
     fun findCommandsByCog(cog: Cog): List<CommandFunction> {
-        return this.values.filter { it.cog == cog }
+        return values.filter { it.cog == cog }
     }
 
     fun unload(commandFunction: CommandFunction) {
-        this.values.remove(commandFunction)
+        values.remove(commandFunction)
         doUnload(commandFunction.cog)
     }
 
     fun unload(cog: Cog) {
-        val commands = this.values.filter { it.cog == cog }
-        this.values.removeAll(commands)
+        val commands = values.filter { it.cog == cog }
+        values.removeAll(commands)
 
         commands.map(CommandFunction::cog).let(::doUnload)
 
         val jar = commands.firstOrNull { it.jar != null }?.jar
             ?: return // No commands loaded from jar, thus no classloader to close.
 
-        val canCloseLoader = this.values.none { it.jar == jar }
+        val canCloseLoader = values.none { it.jar == jar }
 
         // No other commands were loaded from the jar, so it's safe to close the loader.
         if (canCloseLoader) {
@@ -116,8 +117,8 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
     }
 
     fun unload(jar: Jar) {
-        val commands = this.values.filter { it.jar == jar }
-        this.values.removeAll(commands)
+        val commands = values.filter { it.jar == jar }
+        values.removeAll(commands)
 
         commands.map(CommandFunction::cog).let(::doUnload)
 
@@ -147,8 +148,8 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
         for (command in commands) {
             val cmd = i.loadCommand(command, cog)
 
-            if (this.containsKey(cmd.name)) {
-                throw RuntimeException("Cannot register command ${cmd.name}; the trigger has already been registered.")
+            if (containsKey(cmd.name)) {
+                throw RuntimeException("Cannot register command ${cmd.name} as the trigger has already been registered.")
             }
 
             this[cmd.name] = cmd

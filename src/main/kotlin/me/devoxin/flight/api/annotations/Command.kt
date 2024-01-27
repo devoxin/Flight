@@ -1,6 +1,5 @@
 package me.devoxin.flight.api.annotations
 
-import me.devoxin.flight.api.context.ContextType
 import net.dv8tion.jda.api.Permission
 
 /**

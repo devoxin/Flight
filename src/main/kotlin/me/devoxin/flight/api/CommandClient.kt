@@ -17,6 +17,7 @@ import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.channel.middleman.StandardGuildMessageChannel
 import net.dv8tion.jda.api.events.Event
 import net.dv8tion.jda.api.events.GenericEvent
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.events.session.ReadyEvent
@@ -60,8 +61,6 @@ class CommandClient(
 
         return (commands[command] ?: commands.findCommandByAlias(command)) != null
     }
-
-    // TODO: Check Context type before invoking?
 
     private fun onMessageReceived(event: MessageReceivedEvent) {
         if (ignoreBots && (event.author.isBot || event.isWebhookMessage)) {
@@ -128,7 +127,7 @@ class CommandClient(
 
     private fun onSlashCommand(event: SlashCommandInteractionEvent) {
         val cmd = commands[event.name] ?: return
-        val subcommand = event.subcommandName?.let { cmd.subcommands[it] ?: cmd.subcommandAliases[it] ?: return }
+        val subcommand = event.subcommandName?.let { cmd.subcommands[it] ?: return }
         val invoked = subcommand ?: cmd
         val ctx = SlashContext(this, event, invoked)
 
@@ -157,6 +156,28 @@ class CommandClient(
         invoked.execute(ctx, arguments, cb, null)
     }
 
+    private fun onAutocomplete(event: CommandAutoCompleteInteractionEvent) {
+        val commandName = event.name
+        val subcommandName = event.subcommandName
+
+        val command = commands[commandName]
+            ?: return
+
+        val subcommand = subcommandName?.let { command.subcommands[subcommandName] ?: return }
+
+        val executable = subcommand ?: command
+        val argument = executable.arguments.find { it.name == event.focusedOption.name }
+            ?: return
+
+        val cb = { err: Throwable? ->
+            if (err != null) {
+                dispatchSafely { it.onAutocompleteError(event, err) }
+            }
+        }
+
+        argument.executeAutocomplete(event, cb, commandExecutor)
+    }
+
 
     // +-------------------+
     // | Execution-Related |
@@ -169,6 +190,7 @@ class CommandClient(
                 is ReadyEvent -> onReady(event)
                 is MessageReceivedEvent -> onMessageReceived(event)
                 is SlashCommandInteractionEvent -> onSlashCommand(event)
+                is CommandAutoCompleteInteractionEvent -> onAutocomplete(event)
                 //else -> println(event)
             }
         } catch (e: Throwable) {
