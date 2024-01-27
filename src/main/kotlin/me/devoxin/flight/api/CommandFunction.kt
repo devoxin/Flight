@@ -30,6 +30,7 @@ class CommandFunction(
 ) : Executable(name, method, cog, arguments, contextParameter) {
     val contextType: ContextType
     val subcommands = hashMapOf<String, SubCommandFunction>()
+    val subcommandAliases = hashMapOf<String, SubCommandFunction>()
 
     init {
         val jvmCtx = contextParameter.type
@@ -41,14 +42,14 @@ class CommandFunction(
         }
 
         for (sc in subCmds) {
-            val triggers = listOf(sc.name, *sc.properties.aliases)
+            subcommands[sc.name] = sc
 
-            for (trigger in triggers) {
-                if (subcommands.containsKey(trigger)) {
+            for (trigger in sc.properties.aliases) {
+                if (subcommandAliases.containsKey(trigger)) {
                     throw IllegalStateException("The sub-command trigger $trigger already exists!")
                 }
 
-                subcommands[trigger] = sc
+                subcommandAliases[trigger] = sc
             }
         }
     }
