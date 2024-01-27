@@ -82,7 +82,7 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
     }
 
     fun findCommandByAlias(alias: String): CommandFunction? {
-        return this.values.firstOrNull { it.properties.aliases.contains(alias) }
+        return this.values.firstOrNull { alias in it.properties.aliases }
     }
 
     fun findCogByName(name: String): Cog? {

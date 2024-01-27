@@ -83,7 +83,7 @@ class CommandClient(
             ?: commands.values.firstOrNull { it.properties.aliases.contains(command) }
             ?: return dispatchSafely { it.onUnknownCommand(event, command, args) }
 
-        val subcommand = args.firstOrNull()?.lowercase().let { cmd.subcommands[it] }
+        val subcommand = args.firstOrNull()?.lowercase().let { cmd.subcommands[it] ?: cmd.subcommandAliases[it] }
         val invoked = subcommand ?: cmd
 
         if (subcommand != null) {
@@ -128,7 +128,7 @@ class CommandClient(
 
     private fun onSlashCommand(event: SlashCommandInteractionEvent) {
         val cmd = commands[event.name] ?: return
-        val subcommand = event.subcommandName?.let { cmd.subcommands[it] ?: return }
+        val subcommand = event.subcommandName?.let { cmd.subcommands[it] ?: cmd.subcommandAliases[it] ?: return }
         val invoked = subcommand ?: cmd
         val ctx = SlashContext(this, event, invoked)
 
