@@ -177,7 +177,7 @@ class ArgParser(
                     // or if the parameter requires a value (i.e. marked nullable).
                     //Commands marked optional already have a parameter, so they don't need user-provided values
                     // unless the argument was successfully resolved for that parameter.
-                    resolvedArgs[arg.kparam] = res
+                    resolvedArgs[arg.parameter] = res
                 }
             }
 
