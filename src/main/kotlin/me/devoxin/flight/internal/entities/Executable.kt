@@ -28,7 +28,7 @@ abstract class Executable(
 
             if (option == null) {
                 if (argument.isNullable && !argument.optional) {
-                    mapping += argument.kparam to null
+                    mapping += argument.parameter to null
                     continue
                 }
 

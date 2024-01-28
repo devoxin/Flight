@@ -30,7 +30,7 @@ class Argument(
     val isTentative: Boolean,
     val autocompleteHandler: KFunction<*>?,
     internal val cog: Cog,
-    internal val kparam: KParameter
+    val parameter: KParameter
 ) {
     val slashFriendlyName: String by lazy {
         return@lazy name.replace(SLASH_NAME_REGEX, "_$1").lowercase()
@@ -70,7 +70,7 @@ class Argument(
             else -> throw IllegalStateException("Unsupported OptionType ${mapping.type.name}")
         }
 
-        return kparam to mappingType
+        return parameter to mappingType
     }
 
     fun format(withType: Boolean): String {
