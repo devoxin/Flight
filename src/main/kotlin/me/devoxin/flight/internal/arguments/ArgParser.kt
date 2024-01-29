@@ -6,6 +6,7 @@ import me.devoxin.flight.api.exceptions.ParserNotRegistered
 import me.devoxin.flight.internal.entities.Executable
 import me.devoxin.flight.internal.parsers.Parser
 import me.devoxin.flight.internal.utils.TextUtils
+import me.devoxin.flight.internal.utils.Tuple
 import java.util.*
 import kotlin.reflect.KParameter
 
@@ -87,21 +88,34 @@ class ArgParser(
     fun parse(arg: Argument): Any? {
         val parser = parsers[arg.type]
             ?: throw ParserNotRegistered("No parsers registered for `${arg.type}`")
+
         val (argument, original) = getNextArgument(arg.greedy)
-        val result = argument.takeIf { it.isNotEmpty() }?.let {
-            try {
-                parser.parse(ctx, argument)
-            } catch (e: Throwable) {
-                throw BadArgument(arg, argument, e)
+        val (choiceCheck, choiceResolved, choiceMessage) = checkChoices(arg, argument)
+
+        var result: Any? = null
+
+        if (choiceResolved != null) {
+            // use the resolved value if available
+            result = choiceResolved
+        } else if (choiceMessage == null) {
+            // otherwise try and parse into the required type
+            // this mustn't try and parse if choiceMessage is not null as it indicates
+            // this argument has choices, so we should try and use those choices first
+            result = argument.takeIf { it.isNotEmpty() }?.let {
+                try {
+                    parser.parse(ctx, argument)
+                } catch (e: Throwable) {
+                    throw BadArgument(arg, argument, e)
+                }
             }
         }
 
         val canSubstitute = arg.isTentative || arg.isNullable || (arg.optional && argument.isEmpty())
         val (rangeCheck, rangeMessage) = checkRange(arg, result)
 
-        if (result == null || !rangeCheck) {
+        if (result == null || !rangeCheck || !choiceCheck) {
             if (!canSubstitute) { // canSubstitute -> Whether we can pass null or the default value.
-                val cause = rangeMessage?.let(::IllegalArgumentException)
+                val cause = (rangeMessage ?: choiceMessage)?.let(::IllegalArgumentException)
                 // This should throw if the result is not present, and one of the following is not true:
                 // - The arg is marked tentative (isTentative)
                 // - The arg can use null (isNullable)
@@ -116,7 +130,7 @@ class ArgParser(
             }
         }
 
-        return result.takeIf { rangeCheck }
+        return (choiceResolved ?: result).takeIf { rangeCheck && choiceCheck }
     }
 
     private fun <T : Any?> checkRange(arg: Argument, res: T): Pair<Boolean, String?> {
@@ -130,30 +144,81 @@ class ArgParser(
         val long = arg.range.long
         val string = arg.range.string
 
-        if (double.isNotEmpty() && res is Number) {
-            val dbl = res.toDouble()
-            return when (double.size) {
-                1 -> (dbl >= double[0]) to "`${arg.name}` must be at least ${double[0]} or bigger."
-                2 -> (dbl >= double[0] && dbl <= double[1]) to "`${arg.name}` must be within range ${double.joinToString("-")}."
-                else -> false to "Invalid double range for `${arg.name}`"
+        @Suppress("KotlinConstantConditions")
+        when {
+            res is Number -> when {
+                long.isNotEmpty() -> {
+                    val n = res.toLong()
+
+                    return when (long.size) {
+                        1 -> (n >= long[0]) to "`${arg.name}` must be at least ${long[0]} or bigger"
+                        2 -> (n >= long[0] && n <= long[1]) to "`${arg.name}` must be within range ${long.joinToString("-")}"
+                        else -> false to "Invalid long range for `${arg.name}`"
+                    }
+                }
+                double.isNotEmpty() -> {
+                    val n = res.toDouble()
+
+                    return when (double.size) {
+                        1 -> (n >= double[0]) to "`${arg.name}` must be at least ${double[0]} or bigger."
+                        2 -> (n >= double[0] && n <= double[1]) to "`${arg.name}` must be within range ${double.joinToString("-")}"
+                        else -> false to "Invalid double range for `${arg.name}`"
+                    }
+                }
             }
-        } else if (long.isNotEmpty() && res is Number) {
-            val lng = res.toLong()
-            return when (long.size) {
-                1 -> (lng >= long[0]) to "`${arg.name}` must be at least ${long[0]} or bigger."
-                2 -> (lng >= long[0] && lng <= long[1]) to "`${arg.name}` must be within range ${long.joinToString("-")}."
-                else -> false to "Invalid long range for `${arg.name}`"
-            }
-        } else if (string.isNotEmpty() && res is String) {
-            val lth = res.length
-            return when (string.size) {
-                1 -> (lth >= string[0]) to "`${arg.name}` must be at least ${string[0]} character${TextUtils.plural(string[0])} or longer."
-                2 -> (lth >= string[0] && lth <= string[1]) to "`${arg.name}` must be within the range of ${string.joinToString("-")} characters."
-                else -> false to "Invalid string range for `${arg.name}`"
+            res is String && string.isNotEmpty() -> {
+                val n = res.length
+
+                return when (string.size) {
+                    1 -> (n >= string[0]) to "`${arg.name}` must be at least ${string[0]} character${TextUtils.plural(string[0])} or longer."
+                    2 -> (n >= string[0] && n <= string[1]) to "`${arg.name}` must be within the range of ${string.joinToString("-")} characters."
+                    else -> false to "Invalid string range for `${arg.name}`"
+                }
             }
         }
 
         return true to null
+    }
+
+    /**
+     * Checks whether provided [res] is a valid choice.
+     *
+     * This will return any of the following:
+     * [true, null, null] - if there are no choices for this argument.
+     * [true, Any, null] - if the choice was resolved. Any will be the choice value.
+     * [false, null, null] - if there are choices, but [res] is not an applicable type.
+     * [false, null, String] - if there are choices, but [res] matched none of them. String will be an error message.
+     */
+    private fun checkChoices(arg: Argument, res: String?): Tuple<Boolean, Any?, String?> {
+        arg.choices ?: return Tuple(true, null, null)
+
+        if (res !is String) {
+            return Tuple(false, null, null)
+        }
+
+        val double = arg.choices.double
+        val long = arg.choices.long
+        val string = arg.choices.string
+
+        val (resolved, error) = when {
+            long.isNotEmpty() -> long.find { it.key == res }?.let { it.value to null }
+                ?: (null to long.joinToString("`, `", prefix = "`", postfix = "`"))
+            double.isNotEmpty() -> double.find { it.key == res }?.let { it.value to null }
+                ?: (null to double.joinToString("`, `", prefix = "`", postfix = "`"))
+            string.isNotEmpty() -> string.find { it.key == res }?.let { it.value to null }
+                ?: (null to string.joinToString("`, `", prefix = "`", postfix = "`"))
+            else -> null to null
+        }
+
+        if (error != null) {
+            return Tuple(false, null, "Invalid choice for `${arg.name}`.\nValid choices are: $error")
+        }
+
+        if (resolved != null) {
+            return Tuple(true, resolved, null)
+        }
+
+        return Tuple(true, null, null)
     }
 
     companion object {

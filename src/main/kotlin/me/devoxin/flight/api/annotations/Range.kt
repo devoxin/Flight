@@ -2,7 +2,8 @@ package me.devoxin.flight.api.annotations
 
 /**
  * The required range for the argument.
- * Fill in the required type as needed. You may not specify both.
+ * Fill in the required type as needed. All parameters are mutually exclusive,
+ * and only one may be specified per argument.
  * Example:
  *   @Range(double = [0.0, 5.0])
  * The first number represents the MINIMUM range. The second represents the MAXIMUM range.

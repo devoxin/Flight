@@ -27,49 +27,19 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
                     val scData = SubcommandData(sc.name, sc.properties.description)
 
                     if (sc.arguments.isNotEmpty()) {
-                        val options = getArgumentsAsOptions(sc.arguments)
-                        scData.addOptions(options)
+                        scData.addOptions(sc.arguments.map(Argument::asSlashCommandType))
                     }
 
                     data.addSubcommands(scData)
                 }
             } else if (command.arguments.isNotEmpty()) {
-                val options = getArgumentsAsOptions(command.arguments)
-                data.addOptions(options)
+                data.addOptions(command.arguments.map(Argument::asSlashCommandType))
             }
 
             commands.add(data)
         }
 
         return commands
-    }
-
-    private fun getArgumentsAsOptions(arguments: List<Argument>): List<OptionData> {
-        return arguments.map {
-            val (type, required) = it.asSlashCommandType()
-
-            val option = OptionData(type, it.slashFriendlyName, it.description, required)
-                .setAutoComplete(it.autocompleteSupported)
-
-            it.range?.let { r ->
-                r.double.takeIf(DoubleArray::isNotEmpty)?.let { range ->
-                    option.setMinValue(range[0])
-                    range.elementAtOrNull(1)?.let(option::setMaxValue)
-                }
-
-                r.long.takeIf(LongArray::isNotEmpty)?.let { range ->
-                    option.setMinValue(range[0])
-                    range.elementAtOrNull(1)?.let(option::setMaxValue)
-                }
-
-                r.string.takeIf(IntArray::isNotEmpty)?.let { range ->
-                    option.setMinLength(range[0])
-                    range.elementAtOrNull(1)?.let(option::setMaxLength)
-                }
-            }
-
-            option
-        }
     }
 
     override fun clear() {

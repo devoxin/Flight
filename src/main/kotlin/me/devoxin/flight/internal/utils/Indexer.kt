@@ -133,6 +133,7 @@ class Indexer {
             val name = p.findAnnotation<Name>()?.value ?: p.name ?: p.index.toString()
             val description = p.findAnnotation<Describe>()?.value ?: "No description available."
             val range = p.findAnnotation<Range>()
+            val choices = p.findAnnotation<Choices>()
             val type = p.type.jvmErasure.javaObjectType
             val isGreedy = p.hasAnnotation<Greedy>()
             val isOptional = p.isOptional
@@ -149,7 +150,7 @@ class Indexer {
                 throw IllegalStateException("Couldn't find autocompleteMethod with name ${autocomplete.method} for parameter ${p.name}")
             }
 
-            arguments.add(Argument(name, description, range, type, isGreedy, isOptional, isNullable, isTentative, autocompleteMethod, cog, p))
+            arguments.add(Argument(name, description, range, choices, type, isGreedy, isOptional, isNullable, isTentative, autocompleteMethod, cog, p))
         }
 
         return arguments

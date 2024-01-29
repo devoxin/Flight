@@ -3,26 +3,35 @@ package me.devoxin.flight.internal.arguments
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import me.devoxin.flight.api.annotations.Choices
+import me.devoxin.flight.api.annotations.Describe
 import me.devoxin.flight.api.annotations.Range
 import me.devoxin.flight.api.entities.Cog
-import me.devoxin.flight.internal.entities.Executable
-import me.devoxin.flight.internal.entities.Executable.Companion
-import net.dv8tion.jda.api.entities.*
+import net.dv8tion.jda.api.entities.Member
+import net.dv8tion.jda.api.entities.Message
+import net.dv8tion.jda.api.entities.Role
+import net.dv8tion.jda.api.entities.User
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
+import net.dv8tion.jda.api.interactions.commands.Command.Choice
 import net.dv8tion.jda.api.interactions.commands.OptionMapping
 import net.dv8tion.jda.api.interactions.commands.OptionType
+import net.dv8tion.jda.api.interactions.commands.build.OptionData
 import java.util.concurrent.ExecutorService
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.callSuspend
 
 class Argument(
+    /** The argument's parameter name */
     val name: String,
+    /** The argument's description, as given in the [Describe] annotation */
     val description: String,
     val range: Range?,
+    val choices: Choices?,
+    /** The parameter type for this argument **/
     val type: Class<*>,
     val greedy: Boolean,
     val optional: Boolean, // Denotes that a parameter has a default value.
@@ -43,11 +52,36 @@ class Argument(
      * The [OptionType] represents the type of this argument.
      * The [Boolean] represents whether the argument is required. True if it is, false otherwise.
      */
-    fun asSlashCommandType(): Pair<OptionType, Boolean> {
+    fun asSlashCommandType(): OptionData {
         val optionType = OPTION_TYPE_MAPPING[type]
             ?: throw IllegalStateException("Unable to find OptionType for type ${type.simpleName}")
 
-        return optionType to (!isNullable && !optional)
+        val option = OptionData(optionType, slashFriendlyName, description, !isNullable && !optional, autocompleteSupported)
+
+        range?.let {
+            it.double.takeIf(DoubleArray::isNotEmpty)?.let { range ->
+                option.setMinValue(range[0])
+                range.elementAtOrNull(1)?.let(option::setMaxValue)
+            }
+
+            it.long.takeIf(LongArray::isNotEmpty)?.let { range ->
+                option.setMinValue(range[0])
+                range.elementAtOrNull(1)?.let(option::setMaxValue)
+            }
+
+            it.string.takeIf(IntArray::isNotEmpty)?.let { range ->
+                option.setMinLength(range[0])
+                range.elementAtOrNull(1)?.let(option::setMaxLength)
+            }
+        }
+
+        choices?.let { choices ->
+            choices.double.takeIf { it.isNotEmpty() }?.let { option.addChoices(it.map { c -> Choice(c.key, c.value) }) }
+            choices.long.takeIf { it.isNotEmpty() }?.let { option.addChoices(it.map { c -> Choice(c.key, c.value) }) }
+            choices.string.takeIf { it.isNotEmpty() }?.let { option.addChoices(it.map { c -> Choice(c.key, c.value) }) }
+        }
+
+        return option
     }
 
     @Suppress("IMPLICIT_CAST_TO_ANY")
