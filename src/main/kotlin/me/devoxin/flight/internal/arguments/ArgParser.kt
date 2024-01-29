@@ -202,11 +202,11 @@ class ArgParser(
 
         val (resolved, error) = when {
             long.isNotEmpty() -> long.find { it.key == res }?.let { it.value to null }
-                ?: (null to long.joinToString("`, `", prefix = "`", postfix = "`"))
+                ?: (null to long.joinToString("`, `", prefix = "`", postfix = "`") { it.key })
             double.isNotEmpty() -> double.find { it.key == res }?.let { it.value to null }
-                ?: (null to double.joinToString("`, `", prefix = "`", postfix = "`"))
+                ?: (null to double.joinToString("`, `", prefix = "`", postfix = "`") { it.key })
             string.isNotEmpty() -> string.find { it.key == res }?.let { it.value to null }
-                ?: (null to string.joinToString("`, `", prefix = "`", postfix = "`"))
+                ?: (null to string.joinToString("`, `", prefix = "`", postfix = "`") { it.key })
             else -> null to null
         }
 
