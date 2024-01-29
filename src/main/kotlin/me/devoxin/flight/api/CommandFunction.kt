@@ -44,8 +44,10 @@ class CommandFunction(
             subcommands[sc.name] = sc
 
             for (trigger in sc.properties.aliases) {
-                if (subcommandAliases.containsKey(trigger)) {
-                    throw IllegalStateException("The sub-command trigger $trigger already exists!")
+                val existing = subcommandAliases[trigger]
+
+                if (existing != null) {
+                    throw IllegalStateException("The trigger '$trigger' for sub-command '${sc.name}' within command '$name' is already assigned to '${existing.name}'!")
                 }
 
                 subcommandAliases[trigger] = sc
