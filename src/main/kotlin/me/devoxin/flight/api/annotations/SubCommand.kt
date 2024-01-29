@@ -12,5 +12,6 @@ package me.devoxin.flight.api.annotations
 @Target(AnnotationTarget.FUNCTION)
 annotation class SubCommand(
     val aliases: Array<String> = [],
-    val description: String = "No description available"
+    val description: String = "No description available",
+    val guildOnly: Boolean = false
 )

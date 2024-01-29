@@ -263,11 +263,6 @@ class CommandClient(
             return false
         }
 
-        if (!ctx.isFromGuild && props.guildOnly) {
-            dispatchSafely { it.onCheckFailed(ctx, cmd, CheckType.GUILD_CHECK) }
-            return false
-        }
-
         if (ctx.isFromGuild) {
             if (props.userPermissions.isNotEmpty()) {
                 val userCheck = props.userPermissions.filterNot { ctx.member!!.hasPermission(ctx.guildChannel!!, it) }
@@ -289,6 +284,13 @@ class CommandClient(
 
             if (props.nsfw && (ctx.guildChannel as? StandardGuildMessageChannel)?.isNSFW != true) {
                 dispatchSafely { it.onCheckFailed(ctx, cmd, CheckType.NSFW_CHECK) }
+                return false
+            }
+        } else {
+            val subcommandProperties = (ctx.invokedCommand as? SubCommandFunction)?.properties
+
+            if (props.guildOnly || subcommandProperties?.guildOnly == true) {
+                dispatchSafely { it.onCheckFailed(ctx, cmd, CheckType.GUILD_CHECK) }
                 return false
             }
         }
