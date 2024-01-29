@@ -130,7 +130,7 @@ class ArgParser(
             }
         }
 
-        return (choiceResolved ?: result).takeIf { rangeCheck && choiceCheck }
+        return result.takeIf { rangeCheck && choiceCheck }
     }
 
     private fun <T : Any?> checkRange(arg: Argument, res: T): Pair<Boolean, String?> {
