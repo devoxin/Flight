@@ -10,7 +10,7 @@ class RoleParser : Parser<Role> {
 
         return when {
             snowflake != null -> ctx.guild?.getRoleById(snowflake)
-            else -> ctx.guild?.roleCache?.firstOrNull { it.name == param }
+            else -> if (param == "everyone") ctx.guild?.publicRole else ctx.guild?.roleCache?.firstOrNull { it.name == param }
         }
     }
 }
