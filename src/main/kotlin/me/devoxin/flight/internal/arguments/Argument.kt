@@ -99,8 +99,10 @@ class Argument(
             }
             OptionType.CHANNEL -> mapping.asChannel
             OptionType.ROLE -> mapping.asRole
-            OptionType.NUMBER -> mapping.asDouble
-            OptionType.ATTACHMENT -> mapping.asAttachment
+            OptionType.NUMBER -> when (type) {
+                Float::class.java, java.lang.Float::class.java -> mapping.asDouble.toFloat()
+                else -> mapping.asDouble
+            }
             else -> throw IllegalStateException("Unsupported OptionType ${mapping.type.name}")
         }
 
@@ -179,6 +181,8 @@ class Argument(
 
             Double::class.java to OptionType.NUMBER,
             java.lang.Double::class.java to OptionType.NUMBER,
+            Float::class.java to OptionType.NUMBER,
+            java.lang.Float::class.java to OptionType.NUMBER,
 
             Boolean::class.java to OptionType.BOOLEAN,
             java.lang.Boolean::class.java to OptionType.BOOLEAN,
