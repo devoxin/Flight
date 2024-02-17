@@ -29,7 +29,11 @@ class CommandFunction(
 ) : Executable(name, method, cog, arguments, contextParameter) {
     val contextType: ContextType
     val subcommands = hashMapOf<String, SubCommandFunction>()
-    val subcommandAliases = hashMapOf<String, SubCommandFunction>()
+
+    @Deprecated("Use #subcommands with a mapping/filter function.")
+    val subcommandAliases: Map<String, SubCommandFunction>
+        get() = subcommands.values.flatMap { it.properties.aliases.map { a -> a to it } }
+            .associateBy({ it.first }) { it.second }
 
     init {
         val jvmCtx = contextParameter.type
@@ -44,13 +48,13 @@ class CommandFunction(
             subcommands[sc.name] = sc
 
             for (trigger in sc.properties.aliases) {
-                val existing = subcommandAliases[trigger]
+                val existing = subcommands[trigger]
 
                 if (existing != null) {
                     throw IllegalStateException("The trigger '$trigger' for sub-command '${sc.name}' within command '$name' is already assigned to '${existing.name}'!")
                 }
 
-                subcommandAliases[trigger] = sc
+                subcommands[trigger] = sc
             }
         }
     }

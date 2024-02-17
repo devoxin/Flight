@@ -82,7 +82,7 @@ class CommandClient(
             ?: commands.values.firstOrNull { it.properties.aliases.contains(command) }
             ?: return dispatchSafely { it.onUnknownCommand(event, command, args) }
 
-        val subcommand = args.firstOrNull()?.lowercase().let { cmd.subcommands[it] ?: cmd.subcommandAliases[it] }
+        val subcommand = args.firstOrNull()?.lowercase().let { cmd.subcommands[it] }
         val invoked = subcommand ?: cmd
 
         if (subcommand != null) {
