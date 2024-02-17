@@ -23,7 +23,7 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
                 .setNSFW(command.properties.nsfw)
 
             if (command.subcommands.isNotEmpty()) {
-                for (sc in command.subcommands.values) {
+                for (sc in command.subcommands.values.toSet()) {
                     val scData = SubcommandData(sc.name, sc.properties.description)
 
                     if (sc.arguments.isNotEmpty()) {
