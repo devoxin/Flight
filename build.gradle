@@ -1,11 +1,11 @@
 plugins {
     id 'com.github.johnrengelman.shadow' version '7.1.2'
-    id 'org.jetbrains.kotlin.jvm' version '1.6.21'
+    id 'org.jetbrains.kotlin.jvm' version '1.9.23'
     id 'maven-publish'
 }
 
 group 'me.devoxin'
-version '4.2.0'
+version '4.2.1'
 
 repositories {
     maven {
@@ -18,9 +18,9 @@ repositories {
 }
 
 dependencies {
-    def kotlinVersion = '1.7.22'
+    def kotlinVersion = '1.9.23'
     def coroutinesVersion = '1.6.4'
-    def jdaVersion = '5.0.0-beta.15'
+    def jdaVersion = '5.0.0-beta.21'
 
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$coroutinesVersion"

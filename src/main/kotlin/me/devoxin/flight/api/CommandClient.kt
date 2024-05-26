@@ -166,7 +166,7 @@ class CommandClient(
         val subcommand = subcommandName?.let { command.subcommands[subcommandName] ?: return }
 
         val executable = subcommand ?: command
-        val argument = executable.arguments.find { it.name == event.focusedOption.name }
+        val argument = executable.arguments.find { it.slashFriendlyName == event.focusedOption.name }
             ?: return
 
         val cb = { err: Throwable? ->

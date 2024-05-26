@@ -41,10 +41,7 @@ class Argument(
     internal val cog: Cog,
     val parameter: KParameter
 ) {
-    val slashFriendlyName: String by lazy {
-        return@lazy name.replace(SLASH_NAME_REGEX, "_$1").lowercase()
-    }
-
+    val slashFriendlyName = name.replace(SLASH_NAME_REGEX, "_$1").lowercase()
     val autocompleteSupported = autocompleteHandler != null
 
     /**
