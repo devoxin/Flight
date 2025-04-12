@@ -1,5 +1,6 @@
 package me.devoxin.flight.api
 
+import me.devoxin.flight.api.annotations.GuildIds
 import me.devoxin.flight.api.context.Context
 import me.devoxin.flight.api.context.ContextType
 import me.devoxin.flight.api.context.MessageContext
