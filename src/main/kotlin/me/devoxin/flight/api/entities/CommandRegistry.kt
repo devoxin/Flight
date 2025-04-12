@@ -1,45 +1,61 @@
 package me.devoxin.flight.api.entities
 
 import me.devoxin.flight.api.CommandFunction
+import me.devoxin.flight.api.annotations.GuildIds
 import me.devoxin.flight.api.context.ContextType.SLASH
 import me.devoxin.flight.internal.arguments.Argument
 import me.devoxin.flight.internal.entities.Jar
 import me.devoxin.flight.internal.utils.Indexer
+import net.dv8tion.jda.api.JDA
+import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.interactions.commands.build.CommandData
 import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData
+import net.dv8tion.jda.api.sharding.ShardManager
 import org.slf4j.LoggerFactory
+import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.hasAnnotation
 
 class CommandRegistry : HashMap<String, CommandFunction>() {
     val objectStorage = ObjectStorage()
 
-    fun toDiscordCommands(): List<CommandData> {
-        val commands = mutableListOf<CommandData>()
+    /**
+     * Returns a list of all registered slash commands as [CommandData].
+     * If [includeGuildSpecific] is true, this will include any commands annotated with
+     * [me.devoxin.flight.api.annotations.GuildIds].
+     */
+    fun toDiscordCommands(includeGuildSpecific: Boolean = true): List<CommandData> {
+        return values.filter { it.contextType >= SLASH }
+            .filter { includeGuildSpecific || it.method.hasAnnotation<GuildIds>() }
+            .map(::toCommandData)
+            .toList()
+    }
 
-        for (command in values.filter { it.contextType >= SLASH }) {
-            val data = Commands.slash(command.name, command.properties.description)
-                .setGuildOnly(command.properties.guildOnly)
-                .setNSFW(command.properties.nsfw)
-
-            if (command.subcommands.isNotEmpty()) {
-                for (sc in command.subcommands.values.toSet()) {
-                    val scData = SubcommandData(sc.name, sc.properties.description)
-
-                    if (sc.arguments.isNotEmpty()) {
-                        scData.addOptions(sc.arguments.map(Argument::asSlashCommandType))
-                    }
-
-                    data.addSubcommands(scData)
-                }
-            } else if (command.arguments.isNotEmpty()) {
-                data.addOptions(command.arguments.map(Argument::asSlashCommandType))
-            }
-
-            commands.add(data)
+    fun toCommandData(command: CommandFunction): CommandData {
+        if (command.contextType < SLASH) {
+            throw IllegalArgumentException("${command.contextType}-type command cannot be used as a slash command!")
         }
 
-        return commands
+        val data = Commands.slash(command.name, command.properties.description)
+            .setGuildOnly(command.properties.guildOnly)
+            .setNSFW(command.properties.nsfw)
+
+        if (command.subcommands.isNotEmpty()) {
+            for (sc in command.subcommands.values.toSet()) {
+                val scData = SubcommandData(sc.name, sc.properties.description)
+
+                if (sc.arguments.isNotEmpty()) {
+                    scData.addOptions(sc.arguments.map(Argument::asSlashCommandType))
+                }
+
+                data.addSubcommands(scData)
+            }
+        } else if (command.arguments.isNotEmpty()) {
+            data.addOptions(command.arguments.map(Argument::asSlashCommandType))
+        }
+
+        return data
     }
 
     override fun clear() {

@@ -11,6 +11,8 @@ import me.devoxin.flight.api.annotations.choice.StringChoice
  * Example:
  *   @Choices(string = [StringChoice("Test", "hello world")])
  */
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.VALUE_PARAMETER)
 annotation class Choices(
     val long: Array<LongChoice> = [],
     val double: Array<DoubleChoice> = [],
