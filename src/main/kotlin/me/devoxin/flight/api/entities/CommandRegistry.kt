@@ -27,7 +27,7 @@ class CommandRegistry : HashMap<String, CommandFunction>() {
      */
     fun toDiscordCommands(includeGuildSpecific: Boolean = true): List<CommandData> {
         return values.filter { it.contextType >= SLASH }
-            .filter { includeGuildSpecific || it.method.hasAnnotation<GuildIds>() }
+            .filter { includeGuildSpecific || !it.method.hasAnnotation<GuildIds>() }
             .map(::toCommandData)
             .toList()
     }
