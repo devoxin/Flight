@@ -1,11 +1,13 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id 'com.github.johnrengelman.shadow' version '7.1.2'
-    id 'org.jetbrains.kotlin.jvm' version '1.9.23'
+    id 'org.jetbrains.kotlin.jvm' version '2.2.20'
     id 'maven-publish'
 }
 
 group 'me.devoxin'
-version '4.2.1'
+version '4.3.0'
 
 repositories {
     maven {
@@ -13,14 +15,13 @@ repositories {
         name 'm2-dv8tion'
     }
     mavenCentral()
-    jcenter()
     maven { url 'https://jitpack.io' }
 }
 
 dependencies {
-    def kotlinVersion = '1.9.23'
-    def coroutinesVersion = '1.6.4'
-    def jdaVersion = '5.3.2'
+    def kotlinVersion = '2.2.20'
+    def coroutinesVersion = '1.11.0'
+    def jdaVersion = '6.5.0'
 
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$coroutinesVersion"
@@ -33,7 +34,7 @@ dependencies {
 }
 
 compileKotlin {
-    kotlinOptions.jvmTarget = '1.8'
+    compilerOptions.jvmTarget = JvmTarget.JVM_1_8
 }
 
 String getBuildVersion() {

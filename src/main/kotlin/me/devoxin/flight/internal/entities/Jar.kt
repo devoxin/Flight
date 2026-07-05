@@ -8,9 +8,7 @@ class Jar(
     val packageName: String,
     private val classLoader: URLClassLoader
 ) {
-
     internal fun close() {
         classLoader.close()
     }
-
 }

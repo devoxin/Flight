@@ -30,6 +30,7 @@ interface Cog {
     /**
      * Invoked when this Cog gets unloaded, usually through [CommandRegistry.unload].
      * This can be used as a last-ditch attempt to clean up, or shut down any resources.
+     * A cog can be unloaded manually, or automatically if all of its registered commands are removed.
      */
     fun unload(): Unit = Unit
 
