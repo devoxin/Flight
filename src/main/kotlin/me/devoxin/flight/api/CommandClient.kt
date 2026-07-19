@@ -201,7 +201,7 @@ class CommandClient(
     private fun onReady(event: ReadyEvent) {
         if (ownerIds.isEmpty()) {
             event.jda.retrieveApplicationInfo().queue {
-                ownerIds.add(it.owner.idLong)
+                ownerIds.add(it.team?.ownerIdLong ?: it.owner.idLong)
             }
         }
     }
